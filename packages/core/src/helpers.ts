@@ -219,6 +219,38 @@ export default class Helpers implements Resolver {
     }
 
     /**
+     * Extracts a value from an object based on a JSON path.
+     * Supports dot-notation or JSON Pointer-like notation (e.g., "/value", "value", "state.status").
+     * @param data The object to extract from
+     * @param path The path string
+     * @returns The extracted value, or undefined if the path is not found
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public static extractDataFromPath(data: any, path: string): any {
+        if (data == null || typeof path !== "string") {
+            return undefined;
+        }
+
+        let cleanPath = path;
+        if (cleanPath.startsWith("/")) {
+            cleanPath = cleanPath.substring(1);
+        }
+
+        const parts = cleanPath.split(/[./]/);
+        let current = data;
+
+        for (const part of parts) {
+            if (current != null && typeof current === "object" && part in current) {
+                current = current[part];
+            } else {
+                return undefined;
+            }
+        }
+
+        return current;
+    }
+
+    /**
      * Helper function to remove reserved keywords in required property of TD JSON Schema
      */
     static createExposeThingInitSchema(tdSchema: unknown): SomeJSONSchema {

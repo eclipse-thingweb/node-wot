@@ -1063,4 +1063,138 @@ class WoTClientTest {
             expect(autoScheme.scheme).to.equal("auto");
         }
     }
+    @test async "read a Property with data mapping"() {
+        WoTClientTest.clientFactory.setTrap(() => {
+            return new Content(
+                "application/json",
+                Readable.from(Buffer.from(JSON.stringify({ value: 42, timestamp: "2023-01-01" })))
+            );
+        });
+        const td = Helpers.structuredClone(myThingDesc);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (td as any)["nw:dataSchemaMapping"] = {
+            "nw:property": { "nw:valuePath": "/value" },
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const result = await thing.readProperty("aProperty");
+        const value = await result.value();
+        expect(value).to.equal(42);
+    }
+
+    @test async "call an action with data mapping"() {
+        WoTClientTest.clientFactory.setTrap(() => {
+            return new Content(
+                "application/json",
+                Readable.from(Buffer.from(JSON.stringify({ data: { result: 100 } })))
+            );
+        });
+        const td = Helpers.structuredClone(myThingDesc);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (td as any)["nw:dataSchemaMapping"] = {
+            "nw:action": { "nw:valuePath": "data.result" },
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const result = await thing.invokeAction("anAction", 23);
+        const value = await result?.value();
+        expect(value).to.equal(100);
+    }
+
+    @test async "subscribe to event with data mapping"() {
+        WoTClientTest.clientFactory.setTrap(() => {
+            return new Content(
+                "application/json",
+                Readable.from(Buffer.from(JSON.stringify({ payload: "triggered inner" })))
+            );
+        });
+        const td = Helpers.structuredClone(myThingDesc);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (td as any)["nw:dataSchemaMapping"] = {
+            "nw:event": { "nw:valuePath": "/payload" },
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        return new Promise((resolve) => {
+            thing.subscribeEvent("anEvent", async (x) => {
+                const value = await x.value();
+                expect(value).to.equal("triggered inner");
+                resolve(true);
+            });
+        });
+    }
+
+    @test async "data mapping extraction happens before schema validation"() {
+        // The property schema requires an integer. We return an object.
+        // If validation happens before extraction, it throws a DataSchemaError.
+        // If extraction happens first, it validates the extracted integer, which succeeds.
+        WoTClientTest.clientFactory.setTrap(() => {
+            return new Content("application/json", Readable.from(Buffer.from(JSON.stringify({ wrapper: 99 }))));
+        });
+        const td = Helpers.structuredClone(myThingDesc);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (td as any)["nw:dataSchemaMapping"] = {
+            "nw:property": { "nw:valuePath": "/wrapper" },
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const result = await thing.readProperty("aProperty");
+        const value = await result.value();
+        expect(value).to.equal(99);
+    }
+
+    @test async "should inject Servient-level dataSchemaMapping on consume"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+        };
+        const testClientFactory = new TrapClientFactory();
+        testClientFactory.setTrap(() => {
+            return new Content(
+                "application/json",
+                Readable.from(Buffer.from(JSON.stringify({ servientWrapper: 1000 })))
+            );
+        });
+        customServient.addClientFactory(testClientFactory);
+        const customWoT = await customServient.start();
+
+        const td = Helpers.structuredClone(myThingDesc);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await customWoT.consume(td as any);
+
+        const result = await thing.readProperty("aProperty");
+        const value = await result.value();
+        expect(value).to.equal(1000);
+    }
+
+    @test async "should override Servient-level dataSchemaMapping with Thing-level on consume"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+        };
+        const testClientFactory = new TrapClientFactory();
+        testClientFactory.setTrap(() => {
+            return new Content("application/json", Readable.from(Buffer.from(JSON.stringify({ thingWrapper: 2000 }))));
+        });
+        customServient.addClientFactory(testClientFactory);
+        const customWoT = await customServient.start();
+
+        const td = Helpers.structuredClone(myThingDesc);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (td as any)["nw:dataSchemaMapping"] = {
+            "nw:property": { "nw:valuePath": "/thingWrapper" },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const thing = await customWoT.consume(td as any);
+
+        const result = await thing.readProperty("aProperty");
+        const value = await result.value();
+        expect(value).to.equal(2000);
+    }
 }

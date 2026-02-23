@@ -16,6 +16,7 @@ import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
 import { ProtocolHelpers } from "./core";
+import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
 import Ajv from "ajv";
@@ -44,6 +45,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
     form?: WoT.Form;
     schema?: WoT.DataSchema;
 
+    valuePath?: string;
+
     public get data(): ReadableStream {
         if (this.#stream) {
             return this.#stream;
@@ -58,10 +61,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, valuePath?: string) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
+        this.valuePath = valuePath;
         this.dataUsed = false;
     }
 
@@ -128,7 +132,13 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+        // Declared as 'let' instead of 'const' because the value is overwritten if
+        // dataSchemaMapping is configured to extract a nested value inline
+        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+
+        if (this.valuePath !== undefined) {
+            json = Helpers.extractDataFromPath(json, this.valuePath) as WoT.DataSchemaValue;
+        }
 
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
@@ -152,8 +162,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
 export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
     synchronous?: boolean;
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean) {
-        super(content, form, schema);
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean, valuePath?: string) {
+        super(content, form, schema, valuePath);
         this.synchronous = synchronous;
     }
 

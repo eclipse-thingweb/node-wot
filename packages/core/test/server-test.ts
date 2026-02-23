@@ -1066,4 +1066,52 @@ class WoTServerTest {
             (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0, uriVariables: { testWrong: "test" } })
         ).to.eventually.be.rejectedWith(Error);
     }
+
+    @test async "should inject Servient-level dataSchemaMapping on produce"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+        };
+        const customWoT = await customServient.start();
+
+        const thing = await customWoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((thing as any)["nw:dataSchemaMapping"]).to.exist;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        expect((thing as any)["nw:dataSchemaMapping"]["nw:property"]["nw:valuePath"]).to.equal("/servientWrapper");
+    }
+
+    @test async "should not overwrite Thing-level dataSchemaMapping with Servient-level on produce"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+            "nw:action": { "nw:valuePath": "/servientActionWrapper" },
+        };
+        const customWoT = await customServient.start();
+
+        const thing = await customWoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+            "nw:dataSchemaMapping": {
+                "nw:property": { "nw:valuePath": "/thingWrapper" },
+            } as Record<string, unknown>,
+        });
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mapping = (thing as any)["nw:dataSchemaMapping"];
+        expect(mapping["nw:property"]["nw:valuePath"]).to.equal("/thingWrapper"); // overriding
+        expect(mapping["nw:action"]["nw:valuePath"]).to.equal("/servientActionWrapper"); // inherited
+    }
 }

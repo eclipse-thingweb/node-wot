@@ -33,6 +33,16 @@ export class Thing implements TDT.ThingDescription {
 
     "@context": TDT.ThingContext;
 
+    /**
+     * Data schema mapping for extracting values from nested response objects.
+     * @experimental
+     */
+    "nw:dataSchemaMapping"?: {
+        "nw:property"?: { "nw:valuePath": string };
+        "nw:action"?: { "nw:valuePath": string };
+        "nw:event"?: { "nw:valuePath": string };
+    };
+
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 

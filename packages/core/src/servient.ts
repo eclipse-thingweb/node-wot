@@ -31,6 +31,16 @@ export default class Servient {
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
 
+    /**
+     * Data schema mapping for extracting values from nested response objects.
+     * @experimental
+     */
+    public dataSchemaMapping?: {
+        "nw:property"?: { "nw:valuePath": string };
+        "nw:action"?: { "nw:valuePath": string };
+        "nw:event"?: { "nw:valuePath": string };
+    };
+
     #wotInstance?: typeof WoT;
     #shutdown = false;
 

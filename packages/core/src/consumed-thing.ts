@@ -584,7 +584,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.readResource(formWithUriVariables);
         try {
-            return this.handleInteractionOutput(content, formWithUriVariables, tp);
+            return this.handleInteractionOutput(content, formWithUriVariables, tp, "nw:property");
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
@@ -594,13 +594,22 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     private handleInteractionOutput(
         content: Content,
         form: Form,
-        outputDataSchema: WoT.DataSchema | undefined
+        outputDataSchema: WoT.DataSchema | undefined,
+        interactionType?: "nw:property" | "nw:action" | "nw:event"
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new InteractionOutput(content, form, outputDataSchema);
+
+        let valuePath: string | undefined;
+        const mappedThing = this as unknown as { "nw:dataSchemaMapping"?: Record<string, { "nw:valuePath": string }> };
+        const mapping = mappedThing["nw:dataSchemaMapping"];
+        if (interactionType && mapping && mapping[interactionType] && mapping[interactionType]["nw:valuePath"]) {
+            valuePath = mapping[interactionType]["nw:valuePath"];
+        }
+
+        return new InteractionOutput(content, form, outputDataSchema, valuePath);
     }
 
     // check if returned media type is the same as expected media type (from TD)
@@ -620,13 +629,22 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        synchronous?: boolean
+        synchronous?: boolean,
+        interactionType?: "nw:property" | "nw:action" | "nw:event"
     ): ActionInteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous);
+
+        let valuePath: string | undefined;
+        const mappedThing = this as unknown as { "nw:dataSchemaMapping"?: Record<string, { "nw:valuePath": string }> };
+        const mapping = mappedThing["nw:dataSchemaMapping"];
+        if (interactionType && mapping && mapping[interactionType] && mapping[interactionType]["nw:valuePath"]) {
+            valuePath = mapping[interactionType]["nw:valuePath"];
+        }
+
+        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous, valuePath);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -745,7 +763,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.invokeResource(formWithUriVariables, input);
         try {
-            return this.handleActionInteractionOutput(content, formWithUriVariables, ta.output, ta.synchronous);
+            return this.handleActionInteractionOutput(
+                content,
+                formWithUriVariables,
+                ta.output,
+                ta.synchronous,
+                "nw:action"
+            );
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
@@ -788,7 +812,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             // next
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, tp));
+                    listener(this.handleInteractionOutput(content, form, tp, "nw:property"));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
@@ -844,7 +868,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             formWithoutURITemplates,
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, te.data));
+                    listener(this.handleInteractionOutput(content, form, te.data, "nw:event"));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing event for ${te.title}. ${error.message}`);

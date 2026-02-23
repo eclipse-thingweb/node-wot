@@ -107,6 +107,17 @@ export default class WoTImpl {
     async consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         try {
             const thing = parseTD(JSON.stringify(td), true);
+
+            if (this.srv.dataSchemaMapping) {
+                const mappedThing = thing as unknown as { "nw:dataSchemaMapping"?: object };
+                const mapping = mappedThing["nw:dataSchemaMapping"] ?? {};
+                if (Object.keys(mapping).length === 0) {
+                    mappedThing["nw:dataSchemaMapping"] = this.srv.dataSchemaMapping;
+                } else {
+                    mappedThing["nw:dataSchemaMapping"] = Object.assign({}, this.srv.dataSchemaMapping, mapping);
+                }
+            }
+
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
 
             debug(
@@ -132,6 +143,16 @@ export default class WoTImpl {
 
                 if (!validated.valid) {
                     throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
+
+                if (this.srv.dataSchemaMapping) {
+                    const mappedInit = init as unknown as { "nw:dataSchemaMapping"?: object };
+                    const mapping = mappedInit["nw:dataSchemaMapping"] ?? {};
+                    if (Object.keys(mapping).length === 0) {
+                        mappedInit["nw:dataSchemaMapping"] = this.srv.dataSchemaMapping;
+                    } else {
+                        mappedInit["nw:dataSchemaMapping"] = Object.assign({}, this.srv.dataSchemaMapping, mapping);
+                    }
                 }
 
                 const newThing = new ExposedThing(this.srv, init);
