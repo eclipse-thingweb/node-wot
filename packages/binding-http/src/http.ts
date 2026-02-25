@@ -47,6 +47,11 @@ export interface HttpConfig {
     security?: SecurityScheme[];
     devFriendlyUri?: boolean;
     middleware?: MiddlewareRequestHandler;
+    /**
+     * Configures the Access-Control-Allow-Origin header.
+     * Default is "*" (any origin allowed).
+     */
+    allowedOrigins?: string;
 }
 
 export interface OAuth2ServerConfig extends SecurityScheme {
