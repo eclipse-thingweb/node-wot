@@ -51,7 +51,7 @@ export interface MqttClientConfig {
 }
 
 export interface MqttBrokerServerConfig {
-    uri: string;
+    uri?: string;
     user?: string;
     psw?: string;
     clientId?: string;

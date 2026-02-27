@@ -140,16 +140,16 @@ Go into the repository:
 cd node-wot
 ```
 
-Build the Docker image named `wot-servient` from the `Dockerfile`:
+Build the Docker image named `node-wot` from the `Dockerfile`:
 
 ```
 npm run build:docker
 ```
 
-Run the wot-servient as a container:
+Run the `node-wot` as a container:
 
 ```
-docker run --rm wot-servient -h
+docker run --rm node-wot -h
 ```
 
 ## Examples
@@ -252,12 +252,12 @@ Can't find your preferred MediaType? More codecs can be easily added by implemen
 Run all the steps above including "Link Packages" and then run this:
 
 ```
-wot-servient -h
+node-wot -h
 cd examples/scripts
-wot-servient
+node-wot
 ```
 
-Without the "Link Packages" step, the `wot-servient` command is not available and `node` needs to be used (e.g., Windows CMD shell):
+Without the "Link Packages" step, the `node-wot` command is not available and `node` needs to be used (e.g., Windows CMD shell):
 
 ```
 # expose
@@ -277,9 +277,9 @@ First [build the docker image](#as-a-docker-image) and then run the counter exam
 
 ```
 # expose
-docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm wot-servient /srv/examples/scripts/counter.js
+docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm node-wot /srv/examples/scripts/counter.js
 # consume
-docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --client-only
+docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host node-wot /srv/examples/scripts/counter-client.js --client-only
 ```
 
 -   The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).

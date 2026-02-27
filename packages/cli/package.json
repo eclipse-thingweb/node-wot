@@ -14,7 +14,7 @@
     "main": "bin/index.js",
     "types": "dist/cli.d.ts",
     "bin": {
-        "wot-servient": "bin/index.js"
+        "node-wot": "bin/index.js"
     },
     "optionalDependencies": {
         "ts-node": "10.9.1"
@@ -28,18 +28,19 @@
         "@thingweb/thing-model": "^1.0.5",
         "ajv": "^8.11.0",
         "commander": "^9.1.0",
+        "debug": "^4.4.0",
         "dotenv": "^16.4.7",
-        "lodash": "^4.17.23",
-        "vm2": "3.10.0"
+        "lodash": "^4.17.21"
     },
     "scripts": {
-        "build": "tsc -b",
+        "build:transform": "node import-json-to-ts.js",
+        "build": "npm run build:transform && tsc -b",
         "start": "ts-node src/cli.ts",
         "debug": "node -r ts-node/register --inspect-brk=9229 src/cli.ts",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"**/*.json\"",
-        "test": "mocha --require ts-node/register --extension ts"
+        "test": "mocha --recursive --require ts-node/register --extension ts"
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"
@@ -47,6 +48,9 @@
     "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli#readme",
     "keywords": [],
     "devDependencies": {
-        "@types/lodash": "^4.14.199"
+        "@types/lodash": "^4.14.199",
+        "@types/tmp": "^0.2.6",
+        "json-schema-to-ts": "^3.1.1",
+        "tmp": "^0.2.5"
     }
 }

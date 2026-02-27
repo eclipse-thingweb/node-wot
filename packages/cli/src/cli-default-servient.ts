@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /********************************************************************************
  * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
@@ -25,97 +24,29 @@ import { HttpServer, HttpClientFactory, HttpsClientFactory } from "@node-wot/bin
 import { CoapServer, CoapClientFactory, CoapsClientFactory } from "@node-wot/binding-coap";
 import { MqttBrokerServer, MqttClientFactory } from "@node-wot/binding-mqtt";
 import { FileClientFactory } from "@node-wot/binding-file";
-import { CompilerFunction, NodeVM } from "vm2";
-import { ThingModelHelpers } from "@thingweb/thing-model";
+import { LogLevel, setLogLevel } from "./utils";
+import { ConfigurationAfterDefaults } from "./configuration";
 
-const { debug, error, info } = createLoggers("cli", "cli-default-servient");
+const { debug, info } = createLoggers("cli", "cli-default-servient");
 
-// Helper function needed for `mergeConfigs` function
-function isObject(item: unknown) {
-    return item != null && typeof item === "object" && !Array.isArray(item);
-}
-
-/**
- * Helper function merging default parameters into a custom config file.
- *
- * @param {object} target - an object containing default config parameters
- * @param {object} source - an object containing custom config parameters
- *
- * @return {object} The new config file containing both custom and default parameters
- */
-function mergeConfigs(target: any, source: any): any {
-    const output = Object.assign({}, target);
-    Object.keys(source).forEach((key) => {
-        if (!(key in target)) {
-            Object.assign(output, { [key]: source[key] });
-        } else {
-            if (isObject(target[key]) && isObject(source[key])) {
-                output[key] = mergeConfigs(target[key], source[key]);
-            } else {
-                Object.assign(output, { [key]: source[key] });
-            }
-        }
-    });
-    return output;
-}
-export interface ScriptOptions {
-    argv?: Array<string>;
-    compiler?: CompilerFunction;
-    env?: Record<string, string>;
-}
 export default class DefaultServient extends Servient {
-    private static readonly defaultConfig = {
-        servient: {
-            clientOnly: false,
-            scriptAction: false,
-        },
-        http: {
-            port: 8080,
-            allowSelfSigned: false,
-        },
-        coap: {
-            port: 5683,
-        },
-        log: {
-            level: "info",
-        },
-    };
-
     private uncaughtListeners: Array<NodeJS.UncaughtExceptionListener> = [];
-    private runtime: typeof WoT | undefined;
-    public readonly config: any;
+    public readonly config: ConfigurationAfterDefaults;
     // current log level
     public logLevel = "info";
 
-    public constructor(clientOnly: boolean, config?: any) {
+    public constructor(config: ConfigurationAfterDefaults) {
         super();
 
-        // init config
-        this.config =
-            typeof config === "object"
-                ? mergeConfigs(DefaultServient.defaultConfig, config)
-                : DefaultServient.defaultConfig;
-
-        // apply flags
-        if (clientOnly) {
-            this.config.servient ??= {};
-            this.config.servient.clientOnly = true;
-        }
-
-        // set log level before any output
-        this.setLogLevel(this.config.log.level);
+        this.config = config;
 
         // load credentials from config
         this.addCredentials(this.config.credentials);
 
-        // remove secrets from original for displaying config (already added)
-        if (this.config.credentials != null) {
-            delete this.config.credentials;
-        }
-
         // display
         debug("DefaultServient configured with");
-        debug(`${this.config}`);
+        // remove secrets from original for displaying config
+        debug(`%O`, { ...this.config, credentials: null });
 
         // apply config
         if (typeof this.config.servient.staticAddress === "string") {
@@ -160,188 +91,59 @@ export default class DefaultServient extends Servient {
     }
 
     /**
-     * Runs the script in a new sandbox
-     * @param {string} code - the script to run
-     * @param {string} filename - the filename of the script
-     */
-    public runScript(code: string, filename = "script"): unknown {
-        if (!this.runtime) {
-            throw new Error("WoT runtime not loaded; have you called start()?");
-        }
-        const helpers = new Helpers(this);
-        const context = {
-            WoT: this.runtime,
-            WoTHelpers: helpers,
-            ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-        });
-
-        const listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err);
-            // TODO: clean up script resources
-            process.exit(1);
-        };
-        process.prependListener("uncaughtException", listener);
-        this.uncaughtListeners.push(listener);
-
-        try {
-            return vm.run(code, filename);
-        } catch (err) {
-            if (err instanceof Error) {
-                this.logScriptError(`Servient found error in script '${filename}'`, err);
-            } else {
-                error(`Servient found error in script '${filename}' ${err}`);
-            }
-            return undefined;
-        }
-    }
-
-    /**
-     * Runs the script in privileged context (dangerous). In practice, this means that the script can
-     * require system modules.
-     * @param {string} code - the script to run
-     * @param {string} filename - the filename of the script
-     * @param {object} options - pass cli variables or envs to the script
-     */
-    public runPrivilegedScript(code: string, filename = "script", options: ScriptOptions = {}): unknown {
-        if (!this.runtime) {
-            throw new Error("WoT runtime not loaded; have you called start()?");
-        }
-        const helpers = new Helpers(this);
-        const context = {
-            WoT: this.runtime,
-            WoTHelpers: helpers,
-            ModelHelpers: new ThingModelHelpers(helpers),
-        };
-
-        const vm = new NodeVM({
-            sandbox: context,
-            require: {
-                external: true,
-                builtin: ["*"],
-            },
-            argv: options.argv,
-            compiler: options.compiler,
-            env: options.env,
-        });
-
-        const listener = (err: Error) => {
-            this.logScriptError(`Asynchronous script error '${filename}'`, err);
-            // TODO: clean up script resources
-            process.exit(1);
-        };
-        process.prependListener("uncaughtException", listener);
-        this.uncaughtListeners.push(listener);
-
-        try {
-            return vm.run(code, filename);
-        } catch (err) {
-            if (err instanceof Error) {
-                this.logScriptError(`Servient found error in privileged script '${filename}'`, err);
-            } else {
-                error(`Servient found error in privileged script '${filename}' ${err}`);
-            }
-            return undefined;
-        }
-    }
-
-    private logScriptError(description: string, err: Error): void {
-        let message: string;
-        if (typeof err === "object" && err.stack != null) {
-            const match = err.stack.match(/evalmachine\.<anonymous>:([0-9]+:[0-9]+)/);
-            if (Array.isArray(match)) {
-                message = `and halted at line ${match[1]}\n    ${err}`;
-            } else {
-                message = `and halted with ${err.stack}`;
-            }
-        } else {
-            message = `that threw ${typeof err} instead of Error\n    ${err}`;
-        }
-        error(`Servient caught ${description} ${message}`);
-    }
-
-    /**
      * start
      */
-    public start(): Promise<typeof WoT> {
-        return new Promise<typeof WoT>((resolve, reject) => {
-            super
-                .start()
-                .then((myWoT) => {
-                    info("DefaultServient started");
-                    this.runtime = myWoT;
-                    // TODO think about builder pattern that starts with produce() ends with expose(), which exposes/publishes the Thing
-                    myWoT
-                        .produce({
-                            title: "servient",
-                            description: "node-wot CLI Servient",
-                            properties: {
-                                things: {
-                                    type: "object",
-                                    description: "Get things",
-                                    observable: false,
-                                    readOnly: true,
-                                },
-                            },
-                            actions: {
-                                setLogLevel: {
-                                    description: "Set log level",
-                                    input: { oneOf: [{ type: "string" }, { type: "number" }] },
-                                    output: { type: "string" },
-                                },
-                                shutdown: {
-                                    description: "Stop servient",
-                                    output: { type: "string" },
-                                },
-                                runScript: {
-                                    description: "Run script",
-                                    input: { type: "string" },
-                                    output: { type: "string" },
-                                },
-                            },
-                        })
-                        .then((thing) => {
-                            thing.setActionHandler("setLogLevel", async (level) => {
-                                const ll = await Helpers.parseInteractionOutput(level);
-                                if (typeof ll === "number") {
-                                    this.setLogLevel(ll as number);
-                                } else if (typeof ll === "string") {
-                                    this.setLogLevel(ll as string);
-                                } else {
-                                    // try to convert it to strings
-                                    this.setLogLevel(ll + "");
-                                }
-                                return `Log level set to '${this.logLevel}'`;
-                            });
-                            thing.setActionHandler("shutdown", async () => {
-                                debug("shutting down by remote");
-                                await this.shutdown();
-                                return undefined;
-                            });
-                            thing.setActionHandler("runScript", async (script) => {
-                                const scriptv = await Helpers.parseInteractionOutput(script);
-                                debug("running script", scriptv);
-                                this.runScript(scriptv as string);
-                                return undefined;
-                            });
-                            thing.setPropertyReadHandler("things", async () => {
-                                debug("returning things");
-                                return this.getThings();
-                            });
-                            thing
-                                .expose()
-                                .then(() => {
-                                    // pass on WoTFactory
-                                    resolve(myWoT);
-                                })
-                                .catch((err) => reject(err));
-                        });
-                })
-                .catch((err) => reject(err));
+    public async start(): Promise<typeof WoT> {
+        const superWoT = await super.start();
+
+        info("DefaultServient started");
+
+        const servientProducedThing = await superWoT.produce({
+            title: "servient",
+            description: "node-wot CLI Servient",
+            properties: {
+                things: {
+                    type: "object",
+                    description: "Get things",
+                    observable: false,
+                    readOnly: true,
+                },
+            },
+            actions: {
+                setLogLevel: {
+                    description: "Set log level",
+                    input: {
+                        type: "string",
+                        enum: ["debug", "info", "warn", "error"],
+                    },
+                    output: { type: "string" },
+                },
+                shutdown: {
+                    description: "Stop servient",
+                    output: { type: "string" },
+                },
+            },
         });
+
+        servientProducedThing.setActionHandler("setLogLevel", async (payload) => {
+            const level = (await Helpers.parseInteractionOutput(payload)) as LogLevel;
+            setLogLevel(level);
+            this.logLevel = level;
+            return `Log level set to '${this.logLevel}'`;
+        });
+        servientProducedThing.setActionHandler("shutdown", async () => {
+            debug("shutting down by remote");
+            await this.shutdown();
+            return undefined;
+        });
+        servientProducedThing.setPropertyReadHandler("things", async () => {
+            debug("returning things");
+            return this.getThings();
+        });
+
+        await servientProducedThing.expose();
+
+        return superWoT;
     }
 
     public async shutdown(): Promise<void> {
@@ -350,61 +152,5 @@ export default class DefaultServient extends Servient {
         this.uncaughtListeners.forEach((listener) => {
             process.removeListener("uncaughtException", listener);
         });
-    }
-
-    // Save default loggers (needed when changing log levels)
-    private readonly loggers: any = {
-        warn: console.warn,
-        info: console.info,
-        debug: console.debug,
-    };
-
-    private setLogLevel(logLevel: string | number): void {
-        if (logLevel === "error" || logLevel === 0) {
-            console.warn = () => {
-                /* nothing */
-            };
-            console.info = () => {
-                /* nothing */
-            };
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "error";
-        } else if (logLevel === "warn" || logLevel === "warning" || logLevel === 1) {
-            console.warn = this.loggers.warn;
-            console.info = () => {
-                /* nothing */
-            };
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "warn";
-        } else if (logLevel === "info" || logLevel === 2) {
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "info";
-        } else if (logLevel === "debug" || logLevel === 3) {
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = this.loggers.debug;
-
-            this.logLevel = "debug";
-        } else {
-            // Fallback to default ("info")
-            console.warn = this.loggers.warn;
-            console.info = this.loggers.info;
-            console.debug = () => {
-                /* nothing */
-            };
-
-            this.logLevel = "info";
-        }
     }
 }
