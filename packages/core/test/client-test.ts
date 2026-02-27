@@ -51,12 +51,17 @@ chaiUse(chaiAsPromised);
 // should must be called to augment all variables
 should();
 
-const myThingDesc = {
-    "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+const myThingDesc: ThingDescription = {
+    "@context": ["https://www.w3.org/2019/wot/td/v1", "https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
     "@type": ["Thing"],
     id: "urn:dev:wot:test-thing",
     title: "aThing",
-    security: [{ scheme: "nosec" }],
+    securityDefinitions: {
+        nosec_sc: {
+            scheme: "nosec",
+        },
+    },
+    security: "nosec_sc",
     uriVariables: {
         idTestGlobal: {
             type: "string",
@@ -130,7 +135,7 @@ const myThingDesc = {
     events: {
         anEvent: {
             data: {
-                type: "string",
+                type: "string" as const,
             },
             forms: [
                 {
@@ -1070,13 +1075,14 @@ class WoTClientTest {
                 Readable.from(Buffer.from(JSON.stringify({ value: 42, timestamp: "2023-01-01" })))
             );
         });
-        const td = Helpers.structuredClone(myThingDesc);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (td as any)["nw:dataSchemaMapping"] = {
-            "nw:property": { "nw:valuePath": "/value" },
+        const td = {
+            ...Helpers.structuredClone(myThingDesc),
+            "nw:dataSchemaMapping": {
+                "nw:property": { "nw:valuePath": "/value" },
+            },
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const thing = await WoTClientTest.WoT.consume(td);
 
         const result = await thing.readProperty("aProperty");
         const value = await result.value();
@@ -1090,13 +1096,14 @@ class WoTClientTest {
                 Readable.from(Buffer.from(JSON.stringify({ data: { result: 100 } })))
             );
         });
-        const td = Helpers.structuredClone(myThingDesc);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (td as any)["nw:dataSchemaMapping"] = {
-            "nw:action": { "nw:valuePath": "data.result" },
+        const td = {
+            ...Helpers.structuredClone(myThingDesc),
+            "nw:dataSchemaMapping": {
+                "nw:action": { "nw:valuePath": "data.result" },
+            },
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const thing = await WoTClientTest.WoT.consume(td);
 
         const result = await thing.invokeAction("anAction", 23);
         const value = await result?.value();
@@ -1110,13 +1117,14 @@ class WoTClientTest {
                 Readable.from(Buffer.from(JSON.stringify({ payload: "triggered inner" })))
             );
         });
-        const td = Helpers.structuredClone(myThingDesc);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (td as any)["nw:dataSchemaMapping"] = {
-            "nw:event": { "nw:valuePath": "/payload" },
+        const td = {
+            ...Helpers.structuredClone(myThingDesc),
+            "nw:dataSchemaMapping": {
+                "nw:event": { "nw:valuePath": "/payload" },
+            },
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const thing = await WoTClientTest.WoT.consume(td);
 
         return new Promise((resolve) => {
             thing.subscribeEvent("anEvent", async (x) => {
@@ -1134,13 +1142,14 @@ class WoTClientTest {
         WoTClientTest.clientFactory.setTrap(() => {
             return new Content("application/json", Readable.from(Buffer.from(JSON.stringify({ wrapper: 99 }))));
         });
-        const td = Helpers.structuredClone(myThingDesc);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (td as any)["nw:dataSchemaMapping"] = {
-            "nw:property": { "nw:valuePath": "/wrapper" },
+        const td = {
+            ...Helpers.structuredClone(myThingDesc),
+            "nw:dataSchemaMapping": {
+                "nw:property": { "nw:valuePath": "/wrapper" },
+            },
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await WoTClientTest.WoT.consume(td as any);
+
+        const thing = await WoTClientTest.WoT.consume(td);
 
         const result = await thing.readProperty("aProperty");
         const value = await result.value();
@@ -1164,8 +1173,7 @@ class WoTClientTest {
 
         const td = Helpers.structuredClone(myThingDesc);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await customWoT.consume(td as any);
+        const thing = await customWoT.consume(td);
 
         const result = await thing.readProperty("aProperty");
         const value = await result.value();
@@ -1184,14 +1192,14 @@ class WoTClientTest {
         customServient.addClientFactory(testClientFactory);
         const customWoT = await customServient.start();
 
-        const td = Helpers.structuredClone(myThingDesc);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (td as any)["nw:dataSchemaMapping"] = {
-            "nw:property": { "nw:valuePath": "/thingWrapper" },
+        const td = {
+            ...Helpers.structuredClone(myThingDesc),
+            "nw:dataSchemaMapping": {
+                "nw:property": { "nw:valuePath": "/thingWrapper" },
+            },
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thing = await customWoT.consume(td as any);
+        const thing = await customWoT.consume(td);
 
         const result = await thing.readProperty("aProperty");
         const value = await result.value();
