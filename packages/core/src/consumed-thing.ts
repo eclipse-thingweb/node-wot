@@ -595,7 +595,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        interactionType: "nw:property" | "nw:action" | "nw:event"
+        interactionType: keyof Required<Exclude<Thing["nw:dataSchemaMapping"], undefined>>
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
@@ -624,8 +624,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        synchronous?: boolean,
-        interactionType?: "nw:property" | "nw:action" | "nw:event"
+        interactionType: keyof Required<Exclude<Thing["nw:dataSchemaMapping"], undefined>>,
+        synchronous?: boolean
     ): ActionInteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
@@ -757,8 +757,8 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
                 content,
                 formWithUriVariables,
                 ta.output,
-                ta.synchronous,
-                "nw:action"
+                "nw:action",
+                ta.synchronous
             );
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
