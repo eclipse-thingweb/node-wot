@@ -319,6 +319,51 @@ Below are small explanations of what they can be used for:
 -   Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
 -   Simple Coffee Machine: This is a simpler simulation of the coffee machine above.
 
+## Experimental Features
+
+### Data Mapping per Thing
+
+node-wot allows configuration of "Data Mapping" which extracts specific values from a Thing's response object (e.g., getting `123` from a wrapper `{ value: 123, timestamp: ... }`). This is useful when the Interaction only cares about an inner value but the Thing returns a wrapper object.
+
+This is configured using the experimental `nw:dataSchemaMapping` vocabulary in the Thing Description. It can be defined at the Thing level or globally injected via the `Servient` configuration:
+
+```json
+{
+    "title": "MyThing",
+    "properties": {
+        "status": {
+            "type": "integer",
+            "forms": [{ "href": "/status" }]
+        }
+    },
+    "nw:dataSchemaMapping": {
+        "nw:property": {
+            "nw:valuePath": "/value"
+        },
+        "nw:action": {
+            "nw:valuePath": "/value"
+        },
+        "nw:event": {
+            "nw:valuePath": "/value"
+        }
+    }
+}
+```
+
+The `nw:valuePath` supports simple JSON Pointer-like notation (e.g., `/value` or `value/nested`) or dot-notation (e.g., `value.nested`) and is evaluated _after_ content deserialization but _before_ JSON Schema validation. Currently, the `nw:` vocabulary is hardcoded internally and doesn't explicitly require an `@context` definition for node-wot to process it.
+
+Servient-level configuration can be added to naturally inject this vocabulary to any consumed or exposed Thing Descriptions without the application needing to do it manually. In the `wot-servient.conf.json` file, you can specify this parameter under the `"servient"` key:
+
+```json
+{
+    "servient": {
+        "dataSchemaMapping": {
+            "nw:property": { "nw:valuePath": "/value" }
+        }
+    }
+}
+```
+
 ## Documentation
 
 > [!WARNING]

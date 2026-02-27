@@ -107,6 +107,13 @@ export default class WoTImpl {
     async consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         try {
             const thing = parseTD(JSON.stringify(td), true);
+            const mapping = { ...(this.srv.dataSchemaMapping ?? {}), ...(thing["nw:dataSchemaMapping"] ?? {}) };
+
+            // If none mapping is configured, the property will be left undefined
+            if (Object.keys(mapping).length > 0) {
+                thing["nw:dataSchemaMapping"] = mapping;
+            }
+
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
 
             debug(
@@ -132,6 +139,13 @@ export default class WoTImpl {
 
                 if (!validated.valid) {
                     throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
+                }
+
+                const mapping = { ...(this.srv.dataSchemaMapping ?? {}), ...(init["nw:dataSchemaMapping"] ?? {}) };
+
+                // If none mapping is configured, the property will be left undefined
+                if (Object.keys(mapping).length > 0) {
+                    init["nw:dataSchemaMapping"] = mapping;
                 }
 
                 const newThing = new ExposedThing(this.srv, init);

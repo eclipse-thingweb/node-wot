@@ -30,7 +30,7 @@ import ExposedThing from "../src/exposed-thing";
 import { Readable } from "stream";
 import { InteractionInput, InteractionOptions, InteractionOutput } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
-import { createLoggers } from "../src/core";
+import { createLoggers, WoT as NodeWoTRuntime } from "../src/core";
 
 const { debug } = createLoggers("core", "ServerTest");
 
@@ -1065,5 +1065,49 @@ class WoTServerTest {
         expect(
             (<ExposedThing>thing).handleReadProperty("test", { formIndex: 0, uriVariables: { testWrong: "test" } })
         ).to.eventually.be.rejectedWith(Error);
+    }
+
+    @test async "should inject Servient-level dataSchemaMapping on produce"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+        };
+        const customWoT = (await customServient.start()) as NodeWoTRuntime;
+
+        const thing = (await customWoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+        })) as ExposedThing;
+
+        expect(thing["nw:dataSchemaMapping"]?.["nw:property"]?.["nw:valuePath"]).to.equal("/servientWrapper");
+    }
+
+    @test async "should not overwrite Thing-level dataSchemaMapping with Servient-level on produce"() {
+        const customServient = new Servient();
+        customServient.dataSchemaMapping = {
+            "nw:property": { "nw:valuePath": "/servientWrapper" },
+            "nw:action": { "nw:valuePath": "/servientActionWrapper" },
+        };
+        const customWoT = (await customServient.start()) as NodeWoTRuntime;
+
+        const thing = (await customWoT.produce({
+            title: "The Machine",
+            properties: {
+                test: {
+                    type: "string",
+                },
+            },
+            "nw:dataSchemaMapping": {
+                "nw:property": { "nw:valuePath": "/thingWrapper" },
+            },
+        })) as ExposedThing;
+
+        const mapping = thing["nw:dataSchemaMapping"] ?? {};
+        expect(mapping["nw:property"]?.["nw:valuePath"]).to.equal("/thingWrapper"); // overriding
+        expect(mapping["nw:action"]?.["nw:valuePath"]).to.equal("/servientActionWrapper"); // inherited
     }
 }

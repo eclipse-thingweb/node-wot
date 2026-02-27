@@ -15,7 +15,8 @@
 import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
-import { ProtocolHelpers } from "./core";
+import { DataSchemaMapping, ProtocolHelpers } from "./core";
+import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
 import Ajv from "ajv";
@@ -44,6 +45,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
     form?: WoT.Form;
     schema?: WoT.DataSchema;
 
+    mapping?: DataSchemaMapping;
+
     public get data(): ReadableStream {
         if (this.#stream) {
             return this.#stream;
@@ -58,10 +61,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, mapping?: DataSchemaMapping) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
+        this.mapping = mapping;
         this.dataUsed = false;
     }
 
@@ -128,7 +132,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+
+        if (this.mapping !== undefined) {
+            json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);
+        }
 
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
@@ -152,8 +160,14 @@ export class InteractionOutput implements WoT.InteractionOutput {
 export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
     synchronous?: boolean;
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean) {
-        super(content, form, schema);
+    constructor(
+        content: Content,
+        form?: WoT.Form,
+        schema?: WoT.DataSchema,
+        synchronous?: boolean,
+        mapping?: DataSchemaMapping
+    ) {
+        super(content, form, schema, mapping);
         this.synchronous = synchronous;
     }
 

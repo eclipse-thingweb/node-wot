@@ -21,7 +21,7 @@ import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protoco
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
 import { createLoggers } from "./logger";
-import { Helpers } from "./core";
+import { Helpers, Thing } from "./core";
 
 const { debug, warn } = createLoggers("core", "servient");
 
@@ -30,6 +30,12 @@ export default class Servient {
     private clientFactories: Map<string, ProtocolClientFactory> = new Map<string, ProtocolClientFactory>();
     private things: Map<string, ExposedThing> = new Map<string, ExposedThing>();
     private credentialStore: Map<string, Array<unknown>> = new Map<string, Array<unknown>>();
+
+    /**
+     * Data schema mapping for extracting values from nested response objects.
+     * @experimental
+     */
+    public dataSchemaMapping: Thing["nw:dataSchemaMapping"];
 
     #wotInstance?: typeof WoT;
     #shutdown = false;
