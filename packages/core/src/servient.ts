@@ -21,7 +21,7 @@ import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protoco
 import ContentManager, { ContentCodec } from "./content-serdes";
 import { v4 } from "uuid";
 import { createLoggers } from "./logger";
-import { Helpers } from "./core";
+import { Helpers, Thing } from "./core";
 
 const { debug, warn } = createLoggers("core", "servient");
 
@@ -35,11 +35,7 @@ export default class Servient {
      * Data schema mapping for extracting values from nested response objects.
      * @experimental
      */
-    public dataSchemaMapping?: {
-        "nw:property"?: { "nw:valuePath": string };
-        "nw:action"?: { "nw:valuePath": string };
-        "nw:event"?: { "nw:valuePath": string };
-    };
+    public dataSchemaMapping: Thing["nw:dataSchemaMapping"];
 
     #wotInstance?: typeof WoT;
     #shutdown = false;
