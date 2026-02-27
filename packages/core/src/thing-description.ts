@@ -38,9 +38,9 @@ export class Thing implements TDT.ThingDescription {
      * @experimental
      */
     "nw:dataSchemaMapping"?: {
-        "nw:property"?: { "nw:valuePath": string };
-        "nw:action"?: { "nw:valuePath": string };
-        "nw:event"?: { "nw:valuePath": string };
+        "nw:property"?: DataSchemaMapping;
+        "nw:action"?: DataSchemaMapping;
+        "nw:event"?: DataSchemaMapping;
     };
 
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
@@ -263,3 +263,4 @@ export abstract class ThingEvent {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
+export type DataSchemaMapping = { "nw:valuePath": string };

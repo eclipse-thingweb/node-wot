@@ -15,7 +15,7 @@
 import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
-import { ProtocolHelpers } from "./core";
+import { DataSchemaMapping, ProtocolHelpers } from "./core";
 import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
@@ -45,7 +45,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
     form?: WoT.Form;
     schema?: WoT.DataSchema;
 
-    valuePath?: string;
+    mapping?: DataSchemaMapping;
 
     public get data(): ReadableStream {
         if (this.#stream) {
@@ -61,11 +61,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, valuePath?: string) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, mapping?: DataSchemaMapping) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
-        this.valuePath = valuePath;
+        this.mapping = mapping;
         this.dataUsed = false;
     }
 
@@ -136,8 +136,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // dataSchemaMapping is configured to extract a nested value inline
         let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
 
-        if (this.valuePath !== undefined) {
-            json = Helpers.extractDataFromPath(json, this.valuePath) as WoT.DataSchemaValue;
+        if (this.mapping !== undefined) {
+            json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]) as WoT.DataSchemaValue;
         }
 
         // validate the schema
@@ -162,8 +162,14 @@ export class InteractionOutput implements WoT.InteractionOutput {
 export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
     synchronous?: boolean;
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean, valuePath?: string) {
-        super(content, form, schema, valuePath);
+    constructor(
+        content: Content,
+        form?: WoT.Form,
+        schema?: WoT.DataSchema,
+        synchronous?: boolean,
+        mapping?: DataSchemaMapping
+    ) {
+        super(content, form, schema, mapping);
         this.synchronous = synchronous;
     }
 

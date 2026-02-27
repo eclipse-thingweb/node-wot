@@ -602,9 +602,9 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
 
-        const valuePath = this["nw:dataSchemaMapping"]?.[interactionType]?.["nw:valuePath"];
+        const mapping = this["nw:dataSchemaMapping"]?.[interactionType];
 
-        return new InteractionOutput(content, form, outputDataSchema, valuePath);
+        return new InteractionOutput(content, form, outputDataSchema, mapping);
     }
 
     // check if returned media type is the same as expected media type (from TD)
@@ -632,9 +632,9 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
 
-        const valuePath = this["nw:dataSchemaMapping"]?.[interactionType]?.["nw:valuePath"];
+        const mapping = this["nw:dataSchemaMapping"]?.[interactionType];
 
-        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous, valuePath);
+        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous, mapping);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
