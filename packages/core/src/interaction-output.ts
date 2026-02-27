@@ -132,12 +132,10 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        // Declared as 'let' instead of 'const' because the value is overwritten if
-        // dataSchemaMapping is configured to extract a nested value inline
         let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
 
         if (this.mapping !== undefined) {
-            json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]) as WoT.DataSchemaValue;
+            json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);
         }
 
         // validate the schema
