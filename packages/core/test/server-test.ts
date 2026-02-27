@@ -30,7 +30,7 @@ import ExposedThing from "../src/exposed-thing";
 import { Readable } from "stream";
 import { InteractionInput, InteractionOptions, InteractionOutput } from "wot-typescript-definitions";
 import chaiAsPromised from "chai-as-promised";
-import { createLoggers } from "../src/core";
+import { createLoggers, WoT as NodeWoTRuntime } from "../src/core";
 
 const { debug } = createLoggers("core", "ServerTest");
 
@@ -1072,21 +1072,18 @@ class WoTServerTest {
         customServient.dataSchemaMapping = {
             "nw:property": { "nw:valuePath": "/servientWrapper" },
         };
-        const customWoT = await customServient.start();
+        const customWoT = (await customServient.start()) as NodeWoTRuntime;
 
-        const thing = await customWoT.produce({
+        const thing = (await customWoT.produce({
             title: "The Machine",
             properties: {
                 test: {
                     type: "string",
                 },
             },
-        });
+        })) as ExposedThing;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((thing as any)["nw:dataSchemaMapping"]).to.exist;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        expect((thing as any)["nw:dataSchemaMapping"]["nw:property"]["nw:valuePath"]).to.equal("/servientWrapper");
+        expect(thing["nw:dataSchemaMapping"]?.["nw:property"]?.["nw:valuePath"]).to.equal("/servientWrapper");
     }
 
     @test async "should not overwrite Thing-level dataSchemaMapping with Servient-level on produce"() {
@@ -1095,9 +1092,9 @@ class WoTServerTest {
             "nw:property": { "nw:valuePath": "/servientWrapper" },
             "nw:action": { "nw:valuePath": "/servientActionWrapper" },
         };
-        const customWoT = await customServient.start();
+        const customWoT = (await customServient.start()) as NodeWoTRuntime;
 
-        const thing = await customWoT.produce({
+        const thing = (await customWoT.produce({
             title: "The Machine",
             properties: {
                 test: {
@@ -1106,12 +1103,11 @@ class WoTServerTest {
             },
             "nw:dataSchemaMapping": {
                 "nw:property": { "nw:valuePath": "/thingWrapper" },
-            } as Record<string, unknown>,
-        });
+            },
+        })) as ExposedThing;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mapping = (thing as any)["nw:dataSchemaMapping"];
-        expect(mapping["nw:property"]["nw:valuePath"]).to.equal("/thingWrapper"); // overriding
-        expect(mapping["nw:action"]["nw:valuePath"]).to.equal("/servientActionWrapper"); // inherited
+        const mapping = thing["nw:dataSchemaMapping"] ?? {};
+        expect(mapping["nw:property"]?.["nw:valuePath"]).to.equal("/thingWrapper"); // overriding
+        expect(mapping["nw:action"]?.["nw:valuePath"]).to.equal("/servientActionWrapper"); // inherited
     }
 }
