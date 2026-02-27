@@ -176,6 +176,62 @@ try {
 }
 ```
 
+### MQTT Form Parameters: QoS and Retain
+
+The MQTT binding supports Quality of Service (QoS) and message retention through form parameters. These parameters control how messages are delivered and stored by the broker.
+
+#### Quality of Service (QoS)
+
+QoS determines the guarantee level for message delivery:
+
+-   `mqv:qos` = `"0"` (default): At most once - messages are delivered with no guarantee
+-   `mqv:qos` = `"1"`: At least once - messages are guaranteed to be delivered at least once
+-   `mqv:qos` = `"2"`: Exactly once - messages are guaranteed to be delivered exactly once
+
+When a consumer reads or writes to a Thing, it will use the QoS level specified in the form. For example:
+
+```js
+{
+    "properties": {
+        "temperature": {
+            "type": "number",
+            "forms": [
+                {
+                    "href": "mqtt://broker.example.com/sensor/temperature",
+                    "mqv:qos": "1"
+                }
+            ]
+        }
+    }
+}
+```
+
+#### Message Retention
+
+The `mqv:retain` parameter controls whether the broker retains the last message published to a topic:
+
+-   `mqv:retain` = `true`: The broker stores the last message and sends it to new subscribers
+-   `mqv:retain` = `false` (default): Messages are not retained
+
+This is useful for properties that represent state, ensuring new consumers immediately receive the current value:
+
+```js
+{
+    "properties": {
+        "status": {
+            "type": "string",
+            "forms": [
+                {
+                    "href": "mqtt://broker.example.com/device/status",
+                    "mqv:qos": "1",
+                    "mqv:retain": true
+                }
+            ]
+        }
+    }
+}
+```
+
 ### Hosting your own MQTT Broker
 
 Instead of connecting to an external MQTT broker, you can host your own MQTT broker within your node-wot application by setting the `selfHost` option to `true`. This is useful for testing, development, or when you want to run a self-contained application.
