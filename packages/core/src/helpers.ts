@@ -225,9 +225,8 @@ export default class Helpers implements Resolver {
      * @param path The path string
      * @returns The extracted value, or undefined if the path is not found
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public static extractDataFromPath(data: any, path: string): any {
-        if (data == null || typeof path !== "string") {
+    public static extractDataFromPath(data: unknown, path: string): DataSchemaValue | undefined {
+        if (data == null) {
             return undefined;
         }
 
@@ -237,17 +236,17 @@ export default class Helpers implements Resolver {
         }
 
         const parts = cleanPath.split(/[./]/);
-        let current = data;
+        let current: unknown = data;
 
         for (const part of parts) {
             if (current != null && typeof current === "object" && part in current) {
-                current = current[part];
+                current = (current as Record<string, unknown>)[part];
             } else {
                 return undefined;
             }
         }
 
-        return current;
+        return current as DataSchemaValue;
     }
 
     /**
