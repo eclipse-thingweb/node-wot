@@ -141,14 +141,11 @@ export default class WoTImpl {
                     throw new Error("Thing Description JSON schema validation failed:\n" + validated.errors);
                 }
 
-                if (this.srv.dataSchemaMapping) {
-                    const mappedInit = init as unknown as { "nw:dataSchemaMapping"?: object };
-                    const mapping = mappedInit["nw:dataSchemaMapping"] ?? {};
-                    if (Object.keys(mapping).length === 0) {
-                        mappedInit["nw:dataSchemaMapping"] = this.srv.dataSchemaMapping;
-                    } else {
-                        mappedInit["nw:dataSchemaMapping"] = Object.assign({}, this.srv.dataSchemaMapping, mapping);
-                    }
+                const mapping = { ...(this.srv.dataSchemaMapping ?? {}), ...(init["nw:dataSchemaMapping"] ?? {}) };
+
+                // If none mapping is configured, the property will be left undefined
+                if (Object.keys(mapping).length > 0) {
+                    init["nw:dataSchemaMapping"] = mapping;
                 }
 
                 const newThing = new ExposedThing(this.srv, init);
