@@ -107,15 +107,11 @@ export default class WoTImpl {
     async consume(td: WoT.ThingDescription): Promise<WoT.ConsumedThing> {
         try {
             const thing = parseTD(JSON.stringify(td), true);
+            const mapping = { ...(this.srv.dataSchemaMapping ?? {}), ...(thing["nw:dataSchemaMapping"] ?? {}) };
 
-            if (this.srv.dataSchemaMapping) {
-                const mappedThing = thing as unknown as { "nw:dataSchemaMapping"?: object };
-                const mapping = mappedThing["nw:dataSchemaMapping"] ?? {};
-                if (Object.keys(mapping).length === 0) {
-                    mappedThing["nw:dataSchemaMapping"] = this.srv.dataSchemaMapping;
-                } else {
-                    mappedThing["nw:dataSchemaMapping"] = Object.assign({}, this.srv.dataSchemaMapping, mapping);
-                }
+            // If none mapping is configured, the property will be left undefined
+            if (Object.keys(mapping).length > 0) {
+                thing["nw:dataSchemaMapping"] = mapping;
             }
 
             const newThing: ConsumedThing = new ConsumedThing(this.srv, thing as ThingModel);
