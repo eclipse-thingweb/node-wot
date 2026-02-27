@@ -595,19 +595,14 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
-        interactionType?: "nw:property" | "nw:action" | "nw:event"
+        interactionType: "nw:property" | "nw:action" | "nw:event"
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
 
-        let valuePath: string | undefined;
-        const mappedThing = this as unknown as { "nw:dataSchemaMapping"?: Record<string, { "nw:valuePath": string }> };
-        const mapping = mappedThing["nw:dataSchemaMapping"];
-        if (interactionType && mapping && mapping[interactionType] && mapping[interactionType]["nw:valuePath"]) {
-            valuePath = mapping[interactionType]["nw:valuePath"];
-        }
+        const valuePath = this["nw:dataSchemaMapping"]?.[interactionType]?.["nw:valuePath"];
 
         return new InteractionOutput(content, form, outputDataSchema, valuePath);
     }
@@ -637,12 +632,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
 
-        let valuePath: string | undefined;
-        const mappedThing = this as unknown as { "nw:dataSchemaMapping"?: Record<string, { "nw:valuePath": string }> };
-        const mapping = mappedThing["nw:dataSchemaMapping"];
-        if (interactionType && mapping && mapping[interactionType] && mapping[interactionType]["nw:valuePath"]) {
-            valuePath = mapping[interactionType]["nw:valuePath"];
-        }
+        const valuePath = this["nw:dataSchemaMapping"]?.[interactionType]?.["nw:valuePath"];
 
         return new ActionInteractionOutput(content, form, outputDataSchema, synchronous, valuePath);
     }
