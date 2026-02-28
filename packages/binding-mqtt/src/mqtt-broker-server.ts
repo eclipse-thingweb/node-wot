@@ -195,7 +195,7 @@ export default class MqttBrokerServer implements ProtocolServer {
 
             if (content == null) {
                 warn(`MqttBrokerServer on port ${this.getPort()} cannot process data for Event ${eventName}`);
-                thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
+                void thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex: event.forms.length - 1 });
                 return;
             }
             debug(`MqttBrokerServer at ${this.brokerURI} publishing to Event topic '${eventName}' `);
