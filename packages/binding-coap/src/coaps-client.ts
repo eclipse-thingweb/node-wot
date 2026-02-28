@@ -110,13 +110,13 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-            if (this.authorization != null) {
+            if (this.authorization !== undefined) {
                 coaps.setSecurityParams(requestUri.hostname, this.authorization);
             }
 
             const callback = (resp: CoapResponse) => {
                 if (resp.payload != null) {
-                    next(new Content(form?.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
+                    next(new Content(form.contentType ?? ContentSerdes.DEFAULT, Readable.from(resp.payload)));
                 }
             };
 
@@ -163,14 +163,14 @@ export default class CoapsClient implements ProtocolClient {
     }
 
     public setSecurity(metadata: Array<SecurityScheme>, credentials?: pskSecurityParameters): boolean {
-        if (metadata === undefined || !Array.isArray(metadata) || metadata.length === 0) {
+        if (!Array.isArray(metadata) || metadata.length === 0) {
             warn(`CoapsClient received empty security metadata`);
             return false;
         }
 
         const security: SecurityScheme = metadata[0];
 
-        if (security.scheme === "psk" && credentials != null) {
+        if (security.scheme === "psk" && credentials !== undefined) {
             this.authorization = { psk: {} };
             this.authorization.psk[credentials.identity] = credentials.psk;
         } else if (security.scheme === "apikey") {
@@ -184,22 +184,22 @@ export default class CoapsClient implements ProtocolClient {
 
         // TODO: node-coap-client does not support proxy / options in general :o
         /*
-    if (security.proxyURI) {
-      if (this.proxyOptions !== null) {
-        info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
-      }
+        if (security.proxyURI) {
+        if (this.proxyOptions !== null) {
+            info(`HttpClient overriding client-side proxy with security proxyURI '${security.proxyURI}`);
+        }
 
-      this.proxyOptions = this.uriToOptions(security.proxyURI);
+        this.proxyOptions = this.uriToOptions(security.proxyURI);
 
-      if (metadata.proxyauthorization == "Basic") {
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
-      } else if (metadata.proxyauthorization == "Bearer") {
-        this.proxyOptions.headers = {};
-        this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
-      }
-    }
-    */
+        if (metadata.proxyauthorization == "Basic") {
+            this.proxyOptions.headers = {};
+            this.proxyOptions.headers['Proxy-Authorization'] = "Basic " + Buffer.from(credentials.username + ":" + credentials.password).toString('base64');
+        } else if (metadata.proxyauthorization == "Bearer") {
+            this.proxyOptions.headers = {};
+            this.proxyOptions.headers['Proxy-Authorization'] = "Bearer " + credentials.token;
+        }
+        }
+        */
 
         debug(`CoapsClient using security scheme '${security.scheme}'`);
         return true;
@@ -224,7 +224,7 @@ export default class CoapsClient implements ProtocolClient {
     ): Promise<CoapResponse> {
         // url only works with http*
         const requestUri = new URL(form.href.replace(/$coaps/, "https"));
-        if (this.authorization != null) {
+        if (this.authorization !== undefined) {
             coaps.setSecurityParams(requestUri.hostname, this.authorization);
         }
 
