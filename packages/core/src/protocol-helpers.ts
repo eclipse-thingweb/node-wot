@@ -215,17 +215,27 @@ export default class ProtocolHelpers {
         const reader = stream.getReader();
         const result = new ManagedReadable({
             read: (size) => {
-                reader.read().then((data) => {
-                    result.push(data.value);
-                    if (data.done) {
-                        // signal end
-                        result.push(null);
-                    }
-                });
+                reader
+                    .read()
+                    .then((data) => {
+                        result.push(data.value);
+                        if (data.done) {
+                            // signal end
+                            result.push(null);
+                        }
+                    })
+                    .catch((error) => {
+                        throw error;
+                    });
             },
             destroy: (error, callback) => {
                 reader.releaseLock();
-                stream.cancel(error).then(() => callback(error));
+                stream
+                    .cancel(error)
+                    .then(() => callback(error))
+                    .catch((error) => {
+                        throw error;
+                    });
             },
         });
         result.wotStream = stream as ReadableStream;
