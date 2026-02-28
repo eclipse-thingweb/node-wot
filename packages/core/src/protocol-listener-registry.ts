@@ -21,6 +21,7 @@ export default class ProtocolListenerRegistry {
     private static EMPTY_MAP = new Map();
     private listeners: Map<ThingInteraction, Map<number, ContentListener[]>> = new Map();
     register(affordance: ThingInteraction, formIndex: number, listener: ContentListener): void {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (affordance.forms[formIndex] == null) {
             throw new Error(
                 "Can't register the listener for affordance with formIndex. The affordance does not contain the form"
@@ -76,6 +77,10 @@ export default class ProtocolListenerRegistry {
         if (formIndex !== undefined) {
             const listeners = formMap.get(formIndex);
             if (listeners) {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                if (!affordance.forms || affordance.forms[formIndex] === undefined) {
+                    throw new Error(`Form at index ${formIndex} does not exist`);
+                }
                 const contentType = affordance.forms[formIndex].contentType;
                 const content = contentSerdes.valueToContent(data, schema, contentType);
 

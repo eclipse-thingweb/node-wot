@@ -57,6 +57,7 @@ export class ContentSerdes {
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (this.instance == null) {
             this.instance = new ContentSerdes();
             // JSON
@@ -126,6 +127,7 @@ export class ContentSerdes {
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json
@@ -162,8 +164,6 @@ export class ContentSerdes {
         schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT
     ): Content {
-        if (value === undefined) warn("ContentSerdes valueToContent got no value");
-
         if (value instanceof ReadableStream) {
             return new Content(contentType, ProtocolHelpers.toNodeStream(value));
         }

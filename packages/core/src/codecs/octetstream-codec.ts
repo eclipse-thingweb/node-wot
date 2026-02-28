@@ -108,7 +108,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (parameters?.signed === "true") {
+                    if (parameters.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -117,7 +117,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 dataType = typeSem[2];
                 if (parseInt(typeSem[3]) !== bitLength) {
                     throw new Error(
-                        `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + bitLength
+                        `Type is '${(typeSem[1] || "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` + bitLength
                     );
                 }
             }
@@ -130,11 +130,11 @@ export default class OctetstreamCodec implements ContentCodec {
         }
 
         // Handle byte swapping
-        if (parameters?.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
+        if (parameters.byteSeq?.includes("BYTE_SWAP") === true && bytes.length > 1) {
             bytes.swap16();
         }
 
-        if (offset !== undefined && bitLength < bytes.length * 8) {
+        if (bitLength < bytes.length * 8) {
             bytes = this.readBits(bytes, offset, bitLength);
             bitLength = bytes.length * 8;
         }
@@ -282,7 +282,7 @@ export default class OctetstreamCodec implements ContentCodec {
             throw new Error("'ex:bitOffset' must be a non-negative number");
         }
 
-        let dataType: string = schema?.type ?? undefined;
+        let dataType: string | undefined = schema?.type;
 
         if (value === undefined) {
             throw new Error("Undefined value");
@@ -300,7 +300,7 @@ export default class OctetstreamCodec implements ContentCodec {
             if (typeSem) {
                 if (typeSem[1] === "u") {
                     // compare with schema information
-                    if (parameters?.signed === "true") {
+                    if (parameters.signed === "true") {
                         throw new Error("Type is unsigned but 'signed' is true");
                     }
                     // no schema, but type is unsigned
@@ -310,7 +310,7 @@ export default class OctetstreamCodec implements ContentCodec {
                 if (bitLength !== undefined) {
                     if (parseInt(typeSem[3]) !== bitLength) {
                         throw new Error(
-                            `Type is '${(typeSem[1] ?? "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` +
+                            `Type is '${(typeSem[1] || "") + typeSem[2] + typeSem[3]}' but 'ex:bitLength' is ` +
                                 bitLength
                         );
                     }
@@ -446,7 +446,7 @@ export default class OctetstreamCodec implements ContentCodec {
         }
         // Handle byte swapping
 
-        if (byteSeq?.includes("BYTE_SwAP") && byteLength > 1) {
+        if (byteSeq.includes("BYTE_SwAP") && byteLength > 1) {
             buf.swap16();
         }
         switch (byteLength) {
@@ -584,6 +584,7 @@ export default class OctetstreamCodec implements ContentCodec {
         parameters: { [key: string]: string | undefined } = {},
         result?: Buffer | undefined
     ): Buffer {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (typeof value !== "object" || value === null) {
             throw new Error("Value is not an object");
         }
