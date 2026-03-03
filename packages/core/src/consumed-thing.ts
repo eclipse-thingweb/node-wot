@@ -634,7 +634,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const mapping = this["nw:dataSchemaMapping"]?.[interactionType];
 
-        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous, mapping);
+        return new ActionInteractionOutput(content, form, outputDataSchema, mapping, synchronous);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {

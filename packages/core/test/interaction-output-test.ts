@@ -126,7 +126,7 @@ class InteractionOutputTests {
         const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
         const content = new Content("application/json", stream);
 
-        const out = new ActionInteractionOutput(content, {}, { type: "boolean" }, false);
+        const out = new ActionInteractionOutput(content, {}, { type: "boolean" }, undefined, false);
         const result = await out.value();
         expect(result).to.eql("not boolean");
     }

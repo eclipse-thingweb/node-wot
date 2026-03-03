@@ -164,8 +164,8 @@ export class ActionInteractionOutput extends InteractionOutput implements WoT.Ac
         content: Content,
         form?: WoT.Form,
         schema?: WoT.DataSchema,
-        synchronous?: boolean,
-        mapping?: DataSchemaMapping
+        mapping?: DataSchemaMapping,
+        synchronous?: boolean
     ) {
         super(content, form, schema, mapping);
         this.synchronous = synchronous;
