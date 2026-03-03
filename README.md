@@ -325,7 +325,7 @@ Below are small explanations of what they can be used for:
 
 node-wot allows configuration of "Data Mapping" which extracts specific values from a Thing's response object (e.g., getting `123` from a wrapper `{ value: 123, timestamp: ... }`). This is useful when the Interaction only cares about an inner value but the Thing returns a wrapper object.
 
-This is configured using the experimental `nw:dataSchemaMapping` vocabulary in the Thing Description. It can be defined at the Thing level or globally injected via the `Servient` configuration:
+This is configured using the experimental node-wot `nw:dataSchemaMapping` vocabulary in the Thing Description. It can be defined at the Thing level or globally injected via the `Servient` configuration:
 
 ```json
 {

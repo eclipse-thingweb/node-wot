@@ -109,7 +109,7 @@ export default class WoTImpl {
             const thing = parseTD(JSON.stringify(td), true);
             const mapping = { ...(this.srv.dataSchemaMapping ?? {}), ...(thing["nw:dataSchemaMapping"] ?? {}) };
 
-            // If none mapping is configured, the property will be left undefined
+            // If no mapping is configured, the property will be left undefined
             if (Object.keys(mapping).length > 0) {
                 thing["nw:dataSchemaMapping"] = mapping;
             }
