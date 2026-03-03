@@ -300,7 +300,7 @@ Please setup node-wot as described at the [node-wot main page](https://github.co
 -   example-mqtt-publish.js: Shows when node-wot acts as a MQTT Client that publishes data (latest counter value) to a broker.
     At the same time, another client can invoke an action, such as `resetCounter`, by sending a publication message to the topic of this action.
     This other client does not have to be node-wot, any MQTT client can interact with this Thing.
-    For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the wot-servient.conf.json:
+    For node-wot clients, make sure to provide MQTT broker details (`host`, `port`, `username`, `password`, `clientId`) in the `node-wot.conf.json`:
 
 ```js
 {

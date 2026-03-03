@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { FromSchema } from "json-schema-to-ts";
-import schema from "./generated/wot-servient-schema.conf";
+import schema from "./generated/node-wot-schema.conf";
 import { DotenvParseOutput } from "dotenv";
 import _ from "lodash";
 import { readFile } from "fs/promises";

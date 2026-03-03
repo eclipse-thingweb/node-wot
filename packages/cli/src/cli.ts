@@ -20,7 +20,7 @@ import DefaultServient from "./cli-default-servient";
 import * as path from "path";
 import { Command, Argument, Option } from "commander";
 import Ajv, { ValidateFunction } from "ajv";
-import ConfigSchema from "./generated/wot-servient-schema.conf";
+import ConfigSchema from "./generated/node-wot-schema.conf";
 import version from "./generated/version";
 import { createLoggers, Helpers } from "@node-wot/core";
 import { loadEnvVariables } from "./utils";
@@ -36,7 +36,7 @@ const { error, info, warn, debug } = createLoggers("cli", "cli");
 const program = new Command();
 const ajv = new Ajv({ strict: true, allErrors: true });
 const schemaValidator = ajv.compile(ConfigSchema) as ValidateFunction<Configuration>;
-const defaultFile = "wot-servient.conf.json";
+const defaultFile = "node-wot.conf.json";
 const baseDir = ".";
 
 // General commands
@@ -69,7 +69,7 @@ node-wot schema
 In your configuration files you can the following to enable IDE config validation:
 
 {
-    "$schema": "./node_modules/@node-wot/cli/dist/wot-servient-schema.conf.json"
+    "$schema": "./node_modules/@node-wot/cli/dist/node-wot-schema.conf.json"
     ...
 }
     `
@@ -86,7 +86,7 @@ program
     )
     .option(
         "-f, --config-file <file>",
-        "load configuration from specified file (default: $(pwd)/wot-servient.conf.json)",
+        "load configuration from specified file (default: $(pwd)/node-wot.conf.json)",
         (value, previous) => parseConfigFile(value, previous)
     )
     .option(

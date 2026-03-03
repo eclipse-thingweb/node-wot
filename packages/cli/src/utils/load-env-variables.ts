@@ -15,7 +15,7 @@
 import * as dotenv from "dotenv";
 import ErrnoException = NodeJS.ErrnoException;
 
-export function loadEnvVariables(prefix: string = "WOT_SERVIENT_"): { [key: string]: string } {
+export function loadEnvVariables(prefix: string = "NODE_WOT_"): { [key: string]: string } {
     const env: dotenv.DotenvConfigOutput = dotenv.config();
     const errornoException: ErrnoException | undefined = env.error;
     // ignore file not found but throw otherwise

@@ -32,8 +32,8 @@ class LoadEnvVariablesTest {
     }
 
     @test "should filter environment variables by prefix"() {
-        process.env.WOT_SERVIENT_HTTP_PORT = "8080";
-        process.env.WOT_SERVIENT_COAP_PORT = "5683";
+        process.env.NODE_WOT_HTTP_PORT = "8080";
+        process.env.NODE_WOT_COAP_PORT = "5683";
         process.env.OTHER_VAR = "value";
 
         const result = loadEnvVariables();
@@ -44,8 +44,8 @@ class LoadEnvVariablesTest {
     }
 
     @test "should return empty object when no matching variables are found"() {
-        delete process.env.WOT_SERVIENT_HTTP_PORT;
-        delete process.env.WOT_SERVIENT_COAP_PORT;
+        delete process.env.NODE_WOT_HTTP_PORT;
+        delete process.env.NODE_WOT_COAP_PORT;
 
         const result = loadEnvVariables();
 
@@ -56,7 +56,7 @@ class LoadEnvVariablesTest {
     @test "should use custom prefix"() {
         process.env.CUSTOM_PREFIX_VAR1 = "value1";
         process.env.CUSTOM_PREFIX_VAR2 = "value2";
-        process.env.WOT_SERVIENT_VAR3 = "value3";
+        process.env.NODE_WOT_VAR3 = "value3";
 
         const result = loadEnvVariables("CUSTOM_PREFIX_");
 
@@ -66,11 +66,11 @@ class LoadEnvVariablesTest {
     }
 
     @test "should remove prefix from keys"() {
-        process.env.WOT_SERVIENT_MYKEY = "myvalue";
+        process.env.NODE_WOT_MYKEY = "myvalue";
 
         const result = loadEnvVariables();
 
         expect(result).to.have.property("MYKEY", "myvalue");
-        expect(Object.keys(result)).to.not.include("WOT_SERVIENT_MYKEY");
+        expect(Object.keys(result)).to.not.include("NODE_WOT_MYKEY");
     }
 }

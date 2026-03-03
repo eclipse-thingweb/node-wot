@@ -17,7 +17,7 @@ import { suite, test } from "@testdeck/mocha";
 import { should, expect, use as chaiUse } from "chai";
 import { buildConfig, buildConfigFromFile, defaultConfiguration, Configuration } from "../src/configuration";
 import Ajv, { ValidateFunction } from "ajv";
-import ConfigSchema from "../src/generated/wot-servient-schema.conf";
+import ConfigSchema from "../src/generated/node-wot-schema.conf";
 import chaiAsPromised from "chai-as-promised";
 import { writeFileSync, unlinkSync } from "fs";
 import { ValidationError } from "ajv";

@@ -19,7 +19,7 @@ import { should, expect } from "chai";
 import { parseConfigParams } from "../../src/parsers/config-params-parser";
 import { InvalidArgumentError } from "commander";
 import Ajv, { ValidateFunction } from "ajv";
-import ConfigSchema from "../../src/generated/wot-servient-schema.conf";
+import ConfigSchema from "../../src/generated/node-wot-schema.conf";
 import { Configuration } from "../../src/configuration";
 
 should();

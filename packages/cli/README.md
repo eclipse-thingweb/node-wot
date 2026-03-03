@@ -48,7 +48,7 @@ node-wot script1.js ./src/script2.js
 
 ### Configuration
 
-The `-h` option explains the functionality and also how node-wot can be configured based on `wot-servient.conf.json`.
+The `-h` option explains the functionality and also how node-wot can be configured based on `node-wot.conf.json`.
 
 -   `node-wot -h` _or_
 -   `node packages\cli\dist\cli.js -h`
@@ -69,7 +69,7 @@ Options:
   -v, --version                   display node-wot version
   -c, --client-only               do not start any servers (enables multiple instances without port conflicts)
   -ll, --logLevel <string>        choose the desired log level. WARNING: if DEBUG env variable is specified this option gets overridden. (choices: "debug", "info", "warn", "error")
-  -f, --config-file <file>        load configuration from specified file (default: $(pwd)/wot-servient.conf.json)
+  -f, --config-file <file>        load configuration from specified file (default: $(pwd)/node-wot.conf.json)
   -p, --config-params <param...>  override configuration parameters [key1:=value1 key2:=value2 ...] (e.g. http.port:=8080)
   -h, --help                      show this help
 
@@ -91,12 +91,12 @@ node-wot schema
 In your configuration files you can the following to enable IDE config validation:
 
 {
-    "$schema": "./node_modules/@node-wot/cli/dist/wot-servient-schema.conf.json"
+    "$schema": "./node_modules/@node-wot/cli/dist/node-wot-schema.conf.json"
     ...
 }
 ```
 
-Additionally, you can look at [the JSON Schema](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/cli/src/wot-servient-schema.conf.json) to understand possible values for each field.
+Additionally, you can look at [the JSON Schema](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/cli/src/node-wot-schema.conf.json) to understand possible values for each field.
 
 > In the current implementation, the **middleware** option (that you can use to handle raw HTTP requests _before_ they hit the Servient) is only available when using the `@node-wot/binding-http` package as a library. See [Adding a middleware](../binding-http/README.md#adding-a-middleware) for more information.
 

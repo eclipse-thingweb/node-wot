@@ -118,7 +118,7 @@ You can alternatively use node-wot via its command line interface (CLI). Please 
 
 #### As global tool
 
-To make the `wot-servient` command available on your machine, install the CLI tool in the global scope:
+To make the `node-wot` command available on your machine, install the CLI tool in the global scope:
 
 ```
 npm i @node-wot/cli -g
