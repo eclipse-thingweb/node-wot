@@ -122,6 +122,10 @@ export default class DefaultServient extends Servient {
             Helpers.setStaticAddress(this.config.servient.staticAddress);
         }
 
+        if (this.config.servient.dataSchemaMapping) {
+            this.dataSchemaMapping = this.config.servient.dataSchemaMapping;
+        }
+
         let coapServer: CoapServer | undefined;
         if (this.config.servient.clientOnly === false) {
             if (this.config.http != null) {
