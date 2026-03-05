@@ -169,7 +169,7 @@ async function cleanup() {
 
 function controlTestServient() {
     return {
-        name: "wot-servient",
+        name: "node-wot",
 
         async executeCommand({ command }) {
             switch (command) {

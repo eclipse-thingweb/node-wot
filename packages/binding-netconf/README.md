@@ -44,7 +44,7 @@ The Binding example in the `./examples` directory provides a TD (`netconf-thing.
 Depending on which NETCONF server is used, the following might have to be changed:
 
 -   IP address and port in `examples/netconf-thing.jsonld`
--   credentials for the NETCONF Thing (id `urn:dev:wot:org:eclipse:netconf-example`) have to be changed in `wot-servient.conf.json`.
+-   credentials for the NETCONF Thing (id `urn:dev:wot:org:eclipse:netconf-example`) have to be changed in `node-wot.conf.json`.
 
 ## New Form Fields for the NETCONF Binding
 
@@ -53,7 +53,7 @@ Depending on which NETCONF server is used, the following might have to be change
 The href contains: URI schema + IP address + port + XPath
 
 -   URI schema: the schema for NETCONF is not registered with IANA; the Binding is using `netconf`.
--   IP address and port: IP address and port of the NETCONF server. The credentials for the SSH connection to the server can be added into the `wot-servient.configuration.json`.
+-   IP address and port: IP address and port of the NETCONF server. The credentials for the SSH connection to the server can be added into the `node-wot.configuration.json`.
 -   XPath: the XPath of the YANG model node addressed by the given InteractionAffordance. The XPath is automatically converted into the corresponding XML needed by the RPC. If an attribute refers to a particular namespace, an alias can be used. The complete URN for the alias should be added to the **nc:NSs** field.
 
 ### nc:target
