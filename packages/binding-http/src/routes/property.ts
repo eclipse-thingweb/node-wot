@@ -77,7 +77,7 @@ export default async function propertyRoute(
     }
 
     // TODO: refactor this part to move into a common place
-    setCorsForThing(req, res, thing);
+    setCorsForThing(req, res, thing, this.getAllowedOrigins());
     let corsPreflightWithCredentials = false;
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
@@ -108,7 +108,7 @@ export default async function propertyRoute(
     } else if (req.method === "PUT") {
         const readOnly: boolean = property.readOnly ?? false;
         if (readOnly) {
-            respondUnallowedMethod(req, res, "GET, PUT");
+            respondUnallowedMethod(req, res, "GET, PUT", false, this.getAllowedOrigins());
             return;
         }
 
@@ -128,6 +128,6 @@ export default async function propertyRoute(
     } else {
         // may have been OPTIONS that failed the credentials check
         // as a result, we pass corsPreflightWithCredentials
-        respondUnallowedMethod(req, res, "GET, PUT", corsPreflightWithCredentials);
+        respondUnallowedMethod(req, res, "GET, PUT", corsPreflightWithCredentials, this.getAllowedOrigins());
     } // Property exists?
 }

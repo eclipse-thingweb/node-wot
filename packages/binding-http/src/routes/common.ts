@@ -21,7 +21,8 @@ export function respondUnallowedMethod(
     req: IncomingMessage,
     res: ServerResponse,
     allowed: string,
-    corsPreflightWithCredentials = false
+    corsPreflightWithCredentials = false,
+    allowedOrigins = "*"
 ): void {
     // Always allow OPTIONS to handle CORS pre-flight requests
     if (!allowed.includes("OPTIONS")) {
@@ -40,7 +41,7 @@ export function respondUnallowedMethod(
             res.setHeader("Access-Control-Allow-Origin", origin);
             res.setHeader("Access-Control-Allow-Credentials", "true");
         } else {
-            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Origin", allowedOrigins);
         }
         res.setHeader("Access-Control-Allow-Methods", allowed);
         res.setHeader("Access-Control-Allow-Headers", "content-type, authorization, *");
@@ -91,7 +92,12 @@ export function securitySchemeToHttpHeader(scheme: string): string {
     return first.toUpperCase() + rest.join("").toLowerCase();
 }
 
-export function setCorsForThing(req: IncomingMessage, res: ServerResponse, thing: ExposedThing): void {
+export function setCorsForThing(
+    req: IncomingMessage,
+    res: ServerResponse,
+    thing: ExposedThing,
+    allowedOrigins = "*"
+): void {
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
     // Set CORS headers
 
@@ -100,6 +106,6 @@ export function setCorsForThing(req: IncomingMessage, res: ServerResponse, thing
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
     } else {
-        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Origin", allowedOrigins);
     }
 }
