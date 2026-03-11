@@ -27,7 +27,7 @@ import {
     ThingDescription,
 } from "wot-thing-description-types";
 
-const { debug, warn } = createLoggers("core", "serdes");
+const { debug } = createLoggers("core", "serdes");
 
 type AffordanceElement = PropertyElement | ActionElement | EventElement;
 
@@ -91,6 +91,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
 
     // apply defaults as per WoT Thing Description spec
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (thing["@context"] === undefined) {
         thing["@context"] = [TD.DEFAULT_CONTEXT_V1, TD.DEFAULT_CONTEXT_V11];
     } else if (Array.isArray(thing["@context"])) {
@@ -131,6 +132,7 @@ export function parseTD(td: string, normalize?: boolean): Thing {
             }
             thing["@context"] = semContext as ThingContext;
         }
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (thing["@context"] !== TD.DEFAULT_CONTEXT_V1 && thing["@context"] !== TD.DEFAULT_CONTEXT_V11) {
         const semContext = thing["@context"];
         // insert default contexts as first entries
@@ -168,9 +170,6 @@ export function parseTD(td: string, normalize?: boolean): Thing {
         adjustAffordanceField(thing, affordanceKey);
     }
 
-    if (thing.security === undefined) {
-        warn("parseTD() found no security metadata");
-    }
     // wrap in array for later simplification
     if (typeof thing.security === "string") {
         thing.security = [thing.security];
@@ -180,10 +179,11 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     const allForms = [];
     // properties
     for (const [propName, prop] of Object.entries(thing.properties ?? {})) {
-        // ensure forms mandatory forms field
-        if (prop.forms == null) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!prop.forms || !Array.isArray(prop.forms)) {
             throw new Error(`Property '${propName}' has no forms field`);
         }
+        // ensure forms mandatory forms field
         for (const form of prop.forms) {
             if (!form.href) {
                 throw new Error(`Form of Property '${propName}' has no href field`);
@@ -197,10 +197,11 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
     // actions
     for (const [actName, act] of Object.entries(thing.actions ?? {})) {
-        // ensure forms mandatory forms field
-        if (act.forms == null) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!act.forms || !Array.isArray(act.forms)) {
             throw new Error(`Action '${actName}' has no forms field`);
         }
+        // ensure forms mandatory forms field
         for (const form of act.forms) {
             if (!form.href) {
                 throw new Error(`Form of Action '${actName}' has no href field`);
@@ -214,10 +215,11 @@ export function parseTD(td: string, normalize?: boolean): Thing {
     }
     // events
     for (const [evtName, evt] of Object.entries(thing.events ?? {})) {
-        // ensure forms mandatory forms field
-        if (evt.forms == null) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (!evt.forms || !Array.isArray(evt.forms)) {
             throw new Error(`Event '${evtName}' has no forms field`);
         }
+        // ensure forms mandatory forms field
         for (const form of evt.forms) {
             if (!form.href) {
                 throw new Error(`Form of Event '${evtName}' has no href field`);
@@ -251,7 +253,7 @@ export function serializeTD(thing: Thing): string {
     const copy: Thing = JSON.parse(JSON.stringify(thing));
 
     // clean-ups
-    if (copy.security == null || copy.security.length === 0) {
+    if (copy.security.length === 0) {
         copy.securityDefinitions = {
             nosec_sc: { scheme: "nosec" },
         };
@@ -287,7 +289,7 @@ export function serializeTD(thing: Thing): string {
         delete copy.events;
     }
 
-    if (copy?.links.length === 0) {
+    if (copy.links?.length === 0) {
         delete copy.links;
     }
 
