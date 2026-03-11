@@ -65,7 +65,9 @@ export default class CoapClient implements ProtocolClient {
                 debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
-                const contentType = (res.headers["Content-Format"] as string) ?? form.contentType;
+                const rawContentType = res.headers["Content-Format"];
+                const contentType =
+                    typeof rawContentType === "string" ? rawContentType : (form.contentType ?? ContentSerdes.DEFAULT);
 
                 resolve(new Content(contentType, Readable.from(res.payload)));
             });
@@ -109,8 +111,11 @@ export default class CoapClient implements ProtocolClient {
                 debug(`CoapClient received ${res.code} from ${form.href}`);
                 debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
                 debug(`CoapClient received headers: ${JSON.stringify(res.headers)}`);
-                const contentType = res.headers["Content-Format"] as string;
-                resolve(new Content(contentType ?? "", Readable.from(res.payload)));
+
+                const rawContentType = res.headers["Content-Format"];
+                const contentType = typeof rawContentType === "string" ? rawContentType : ContentSerdes.DEFAULT;
+
+                resolve(new Content(contentType, Readable.from(res.payload)));
             });
             req.on("error", (err: Error) => reject(err));
             (async () => {
@@ -156,10 +161,12 @@ export default class CoapClient implements ProtocolClient {
                 debug(`CoapClient received Content-Format: ${res.headers["Content-Format"]}`);
 
                 // FIXME does not work with blockwise because of node-coap
-                const contentType = res.headers["Content-Format"] ?? form.contentType ?? ContentSerdes.DEFAULT;
+                const rawContentType = res.headers["Content-Format"];
+                const contentType =
+                    typeof rawContentType === "string" ? rawContentType : (form.contentType ?? ContentSerdes.DEFAULT);
 
                 res.on("data", (data: Buffer) => {
-                    next(new Content(`${contentType}`, Readable.from(res.payload)));
+                    next(new Content(contentType, Readable.from(res.payload)));
                 });
 
                 resolve(
@@ -190,7 +197,9 @@ export default class CoapClient implements ProtocolClient {
         req.setOption("Accept", "application/td+json");
         return new Promise<Content>((resolve, reject) => {
             req.on("response", (res: IncomingMessage) => {
-                const contentType = (res.headers["Content-Format"] as string) ?? "application/td+json";
+                const rawContentType = res.headers["Content-Format"];
+                const contentType = typeof rawContentType === "string" ? rawContentType : "application/td+json";
+
                 resolve(new Content(contentType, Readable.from(res.payload)));
             });
             req.on("error", (err: Error) => reject(err));
