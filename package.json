@@ -14,7 +14,7 @@
         }
     },
     "scripts": {
-        "build": "tsc -b && npm run build -w packages/browser-bundle",
+        "build": "npm run build:transform -w packages/cli && tsc -b && npm run build -w packages/browser-bundle",
         "pretest": "npm run build",
         "start": "cd packages/cli && npm run start",
         "debug": "cd packages/cli && npm run debug",
@@ -31,8 +31,8 @@
         "prepare": "husky install",
         "publish": "npm publish --workspaces",
         "check:versions": "node utils/check_package_version_consistency.js",
-        "build:docker": "docker build -t wot-servient .",
-        "build:podman": "podman build -t wot-servient .",
+        "build:docker": "docker build -t node-wot .",
+        "build:podman": "podman build -t node-wot .",
         "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
         "update:wot-typescript-definitions": "npx npm-check-updates  -u -f \"wot-typescript-definitions\" --deep",
         "link": "npm link -ws",
