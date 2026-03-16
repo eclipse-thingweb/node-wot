@@ -363,9 +363,14 @@ class WoTClientTest {
         this.clientFactory = new TrapClientFactory();
         this.servient.addClientFactory(this.clientFactory);
         this.servient.addClientFactory(new TDClientFactory());
-        this.servient.start().then((myWoT) => {
-            this.WoT = myWoT;
-        });
+        this.servient
+            .start()
+            .then((myWoT) => {
+                this.WoT = myWoT;
+            })
+            .catch((error) => {
+                throw error;
+            });
         debug("started test suite");
     }
 
@@ -575,11 +580,17 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("events").that.has.property("anEvent");
         return new Promise((resolve) => {
-            thing.subscribeEvent("anEvent", async (x) => {
-                const value = await x.value();
-                expect(value).to.equal("triggered");
-                resolve(true);
-            });
+            thing
+                .subscribeEvent("anEvent", async (x) => {
+                    const value = await x.value();
+                    expect(value).to.equal("triggered");
+                    resolve(true);
+                })
+                .catch((error) => {
+                    throw error;
+                });
+        }).catch((error) => {
+            throw error;
         });
     }
 
@@ -631,17 +642,25 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("events").that.has.property("anEvent");
 
-        const subscription = await thing.subscribeEvent("anEvent", () => {
-            /** */
-        });
+        const subscription = await thing
+            .subscribeEvent("anEvent", () => {
+                /** */
+            })
+            .catch((error) => {
+                throw error;
+            });
         await subscription.stop();
 
         return new Promise((resolve) => {
-            thing.subscribeEvent("anEvent", async (x) => {
-                const value = await x.value();
-                expect(value).to.equal("triggered");
-                resolve(true);
-            });
+            thing
+                .subscribeEvent("anEvent", async (x) => {
+                    const value = await x.value();
+                    expect(value).to.equal("triggered");
+                    resolve(true);
+                })
+                .catch((error) => {
+                    throw error;
+                });
         });
     }
 
@@ -654,11 +673,15 @@ class WoTClientTest {
         expect(thing).to.have.property("title").that.equals("aThing");
         expect(thing).to.have.property("properties").that.has.property("aPropertyToObserve");
         return new Promise((resolve) => {
-            thing.observeProperty("aPropertyToObserve", async (data) => {
-                const value = await data.value();
-                expect(value).to.equal(12);
-                resolve(true);
-            });
+            thing
+                .observeProperty("aPropertyToObserve", async (data) => {
+                    const value = await data.value();
+                    expect(value).to.equal(12);
+                    resolve(true);
+                })
+                .catch((error) => {
+                    throw error;
+                });
         });
     }
 
