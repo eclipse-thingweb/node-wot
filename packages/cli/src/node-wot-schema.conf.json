@@ -2,6 +2,17 @@
     "definitions": {},
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
+    "$defs": {
+        "mapping": {
+            "type": "object",
+            "properties": {
+                "nw:valuePath": {
+                    "type": "string"
+                }
+            },
+            "required": ["nw:valuePath"]
+        }
+    },
     "properties": {
         "$schema": { "type": "string" },
         "servient": {
@@ -15,6 +26,21 @@
                 "staticAddress": {
                     "type": "string",
                     "description": "hostname or IP literal for static address config"
+                },
+                "dataSchemaMapping": {
+                    "type": "object",
+                    "description": "Extracts specific values from a Thing's response object",
+                    "properties": {
+                        "nw:property": {
+                            "$ref": "#/$defs/mapping"
+                        },
+                        "nw:action": {
+                            "$ref": "#/$defs/mapping"
+                        },
+                        "nw:event": {
+                            "$ref": "#/$defs/mapping"
+                        }
+                    }
                 }
             },
             "additionalProperties": false
