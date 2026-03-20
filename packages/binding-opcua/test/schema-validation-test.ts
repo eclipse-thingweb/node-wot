@@ -19,7 +19,7 @@ import { expect } from "chai";
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
 import { opcuaJsonEncodeDataValue } from "node-opcua-json";
 
-import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codec";
+import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codecs/opcua-data-schemas";
 
 const { debug } = createLoggers("binding-opcua", "schema-validation-test");
 

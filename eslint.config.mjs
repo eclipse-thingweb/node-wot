@@ -84,7 +84,7 @@ export default defineConfig([
             "n/no-unsupported-features/node-builtins": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-extraneous-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/no-deprecated-api": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
-            "n/no-unpublished-import": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "n/no-unpublished-import": "error",
             "n/no-process-exit": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "n/hashbang": "warn",
 
@@ -122,7 +122,7 @@ export default defineConfig([
             "@typescript-eslint/no-unused-vars": "off",
             "@typescript-eslint/no-unused-expressions": "off",
             "@typescript-eslint/no-require-imports": "error",
-            "@typescript-eslint/prefer-nullish-coalescing": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "@typescript-eslint/prefer-nullish-coalescing": "error",
             "@typescript-eslint/no-empty-object-type": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
             "@typescript-eslint/no-floating-promises": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
 
@@ -135,7 +135,7 @@ export default defineConfig([
 
             "no-use-before-define": "error",
 
-            "no-unused-private-class-members": "off", // https://github.com/eclipse-thingweb/node-wot/issues/1430
+            "no-unused-private-class-members": "error",
             "no-prototype-builtins": "off",
             "no-case-declarations": "off",
 

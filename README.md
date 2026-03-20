@@ -56,13 +56,9 @@ For further information please refer to the official [W3C Web of Things](https:/
 
 ## Installation
 
-The framework can be used in two ways: as a library or as a CLI tool. In this section we will explain how to install the framework in both ways.
+The framework is composed by different packages that users can use as they please. The core package is @node-wot/core and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
 
-### As a library
-
-The framework is composed by different packages that users can use as they please. The core package is `@node-wot/core` and it is the only mandatory package to install. The other packages are bindings that allow the framework to communicate with different protocols.
-
-#### Node.js
+### Prerequisite: Node.js with build tools
 
 > [!WARNING]
 > We no longer actively support Node.js version 18 and lower.
@@ -81,27 +77,52 @@ Platforms specific prerequisites:
 -   Mac OS: Meet the [node-gyp](https://github.com/nodejs/node-gyp#installation) requirements:
     -   `xcode-select --install`
 
-If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need. To do so, `cd` inside your application folder, and run:
+### As a library
+
+If you want to use node-wot as a library in your Node.js application, you can use npm to install the node-wot packages that you need.
+Todo so, `cd` inside your application folder and install at least the mandatory core package:
 
 ```
-npm i @node-wot/core @node-wot/binding-http --save
+npm i @node-wot/core
 ```
 
-#### Browser
-
-To use node-wot as a browser-side JavaScript Library, the browser needs to support ECMAScript 2015.
-
-Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills. If you want to use node-wot as a library in your browser application, you can install the `@node-wot/browser-bundle` as following:
+Usually, your application needs at least one protocol binding to commmunicate, e.g.,:
 
 ```
-npm i @node-wot/browser-bundle --save
+npm i @node-wot/binding-http
 ```
 
-you can find more installation options in the specific [package README](./packages/browser-bundle/README.md).
+In case the application shall consume Thing Descriptions that are stored locally, you would also need the `file` binding:
+
+```
+npm i @node-wot/binding-file
+```
+
+You see other available bindings in the [packages folder](./packages), which you can install via `npm i @node-wot/<package-name>`.
+
+### In the browser
+
+To use node-wot as JavaScript library insde the Web browser, it needs to support ECMAScript 2015+. Using a browser with only ES5 support (e.g., IE 11) might be possible if you add polyfills.
+
+If you want to use node-wot as a library in your browser application,`cd` inside your application folder and install the browser bundle:
+
+```
+npm i @node-wot/browser-bundle
+```
+
+You can find more (non-)installation options in the specific [package README](./packages/browser-bundle/README.md).
 
 ### As a CLI tool
 
-You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool's Readme](<[url](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli)>) to find out more.
+You can alternatively use node-wot via its command line interface (CLI). Please visit the [CLI tool README](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/cli) to find out more.
+
+#### As global tool
+
+To make the `node-wot` command available on your machine, install the CLI tool in the global scope:
+
+```
+npm i @node-wot/cli -g
+```
 
 #### As a docker image
 
@@ -119,16 +140,16 @@ Go into the repository:
 cd node-wot
 ```
 
-Build the Docker image named `wot-servient` from the `Dockerfile`:
+Build the Docker image named `node-wot` from the `Dockerfile`:
 
 ```
 npm run build:docker
 ```
 
-Run the wot-servient as a container:
+Run the `node-wot` as a container:
 
 ```
-docker run --rm wot-servient -h
+docker run --rm node-wot -h
 ```
 
 ## Examples
@@ -231,12 +252,12 @@ Can't find your preferred MediaType? More codecs can be easily added by implemen
 Run all the steps above including "Link Packages" and then run this:
 
 ```
-wot-servient -h
+node-wot -h
 cd examples/scripts
-wot-servient
+node-wot
 ```
 
-Without the "Link Packages" step, the `wot-servient` command is not available and `node` needs to be used (e.g., Windows CMD shell):
+Without the "Link Packages" step, the `node-wot` command is not available and `node` needs to be used (e.g., Windows CMD shell):
 
 ```
 # expose
@@ -256,9 +277,9 @@ First [build the docker image](#as-a-docker-image) and then run the counter exam
 
 ```
 # expose
-docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm wot-servient /srv/examples/scripts/counter.js
+docker run -it --init -p 8080:8080/tcp -p 5683:5683/udp -v "$(pwd)"/examples:/srv/examples --rm node-wot /srv/examples/scripts/counter.js
 # consume
-docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host wot-servient /srv/examples/scripts/counter-client.js --client-only
+docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host node-wot /srv/examples/scripts/counter-client.js --client-only
 ```
 
 -   The counter exposes the HTTP endpoint at 8080/tcp and the CoAP endpoint at 5683/udp and they are bound to the host machine (with `-p 8080:8080/tcp -p 5683:5683/udp`).
@@ -297,6 +318,51 @@ Below are small explanations of what they can be used for:
 -   Presence Sensor: It mocks the detection of a person by firing an event every 5 seconds.
 -   Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
 -   Simple Coffee Machine: This is a simpler simulation of the coffee machine above.
+
+## Experimental Features
+
+### Data Mapping per Thing
+
+node-wot allows configuration of "Data Mapping" which extracts specific values from a Thing's response object (e.g., getting `123` from a wrapper `{ value: 123, timestamp: ... }`). This is useful when the Interaction only cares about an inner value but the Thing returns a wrapper object.
+
+This is configured using the experimental node-wot `nw:dataSchemaMapping` vocabulary in the Thing Description. It can be defined at the Thing level or globally injected via the `Servient` configuration:
+
+```json
+{
+    "title": "MyThing",
+    "properties": {
+        "status": {
+            "type": "integer",
+            "forms": [{ "href": "/status" }]
+        }
+    },
+    "nw:dataSchemaMapping": {
+        "nw:property": {
+            "nw:valuePath": "/value"
+        },
+        "nw:action": {
+            "nw:valuePath": "/value"
+        },
+        "nw:event": {
+            "nw:valuePath": "/value"
+        }
+    }
+}
+```
+
+The `nw:valuePath` supports simple JSON Pointer-like notation (e.g., `/value` or `value/nested`) or dot-notation (e.g., `value.nested`) and is evaluated _after_ content deserialization but _before_ JSON Schema validation. Currently, the `nw:` vocabulary is hardcoded internally and doesn't explicitly require an `@context` definition for node-wot to process it.
+
+Servient-level configuration can be added to naturally inject this vocabulary to any consumed or exposed Thing Descriptions without the application needing to do it manually. In the `wot-servient.conf.json` file, you can specify this parameter under the `"servient"` key:
+
+```json
+{
+    "servient": {
+        "dataSchemaMapping": {
+            "nw:property": { "nw:valuePath": "/value" }
+        }
+    }
+}
+```
 
 ## Documentation
 

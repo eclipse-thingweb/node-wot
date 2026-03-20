@@ -182,7 +182,7 @@ describe("OAuth2.0 Validator tests", () => {
             valid.should.eql(true);
         }
 
-        @test async "should validate cliedId"() {
+        @test async "should validate clientId"() {
             const req = {
                 headers: {},
                 url: "http://test?access_token=active",
@@ -192,7 +192,7 @@ describe("OAuth2.0 Validator tests", () => {
             valid.should.eql(true);
         }
 
-        @test async "should validate cliedId using regex"() {
+        @test async "should validate clientId using regex"() {
             const req = {
                 headers: {},
                 url: "http://test?access_token=active",
@@ -202,7 +202,7 @@ describe("OAuth2.0 Validator tests", () => {
             valid.should.eql(true);
         }
 
-        @test async "should reject invalid cliedId"() {
+        @test async "should reject invalid clientId"() {
             const req = {
                 headers: {},
                 url: "http://test?access_token=active",

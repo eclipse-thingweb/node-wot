@@ -25,7 +25,7 @@ export class Content {
         this.body = body;
     }
 
-    toBuffer(): Promise<Buffer> {
+    toBuffer(): Promise<Buffer<ArrayBuffer>> {
         return ProtocolHelpers.readStreamFully(this.body);
     }
 }

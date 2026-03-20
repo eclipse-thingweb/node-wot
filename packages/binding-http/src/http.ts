@@ -45,6 +45,7 @@ export interface HttpConfig {
     serverKey?: string;
     serverCert?: string;
     security?: SecurityScheme[];
+    devFriendlyUri?: boolean;
     middleware?: MiddlewareRequestHandler;
 }
 

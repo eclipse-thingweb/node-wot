@@ -65,38 +65,20 @@ export interface ClientAndForm {
 }
 
 class ConsumedThingProperty extends ThingProperty implements ThingProperty, BaseSchema {
-    #name: string;
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
 class ConsumedThingAction extends ThingAction implements ThingAction {
-    #name: string;
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
 class ConsumedThingEvent extends ThingEvent {
-    #name: string;
-    #thing: ConsumedThing;
-
-    constructor(name: string, thing: ConsumedThing) {
+    constructor() {
         super();
-
-        this.#name = name;
-        this.#thing = thing;
     }
 }
 
@@ -398,15 +380,15 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
     extendInteractions(): void {
         for (const [propertyName, property] of Object.entries(this.properties)) {
-            const newProp = Helpers.extend(property, new ConsumedThingProperty(propertyName, this));
+            const newProp = Helpers.extend(property, new ConsumedThingProperty());
             this.properties[propertyName] = newProp;
         }
         for (const [actionName, action] of Object.entries(this.actions)) {
-            const newAction = Helpers.extend(action, new ConsumedThingAction(actionName, this));
+            const newAction = Helpers.extend(action, new ConsumedThingAction());
             this.actions[actionName] = newAction;
         }
         for (const [eventName, event] of Object.entries(this.events)) {
-            const newEvent = Helpers.extend(event, new ConsumedThingEvent(eventName, this));
+            const newEvent = Helpers.extend(event, new ConsumedThingEvent());
             this.events[eventName] = newEvent;
         }
     }
@@ -602,7 +584,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.readResource(formWithUriVariables);
         try {
-            return this.handleInteractionOutput(content, formWithUriVariables, tp);
+            return this.handleInteractionOutput(content, formWithUriVariables, tp, "nw:property");
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing property for ${tp.title}. ${error.message}`);
@@ -612,13 +594,17 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
     private handleInteractionOutput(
         content: Content,
         form: Form,
-        outputDataSchema: WoT.DataSchema | undefined
+        outputDataSchema: WoT.DataSchema | undefined,
+        interactionType: keyof Required<Exclude<Thing["nw:dataSchemaMapping"], undefined>>
     ): InteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new InteractionOutput(content, form, outputDataSchema);
+
+        const mapping = this["nw:dataSchemaMapping"]?.[interactionType];
+
+        return new InteractionOutput(content, form, outputDataSchema, mapping);
     }
 
     // check if returned media type is the same as expected media type (from TD)
@@ -638,13 +624,17 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         content: Content,
         form: Form,
         outputDataSchema: WoT.DataSchema | undefined,
+        interactionType: keyof Required<Exclude<Thing["nw:dataSchemaMapping"], undefined>>,
         synchronous?: boolean
     ): ActionInteractionOutput {
         // infer media type from form if not in response metadata
         content.type ??= form.contentType ?? "application/json";
         // check if returned media type is the same as expected media type (from TD)
         this.checkMediaTypeOrThrow(content, form);
-        return new ActionInteractionOutput(content, form, outputDataSchema, synchronous);
+
+        const mapping = this["nw:dataSchemaMapping"]?.[interactionType];
+
+        return new ActionInteractionOutput(content, form, outputDataSchema, mapping, synchronous);
     }
 
     async _readProperties(propertyNames: string[]): Promise<WoT.PropertyReadMap> {
@@ -763,7 +753,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
 
         const content = await client.invokeResource(formWithUriVariables, input);
         try {
-            return this.handleActionInteractionOutput(content, formWithUriVariables, ta.output, ta.synchronous);
+            return this.handleActionInteractionOutput(
+                content,
+                formWithUriVariables,
+                ta.output,
+                "nw:action",
+                ta.synchronous
+            );
         } catch (e) {
             const error = e instanceof Error ? e : new Error(JSON.stringify(e));
             throw new Error(`Error while processing action for ${ta.title}. ${error.message}`);
@@ -806,7 +802,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             // next
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, tp));
+                    listener(this.handleInteractionOutput(content, form, tp, "nw:property"));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing observe property for ${tp.title}. ${error.message}`);
@@ -862,7 +858,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
             formWithoutURITemplates,
             (content) => {
                 try {
-                    listener(this.handleInteractionOutput(content, form, te.data));
+                    listener(this.handleInteractionOutput(content, form, te.data, "nw:event"));
                 } catch (e) {
                     const error = e instanceof Error ? e : new Error(JSON.stringify(e));
                     warn(`Error while processing event for ${te.title}. ${error.message}`);

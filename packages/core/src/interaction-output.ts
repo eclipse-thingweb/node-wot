@@ -15,7 +15,8 @@
 import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
-import { ProtocolHelpers } from "./core";
+import { DataSchemaMapping, ProtocolHelpers } from "./core";
+import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
 import { Content } from "./content";
 import Ajv from "ajv";
@@ -37,11 +38,14 @@ addFormats(ajv);
 export class InteractionOutput implements WoT.InteractionOutput {
     #content: Content;
     #value: unknown;
+    #valueBuffer?: Buffer<ArrayBuffer>;
     #buffer?: ArrayBuffer;
     #stream?: ReadableStream;
     dataUsed: boolean;
     form?: WoT.Form;
     schema?: WoT.DataSchema;
+
+    mapping?: DataSchemaMapping;
 
     public get data(): ReadableStream {
         if (this.#stream) {
@@ -57,10 +61,11 @@ export class InteractionOutput implements WoT.InteractionOutput {
         return (this.#stream = ProtocolHelpers.toWoTStream(this.#content.body) as ReadableStream);
     }
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema) {
+    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, mapping?: DataSchemaMapping) {
         this.#content = content;
         this.form = form;
         this.schema = schema;
+        this.mapping = mapping;
         this.dataUsed = false;
     }
 
@@ -73,11 +78,16 @@ export class InteractionOutput implements WoT.InteractionOutput {
             throw new Error("Can't read the stream once it has been already used");
         }
 
-        const data = await this.#content.toBuffer();
+        const data = this.#valueBuffer ?? (await this.#content.toBuffer());
         this.dataUsed = true;
-        this.#buffer = data;
+        const isPooled = data.buffer.byteLength > data.byteLength;
 
-        return data;
+        if (isPooled) {
+            this.#buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+        } else {
+            this.#buffer = data.buffer;
+        }
+        return this.#buffer;
     }
 
     async value<T extends WoT.DataSchemaValue>(): Promise<T> {
@@ -120,9 +130,13 @@ export class InteractionOutput implements WoT.InteractionOutput {
         // read fully the stream
         const bytes = await this.#content.toBuffer();
         this.dataUsed = true;
-        this.#buffer = bytes;
+        this.#valueBuffer = bytes;
 
-        const json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+
+        if (this.mapping !== undefined) {
+            json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);
+        }
 
         // validate the schema
         const validate = ajv.compile<T>(this.schema);
@@ -146,8 +160,14 @@ export class InteractionOutput implements WoT.InteractionOutput {
 export class ActionInteractionOutput extends InteractionOutput implements WoT.ActionInteractionOutput {
     synchronous?: boolean;
 
-    constructor(content: Content, form?: WoT.Form, schema?: WoT.DataSchema, synchronous?: boolean) {
-        super(content, form, schema);
+    constructor(
+        content: Content,
+        form?: WoT.Form,
+        schema?: WoT.DataSchema,
+        mapping?: DataSchemaMapping,
+        synchronous?: boolean
+    ) {
+        super(content, form, schema, mapping);
         this.synchronous = synchronous;
     }
 

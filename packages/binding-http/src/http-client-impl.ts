@@ -356,7 +356,7 @@ export default class HttpClient implements ProtocolClient {
 
         const url = HttpClient.fixLocalhostName(form.href);
 
-        requestInit.method = form["htv:methodName"] ? form["htv:methodName"] : defaultMethod;
+        requestInit.method = form["htv:methodName"] ?? defaultMethod;
 
         requestInit.headers = requestInit.headers ?? [];
         requestInit.headers = requestInit.headers as string[][];
