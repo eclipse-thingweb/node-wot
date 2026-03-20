@@ -45,6 +45,7 @@ export class Executor {
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error("Error running WoT script:", error);
+            // eslint-disable-next-line n/no-process-exit
             process.exit(1);
         }
     }
