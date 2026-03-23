@@ -25,8 +25,8 @@ export interface IManagedStream {
     nodeStream: Readable;
     wotStream: ReadableStream;
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-function ManagedStream<TBase extends new (...args: any[]) => {}>(Base: TBase) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ManagedStream<TBase extends new (...args: any[]) => object>(Base: TBase) {
     return class extends Base implements IManagedStream {
         _nodeStream?: Readable;
         _wotStream?: ReadableStream;
