@@ -137,6 +137,7 @@ program.action(async function (_, options, cmd) {
     } catch (err) {
         if ((err as NodeJS.ErrnoException)?.code !== "ENOENT" || options.configFile != null) {
             error("node-wot configuration file error:\n%O\nClose.", err);
+            // eslint-disable-next-line n/no-process-exit
             process.exit((err as NodeJS.ErrnoException).errno ?? 1);
         }
 
