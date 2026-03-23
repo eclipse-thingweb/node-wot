@@ -17,8 +17,9 @@ import { Thing } from "./thing-description";
 import * as TD from "./thing-description";
 import { createLoggers } from "./logger";
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 import isAbsoluteUrl = require("is-absolute-url");
-import URLToolkit = require("url-toolkit");
+import * as URLToolkit from "url-toolkit";
 import {
     ThingContext,
     PropertyElement,

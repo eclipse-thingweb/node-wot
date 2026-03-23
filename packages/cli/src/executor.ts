@@ -30,6 +30,7 @@ export class Executor {
         global.WoT = wotContext.runtime;
 
         if (isTypeScriptScript === true) {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             require("ts-node/register");
         }
 
@@ -40,6 +41,7 @@ export class Executor {
             if (file.endsWith(".mjs")) {
                 return await import(`file:///${file}`);
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-require-imports
                 return require(file);
             }
         } catch (error) {
