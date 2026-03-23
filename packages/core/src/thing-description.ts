@@ -33,6 +33,16 @@ export class Thing implements TDT.ThingDescription {
 
     "@context": TDT.ThingContext;
 
+    /**
+     * Data schema mapping for extracting values from nested response objects.
+     * @experimental
+     */
+    "nw:dataSchemaMapping"?: {
+        "nw:property"?: DataSchemaMapping;
+        "nw:action"?: DataSchemaMapping;
+        "nw:event"?: DataSchemaMapping;
+    };
+
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 
@@ -133,21 +143,6 @@ export interface ArraySchema extends BaseSchema {
 export interface NullSchema extends BaseSchema {
     type: "null";
 }
-
-/**
- * @deprecated This type is deprecated and will be removed in a future release.
- */
-export type SecurityType =
-    | NoSecurityScheme
-    | BasicSecurityScheme
-    | AutoSecurityScheme
-    | DigestSecurityScheme
-    | BearerSecurityScheme
-    | APIKeySecurityScheme
-    | OAuth2SecurityScheme
-    | PSKSecurityScheme
-    | AllOfSecurityScheme
-    | OneOfSecurityScheme;
 
 export interface SecurityScheme {
     scheme: string;
@@ -268,3 +263,4 @@ export abstract class ThingEvent {
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
+export type DataSchemaMapping = { "nw:valuePath": string };

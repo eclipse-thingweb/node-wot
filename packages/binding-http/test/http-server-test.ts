@@ -1020,4 +1020,53 @@ class HttpServerTest {
 
         return httpServer.stop();
     }
+
+    @test async "should expose Thing with id and title and be reachable from both"() {
+        const httpServer = new HttpServer({ port: 0 });
+
+        await httpServer.start(new Servient());
+
+        const testThing = new ExposedThing(new Servient(), {
+            title: "TestThing",
+            id: "urn:dev:wot:test-thing-1234",
+            properties: {
+                test: {
+                    type: "string",
+                    forms: [],
+                },
+            },
+            actions: {
+                test: {
+                    output: { type: "string" },
+                    forms: [],
+                },
+            },
+        });
+
+        await httpServer.expose(testThing);
+
+        const uriByTitle = `http://localhost:${httpServer.getPort()}/testthing`;
+        const uriById = `http://localhost:${httpServer.getPort()}/urn:dev:wot:test-thing-1234`;
+
+        let resp;
+        resp = await (await fetch(uriByTitle)).json();
+        expect(resp.title).to.be.eq("TestThing");
+        expect(resp.properties.test.forms.some((form: { href: string }) => form.href.includes("testthing"))).to.be.true;
+        expect(resp.actions.test.forms.some((form: { href: string }) => form.href.includes("testthing"))).to.be.true;
+
+        resp = await (await fetch(uriById)).json();
+        expect(resp.id).to.be.eq("urn:dev:wot:test-thing-1234");
+        expect(
+            resp.properties.test.forms.some((form: { href: string }) =>
+                form.href.includes(encodeURIComponent("urn:dev:wot:test-thing-1234"))
+            )
+        ).to.be.true;
+        expect(
+            resp.actions.test.forms.some((form: { href: string }) =>
+                form.href.includes(encodeURIComponent("urn:dev:wot:test-thing-1234"))
+            )
+        ).to.be.true;
+
+        return httpServer.stop();
+    }
 }

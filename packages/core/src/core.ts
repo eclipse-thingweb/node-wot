@@ -50,3 +50,7 @@ export { default as ProtocolHelpers } from "./protocol-helpers";
 
 // Logger Functions
 export { createLoggers, createDebugLogger, createErrorLogger, createInfoLogger, createWarnLogger } from "./logger";
+
+// WoT Runtime
+export type { default as WoT } from "./wot-impl";
+export type { ThingDiscoveryProcess } from "./wot-impl";

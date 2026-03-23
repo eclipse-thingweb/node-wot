@@ -233,8 +233,8 @@ export default class ProtocolHelpers {
         return result;
     }
 
-    static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer> {
-        return new Promise<Buffer>((resolve, reject) => {
+    static readStreamFully(stream: NodeJS.ReadableStream): Promise<Buffer<ArrayBuffer>> {
+        return new Promise((resolve, reject) => {
             if (stream != null) {
                 const chunks: Array<unknown> = [];
                 stream.on("data", (data) => chunks.push(data));

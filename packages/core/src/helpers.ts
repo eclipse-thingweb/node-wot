@@ -211,11 +211,42 @@ export default class Helpers implements Resolver {
     public static async parseInteractionOutput(response: WoT.InteractionOutput): Promise<DataSchemaValue> {
         try {
             return await response.value();
-        } catch (err) {
+        } catch {
             // TODO if response.value() fails, try low-level stream read
             error("parseInteractionOutput low-level stream not implemented");
             throw new Error("parseInteractionOutput low-level stream not implemented");
         }
+    }
+
+    /**
+     * Extracts a value from an object based on a JSON path.
+     * Supports dot-notation or JSON Pointer-like notation (e.g., "/value", "value", "state.status").
+     * @param data The object to extract from
+     * @param path The path string
+     * @returns The extracted value, or undefined if the path is not found
+     */
+    public static extractDataFromPath(data: unknown, path: string): DataSchemaValue | undefined {
+        if (data == null) {
+            return undefined;
+        }
+
+        let cleanPath = path;
+        if (cleanPath.startsWith("/")) {
+            cleanPath = cleanPath.substring(1);
+        }
+
+        const parts = cleanPath.split(/[./]/);
+        let current: unknown = data;
+
+        for (const part of parts) {
+            if (current != null && typeof current === "object" && part in current) {
+                current = (current as Record<string, unknown>)[part];
+            } else {
+                return undefined;
+            }
+        }
+
+        return current as DataSchemaValue;
     }
 
     /**

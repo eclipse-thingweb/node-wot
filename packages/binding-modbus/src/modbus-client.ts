@@ -39,11 +39,9 @@ class ModbusSubscription {
         error?: (error: Error) => void,
         complete?: () => void
     ) {
-        if (!complete) {
-            complete = () => {
-                // do nothing.
-            };
-        }
+        complete ??= () => {
+            // do nothing.
+        };
         this.interval = global.setInterval(async () => {
             try {
                 const result = await client.readResource(form);

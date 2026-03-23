@@ -34,7 +34,9 @@ class InteractionOutputTests {
 
         const out = new InteractionOutput(content, {});
         const result = await out.arrayBuffer();
-        expect(result).be.deep.equals(Buffer.from([1, 2, 3]));
+
+        expect(result).instanceOf(ArrayBuffer);
+        expect(Buffer.from(result)).be.deep.equals(Buffer.from([1, 2, 3]));
     }
 
     @test async "should be readable with Streams"() {
@@ -124,7 +126,7 @@ class InteractionOutputTests {
         const stream = Readable.from(Buffer.from("not boolean", "utf-8"));
         const content = new Content("application/json", stream);
 
-        const out = new ActionInteractionOutput(content, {}, { type: "boolean" }, false);
+        const out = new ActionInteractionOutput(content, {}, { type: "boolean" }, undefined, false);
         const result = await out.value();
         expect(result).to.eql("not boolean");
     }
