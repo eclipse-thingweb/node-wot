@@ -71,7 +71,7 @@ const checkStreamToValue = (
     expect(
         ContentSerdes.contentToValue(
             { type: contentType, body: octectBuffer },
-            { type: type ?? "integer", properties: {}, ...schema }
+            { type: type, properties: {}, ...schema }
         )
     ).to.deep.equal(match);
 };
