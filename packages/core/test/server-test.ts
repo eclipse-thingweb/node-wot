@@ -273,7 +273,7 @@ class WoTServerTest {
         expect(thing).to.have.property("properties").to.have.property("my number");
 
         // Check internals, how to to check handlers properly with *some* type-safety
-        const ff = await readHandler?.();
+        const ff = await readHandler();
         expect(ff).to.equal(1);
     }
 
