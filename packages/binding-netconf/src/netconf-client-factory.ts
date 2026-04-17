@@ -26,6 +26,10 @@ export default class NetconfClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "netconf";
     public contentSerdes: ContentSerdes = ContentSerdes.get();
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["netconf"]];
+    }
+
     public getClient(): ProtocolClient {
         this.contentSerdes.addCodec(new NetconfCodec()); // add custom codec for NetConf
         debug(`NetconfClientFactory creating client for '${this.scheme}'`);
