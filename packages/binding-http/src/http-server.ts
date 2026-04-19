@@ -65,6 +65,7 @@ export default class HttpServer implements ProtocolServer {
     private readonly baseUri?: string;
     private readonly urlRewrite?: Record<string, string>;
     private readonly devFriendlyUri: boolean;
+    private readonly allowedOrigins: string;
     private readonly supportedSecuritySchemes: string[] = ["nosec"];
     private readonly validOAuthClients: RegExp = /.*/g;
     private readonly server: http.Server | https.Server;
@@ -85,6 +86,7 @@ export default class HttpServer implements ProtocolServer {
         this.urlRewrite = config.urlRewrite;
         this.middleware = config.middleware;
         this.devFriendlyUri = config.devFriendlyUri ?? true;
+        this.allowedOrigins = config.allowedOrigins ?? "*";
 
         const router = Router({
             ignoreTrailingSlash: true,
@@ -249,6 +251,10 @@ export default class HttpServer implements ProtocolServer {
 
     public getThings(): Map<string, ExposedThing> {
         return this.things;
+    }
+
+    public getAllowedOrigins(): string {
+        return this.allowedOrigins;
     }
 
     /** returns server port number and indicates that server is running when larger than -1  */
