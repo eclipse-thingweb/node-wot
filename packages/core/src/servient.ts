@@ -19,7 +19,7 @@ import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
-import { v4 } from "uuid";
+const uuid = require("uuid");
 import { createLoggers } from "./logger";
 import { Helpers, Thing } from "./core";
 
@@ -90,7 +90,7 @@ export default class Servient {
 
     public addThing(thing: ExposedThing): boolean {
         if (!thing.id) {
-            thing.id = "urn:uuid:" + v4();
+            thing.id = "urn:uuid:" + uuid.v4();
             warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 
