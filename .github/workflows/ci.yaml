@@ -18,7 +18,7 @@ jobs:
 
         strategy:
             matrix:
-                os: [macos-latest, ubuntu-latest, windows-latest]
+                os: [macos-latest, ubuntu-latest, windows-latest] # windows-latest will be migrated
                 node-version: [22.x, 24.x]
 
         timeout-minutes: 30
