@@ -67,6 +67,7 @@ export default class CoapServer implements ProtocolServer {
 
     private readonly port: number;
     private readonly address?: string;
+    private readonly devFriendlyUri: boolean;
 
     private mdnsIntroducer?: MdnsIntroducer;
 
@@ -84,6 +85,7 @@ export default class CoapServer implements ProtocolServer {
     constructor(config?: CoapServerConfig) {
         this.port = config?.port ?? 5683;
         this.address = config?.address;
+        this.devFriendlyUri = config?.devFriendlyUri ?? true;
 
         // WoT-specific content formats
         registerFormat(ContentSerdes.JSON_LD, 2100);
@@ -143,34 +145,59 @@ export default class CoapServer implements ProtocolServer {
 
     public async expose(thing: ExposedThing, tdTemplate?: WoT.ExposedThingInit): Promise<void> {
         const port = this.getPort();
-        const urlPath = this.createThingUrlPath(thing);
+        const urlPaths = this.createThingUrlPaths(thing);
 
         if (port === -1) {
             warn("CoapServer is assigned an invalid port, aborting expose process.");
             return;
         }
 
-        this.fillInBindingData(thing, port, urlPath);
+        for (const urlPath of urlPaths) {
+            this.fillInBindingData(thing, port, urlPath);
 
-        debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
+            debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
 
-        this.setUpIntroductionMethods(thing, urlPath, port);
+            this.setUpIntroductionMethods(thing, urlPath, port);
+        }
     }
 
-    private createThingUrlPath(thing: ExposedThing) {
-        let urlPath = slugify(thing.title, { lower: true });
+    /**
+     * Creates the URL paths under which a Thing is exposed.
+     * If devFriendlyUri is enabled, a slugified title-based path is created.
+     * If the Thing has a non-empty ID, an additional ID-based path is created.
+     *
+     * If devFriendlyUri is disabled and the Thing has no ID,
+     * a title-based path is still created to ensure the Thing remains accessible.
+     */
+    private createThingUrlPaths(thing: ExposedThing): string[] {
+        const urlPaths: string[] = [];
 
-        // avoid URL clashes
-        if (this.things.has(urlPath)) {
-            let uniqueUrlPath;
-            let nameClashCnt = 2;
-            do {
-                uniqueUrlPath = urlPath + "_" + nameClashCnt++;
-            } while (this.things.has(uniqueUrlPath));
-            urlPath = uniqueUrlPath;
+        // Title-based path
+        if (this.devFriendlyUri || !thing.id) {
+            let urlPath = slugify(thing.title, { lower: true });
+
+            if (this.things.has(urlPath)) {
+                let uniqueUrlPath;
+                let nameClashCnt = 2;
+                do {
+                    uniqueUrlPath = urlPath + "_" + nameClashCnt++;
+                } while (this.things.has(uniqueUrlPath));
+                urlPath = uniqueUrlPath;
+            }
+
+            urlPaths.push(urlPath);
         }
 
-        return urlPath;
+        // ID-based path
+        if (typeof thing.id === "string" && thing.id.length > 0) {
+            if (this.things.has(thing.id)) {
+                warn(`CoapServer path collision detected for id '${thing.id}'.`);
+            }
+
+            urlPaths.push(thing.id);
+        }
+
+        return urlPaths;
     }
 
     private fillInBindingData(thing: ExposedThing, port: number, urlPath: string) {
@@ -354,20 +381,25 @@ export default class CoapServer implements ProtocolServer {
 
     public async destroy(thingId: string): Promise<boolean> {
         debug(`CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        for (const name of this.things.keys()) {
-            const exposedThing = this.things.get(name);
+
+        let deleted = false;
+
+        for (const [name, exposedThing] of this.things.entries()) {
             if (exposedThing?.id === thingId) {
                 this.things.delete(name);
                 this.coreResources.delete(name);
                 this.mdnsIntroducer?.delete(name);
-
-                info(`CoapServer successfully destroyed '${exposedThing.title}'`);
-                return true;
+                deleted = true;
             }
         }
 
-        info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
-        return false;
+        if (deleted) {
+            info(`CoapServer successfully destroyed thing with id '${thingId}'`);
+        } else {
+            info(`CoapServer failed to destroy thing with thingId '${thingId}'`);
+        }
+
+        return deleted;
     }
 
     private formatCoreLinkFormatResources() {
