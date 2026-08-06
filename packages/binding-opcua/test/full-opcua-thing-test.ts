@@ -19,13 +19,14 @@ import { expect } from "chai";
 import { Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
-import { OPCUAServer } from "node-opcua";
+import { DataType, makeBrowsePath, OPCUAServer, StatusCodes, UAVariable } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
+import { opcuaVariableSchemaType } from "../src/opcua-data-schemas";
 const endpoint = "opc.tcp://localhost:7890";
 
-const { debug, info } = createLoggers("binding-opcua", "full-opcua-thing-test");
+const { debug, info, error } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -49,7 +50,14 @@ const thingDescription: WoT.ThingDescription = {
             observable: true,
             readOnly: true,
             unit: "°C",
-            type: "number",
+            oneOf: [
+                {
+                    type: "number",
+                    description: "A simple number",
+                },
+                opcuaVariableSchemaType.dataValue,
+                opcuaVariableSchemaType.variant,
+            ],
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
             // Don't specify type here as it could be multi form: type: [ "object", "number" ],
             forms: [
@@ -59,6 +67,7 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
                     contentType: "application/json",
+                    type: "number",
                 },
                 {
                     href: "/", // endpoint,
@@ -77,6 +86,13 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
                     contentType: "application/opcua+json;type=DataValue",
+                },
+                {
+                    href: "/", // endpoint,
+                    op: ["readproperty", "observeproperty"],
+                    "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
+                    contentType: "application/octet-stream", // equivalent to Variant
+                    type: "number",
                 },
             ],
         },
@@ -323,11 +339,34 @@ const thingDescription: WoT.ThingDescription = {
 describe("Full OPCUA Thing Test", () => {
     let opcuaServer: OPCUAServer;
     let endpoint: string;
+
+    function setTemperature(value: number, sourceTimestamp: Date) {
+        const browsePath = makeBrowsePath("ObjectsFolder", "/1:MySensor/2:ParameterSet/1:Temperature");
+        const browsePathResult = opcuaServer.engine.addressSpace?.browsePath(browsePath);
+        if (!browsePathResult || browsePathResult.statusCode !== StatusCodes.Good) {
+            error("Cannot find Temperature node");
+            return;
+        }
+        const nodeId = browsePathResult.targets![0].targetId!;
+        const uaTemperature = opcuaServer.engine.addressSpace?.findNode(nodeId) as UAVariable;
+        if (uaTemperature) {
+            uaTemperature.setValueFromSource(
+                {
+                    dataType: DataType.Double,
+                    value,
+                },
+                StatusCodes.Good,
+                sourceTimestamp
+            );
+        }
+    }
+
     before(async () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
         debug(`endpoint =  ${endpoint}`);
 
+        setTemperature(25, new Date("2022-01-01T12:00:00Z"));
         // adjust TD to endpoint
         thingDescription.base = endpoint;
         (thingDescription.opcua as unknown as { endpoint: string }).endpoint = endpoint;
@@ -648,5 +687,81 @@ describe("Full OPCUA Thing Test", () => {
         } finally {
             await servient.shutdown();
         }
+    });
+
+    // Please refer to the description of this codec on how to decode and encode plain register
+    // values to/from JavaScript objects (See `OctetstreamCodec`).
+    // **Note** `array` and `object` schema are not supported.
+    [
+        // Var
+        { property: "temperature", contentType: "application/octet-stream", expectedValue: 25 },
+        { property: "temperature", contentType: "application/octet-stream;byteSeq=BIG_ENDIAN", expectedValue: 25 },
+        { property: "temperature", contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN", expectedValue: 25 },
+        {
+            property: "temperature",
+            contentType: "application/octet-stream;byteSeq=BIG_ENDIAN_BYTE_SWAP",
+            expectedValue: 25,
+        },
+        {
+            property: "temperature",
+            contentType: "application/octet-stream;byteSeq=LITTLE_ENDIAN_BYTE_SWAP",
+            expectedValue: 25,
+        },
+        { property: "temperature", contentType: "application/json", expectedValue: 25 },
+
+        // DataValue
+        {
+            property: "temperature",
+            contentType: "application/opcua+json;type=DataValue",
+            expectedValue: {
+                SourceTimestamp: new Date("2022-01-01T12:00:00Z"),
+                Value: {
+                    Type: 11,
+                    Body: 25,
+                },
+            },
+        },
+        {
+            property: "temperature",
+            contentType: "application/opcua+json;type=Variant",
+            expectedValue: {
+                Type: 11,
+                Body: 25,
+            },
+        },
+    ].map(({ contentType, property, expectedValue }, index) => {
+        it(`CONTENT-TYPE-${index} - should work with this encoding format- contentType=${contentType}`, async () => {
+            setTemperature(25, new Date("2022-01-01T12:00:00Z"));
+
+            const { thing, servient } = await makeThing();
+
+            const propertyForm = thing.getThingDescription().properties?.[property].forms;
+            if (!propertyForm) {
+                expect.fail(`no forms for ${property}`);
+            }
+
+            // find exact match of contentType first
+            let formIndex = propertyForm.findIndex((form) => form.contentType === contentType);
+            if (formIndex === undefined || formIndex < 0) {
+                const mainCodec = contentType.split(";")[0];
+                // fallback to main codec match
+                formIndex = propertyForm.findIndex((form) => form.contentType === mainCodec);
+                if (formIndex === undefined || formIndex < 0) {
+                    debug(propertyForm.map((f) => f.contentType).join(","));
+                    expect.fail(`Cannot find form with contentType ${contentType}`);
+                }
+            }
+
+            debug(`Using form index ${formIndex} with contentType ${contentType}`);
+
+            try {
+                const content = await thing.readProperty(property, { formIndex });
+                const value = await content.value();
+                debug(`${property} value is: ${value}`);
+                expect(value).to.eql(expectedValue);
+            } finally {
+                await servient.shutdown();
+            }
+        });
     });
 });

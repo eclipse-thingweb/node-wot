@@ -15,7 +15,6 @@
 
 import { Subscription } from "rxjs/Subscription";
 import { Readable } from "stream";
-import { URL } from "url";
 import {
     ProtocolClient,
     Content,
@@ -111,6 +110,20 @@ function _variantToJSON(variant: Variant, contentType: string) {
     }
 }
 
+const dataTypeToSchema = new Map<DataType, string>([
+    [DataType.Boolean, "boolean"],
+    [DataType.SByte, "int8"],
+    [DataType.Byte, "uint8"],
+    [DataType.Int16, "int16"],
+    [DataType.UInt16, "uint16"],
+    [DataType.Int32, "int32"],
+    [DataType.UInt32, "uint32"],
+    [DataType.Int64, "int64"],
+    [DataType.UInt64, "uint64"],
+    [DataType.Float, "number"],
+    [DataType.Double, "number"],
+    [DataType.String, "string"],
+]);
 export class OPCUAProtocolClient implements ProtocolClient {
     private _connections = new Map<string, Promise<OPCUAConnection>>();
 
@@ -594,6 +607,63 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const variantInJson = opcuaJsonEncodeVariant(dataValue.value, false);
             const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
             return content;
+        } else if (contentType === "application/octet-stream") {
+            const variant = dataValue.value;
+            if (variant.arrayType !== VariantArrayType.Scalar) {
+                // for the time being we only support scalar values (limitation of the octet-stream codec)
+                throw new Error("application/octet-stream only supports scalar values");
+            }
+            switch (form.type) {
+                case "boolean": {
+                    if (variant.dataType !== DataType.Boolean) {
+                        throw new Error(
+                            `application/octet-stream with type boolean requires a Variant with dataType Boolean - got ${DataType[variant.dataType]}`
+                        );
+                    }
+                    return contentSerDes.valueToContent(variant.value, { type: "boolean" }, contentType);
+                }
+                case "integer": {
+                    if (
+                        variant.dataType !== DataType.Int16 &&
+                        variant.dataType !== DataType.Int32 &&
+                        variant.dataType !== DataType.Int64 &&
+                        variant.dataType !== DataType.UInt16 &&
+                        variant.dataType !== DataType.UInt32 &&
+                        variant.dataType !== DataType.UInt64
+                    ) {
+                        throw new Error(
+                            `application/octet-stream with type integer requires a Variant with dataType Int16, Int32, Int64, UInt16, UInt32 or UInt64 - got ${DataType[variant.dataType]}`
+                        );
+                    }
+                    const type = dataTypeToSchema.get(variant.dataType);
+                    if (type === undefined) {
+                        throw new Error(
+                            `Internal Error: cannot find schema for dataType ${DataType[variant.dataType]}`
+                        );
+                    }
+                    return contentSerDes.valueToContent(variant.value, { type }, contentType);
+                }
+                case "number": {
+                    if (variant.dataType !== DataType.Float && variant.dataType !== DataType.Double) {
+                        throw new Error(
+                            `application/octet-stream with type number requires a Variant with dataType Float or Double - got ${DataType[variant.dataType]}`
+                        );
+                    }
+                    return contentSerDes.valueToContent(variant.value, { type: "number" }, contentType);
+                }
+                case "string": {
+                    if (variant.dataType !== DataType.String) {
+                        throw new Error(
+                            `application/octet-stream with type string requires a Variant with dataType String - got ${DataType[variant.dataType]}`
+                        );
+                    }
+                    return contentSerDes.valueToContent(variant.value, { type: "string" }, contentType);
+                }
+                default:
+                    throw new Error(
+                        `application/octet-stream only supports primitive types (boolean, integer, number, string) - got ${form.type}`
+                    );
+            }
         }
         const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
         return content;
