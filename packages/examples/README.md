@@ -1,33 +1,25 @@
 # node-wot Examples
 
-## Script Examples
+## Examples
 
-Script examples are located in
+Examples are located in
 
--   `src\scripts`
--   `src\testthing`
+- `src\scripts`
+- `src\testthing`
+- ...
 
 The idea of these folders is to use TypeScript to work on the examples which offers support in being up-to-date with the current API.
 
 see https://github.com/eclipse-thingweb/node-wot/issues/171.
 
-### Workflow
+## Workflow for generating JS examples
 
 1. Run `npm run build`
-2. Remove the following 3/4 lines in JS files of folder `dist/`
 
-```
-Object.defineProperty(exports, "__esModule", { value: true });
-require("wot-typescript-definitions");
-let WoT;
-let WoTHelpers;
-```
+2. Copy the according JS file(s) from `<node-wot>/packages/examples/dist` to
 
-3. Copy the according JS file(s) to
+- `<node-wot>/examples/scripts`
+- `<node-wot>/examples/testthing`
+- ...
 
--   `<node-wot>/examples/scripts`
--   `<node-wot>/examples/testthing`
-
-## Test Thing
-
-Test thing and client is located in `src\testthing`.
+3. Run `npm run format`

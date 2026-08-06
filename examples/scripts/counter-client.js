@@ -1,3 +1,4 @@
+"use strict";
 /********************************************************************************
  * Copyright (c) 2020 Contributors to the Eclipse Foundation
  *
@@ -12,7 +13,6 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-
 function getFormIndexForDecrementWithCoAP(thing) {
     const forms = thing.getThingDescription().actions?.decrement.forms;
     if (forms !== undefined) {
