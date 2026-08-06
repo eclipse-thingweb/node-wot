@@ -60,9 +60,27 @@ export default class Helpers implements Resolver {
     private static staticAddress?: string = undefined;
 
     public static extractScheme(uri: string): string {
+        if (!uri || typeof uri !== "string" || uri.trim().length === 0) {
+            throw new Error(`URI must be a non-empty string`);
+        }
+
+        // handle composite schemes before URL parsing (e.g., mqtt+ws, coap+ws)
+        const compositeMatch = uri.match(/^([a-z][a-z0-9+.-]*):\/\//);
+        if (compositeMatch) {
+            const potentialScheme = compositeMatch[1].toLowerCase();
+            if (potentialScheme.includes("+")) {
+                // validate composite scheme format (no leading/trailing +, must have parts on both sides)
+                const parts = potentialScheme.split("+");
+                if (parts.length !== 2 || parts[0].length === 0 || parts[1].length === 0) {
+                    throw new Error(`Invalid composite scheme format in URI "${uri}"`);
+                }
+                debug(`Helpers found composite scheme '${potentialScheme}'`);
+                return potentialScheme;
+            }
+        }
+
         const parsed = new URL(uri);
         debug(parsed);
-        // remove trailing ':'
         if (parsed.protocol === null) {
             throw new Error(`Protocol in url "${uri}" must be valid`);
         }

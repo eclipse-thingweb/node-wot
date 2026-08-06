@@ -21,6 +21,10 @@ const info = createInfoLogger("binding-mbus", "mbus-client-factory");
 export default class MBusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "mbus+tcp";
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["mbus+tcp"]];
+    }
+
     public getClient(): ProtocolClient {
         info(`MBusClientFactory creating client for '${this.scheme}'`);
         return new MBusClient();

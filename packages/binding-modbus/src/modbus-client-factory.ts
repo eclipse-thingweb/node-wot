@@ -22,6 +22,10 @@ export default class ModbusClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "modbus+tcp";
     private singleton?: ModbusClient;
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["modbus+tcp"]];
+    }
+
     public getClient(): ProtocolClient {
         debug(`Get client for '${this.scheme}'`);
         this.init();

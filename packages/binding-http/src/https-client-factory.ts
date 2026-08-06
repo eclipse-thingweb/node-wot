@@ -31,6 +31,10 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
         this.config = config;
     }
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["https"]];
+    }
+
     public getClient(): ProtocolClient {
         // HTTPS over HTTP proxy requires HttpClient
         if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("http:")) {

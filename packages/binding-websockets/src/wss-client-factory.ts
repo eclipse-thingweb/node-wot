@@ -26,6 +26,10 @@ export default class WssClientFactory implements ProtocolClientFactory {
         // TODO: implement and remove eslint-ignore-useless-constructor
     }
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["wss"]];
+    }
+
     public getClient(): ProtocolClient {
         throw new Error("WssClientFactory for 'wss' is not implemented");
     }

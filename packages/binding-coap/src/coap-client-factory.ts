@@ -32,6 +32,10 @@ export default class CoapClientFactory implements ProtocolClientFactory {
         this.server = server;
     }
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["coap"]];
+    }
+
     public getClient(): ProtocolClient {
         debug(`CoapClientFactory creating client for '${this.scheme}'`);
         return new CoapClient(this.server);
