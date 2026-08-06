@@ -233,7 +233,7 @@ export default class WebSocketServer implements ProtocolServer {
 
                     ws.on("close", () => {
                         for (let formIndex = 0; formIndex < thing.properties[propertyName].forms.length; formIndex++) {
-                            thing.handleUnobserveProperty(propertyName, observeListener, { formIndex });
+                            void thing.handleUnobserveProperty(propertyName, observeListener, { formIndex });
                         }
                         debug(
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
@@ -293,7 +293,7 @@ export default class WebSocketServer implements ProtocolServer {
 
                     ws.on("close", () => {
                         for (let formIndex = 0; formIndex < event.forms.length; formIndex++) {
-                            thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex });
+                            void thing.handleUnsubscribeEvent(eventName, eventListener, { formIndex });
                         }
                         debug(
                             `WebSocketServer on port ${this.getPort()} closed connection for '${path}' from ${Helpers.toUriLiteral(
