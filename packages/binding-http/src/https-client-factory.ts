@@ -26,20 +26,24 @@ const { debug, warn } = createLoggers("binding-http", "https-client-factory");
 export default class HttpsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "https";
     private config: HttpConfig | null = null;
+    private readonly clients = new Set<ProtocolClient>();
 
     constructor(config: HttpConfig | null = null) {
         this.config = config;
     }
 
     public getClient(): ProtocolClient {
+        let client: HttpClient;
         // HTTPS over HTTP proxy requires HttpClient
         if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("http:")) {
             warn("HttpsClientFactory creating client for 'http' due to insecure proxy configuration");
-            return new HttpClient(this.config);
+            client = new HttpClient(this.config);
         } else {
             debug(`HttpsClientFactory creating client for '${this.scheme}'`);
-            return new HttpClient(this.config, true);
+            client = new HttpClient(this.config, true);
         }
+        this.clients.add(client);
+        return client;
     }
 
     public init(): boolean {
@@ -49,8 +53,9 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
     }
 
     public destroy(): boolean {
-        // info(`HttpsClientFactory for '${HttpsClientFactory.scheme}' destroyed`);
-        // TODO uncomment info if something is executed here
+        debug(`HttpsClientFactory stopping all clients for '${this.scheme}'`);
+        this.clients.forEach((client) => void client.stop());
+        this.clients.clear();
         return true;
     }
 }
