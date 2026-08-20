@@ -23,7 +23,7 @@
         "ajv": "^8.11.0",
         "ajv-formats": "^2.1.1",
         "env-paths": "2.2.1",
-        "node-opcua": "2.143.0",
+        "node-opcua": "2.165.1",
         "node-opcua-address-space": "2.143.0",
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-binary-stream": "2.139.0",
