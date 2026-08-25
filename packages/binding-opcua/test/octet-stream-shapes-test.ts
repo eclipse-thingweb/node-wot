@@ -78,12 +78,33 @@ const SHAPES: Shape[] = [
         wotType: "number",
     },
     {
+        // OPC UA JSON encodes Int64/UInt64 as strings, because a JSON number is an
+        // IEEE-754 double and cannot round-trip integers above 2^53. So the TD has
+        // to declare "string", not "integer". See gap G6 in 06-content-types-101.md.
         key: "Int64",
         id: "s=Shape_Int64",
         uaDataType: "Int64",
         valueRank: -1,
-        variant: () => ({ dataType: DataType.Int64, value: 9007199254740991 }),
-        wotType: "integer",
+        // 2^53 + 1 = 9007199254740993, deliberately NOT representable as a JS number.
+        // It must be given as an OPC UA [high, low] pair, otherwise the test input is
+        // itself rounded before it reaches the server and proves nothing.
+        variant: () => ({
+            dataType: DataType.Int64,
+            // arrayType is mandatory for Int64/UInt64: node-opcua cannot tell a
+            // [high, low] pair from a two-element array without it.
+            arrayType: VariantArrayType.Scalar,
+            value: [0x00200000, 0x00000001],
+        }),
+        wotType: "string",
+    },
+    {
+        // the one shape for which application/octet-stream is legitimate
+        key: "ByteString",
+        id: "s=Shape_ByteString",
+        uaDataType: "ByteString",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.ByteString, value: Buffer.from([0xde, 0xad, 0xbe, 0xef]) }),
+        wotType: "string",
     },
     {
         key: "Int32",
