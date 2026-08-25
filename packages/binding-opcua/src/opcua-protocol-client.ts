@@ -68,6 +68,7 @@ import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
 import { findMostSecureChannel } from "./find-most-secure-channel";
 
+import { resolveContentFormat, encodeDataValue, DEFAULT_CONTENT_TYPE } from "./opcua-content-negotiation";
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 export type Command = "Read" | "Write" | "Subscribe";
@@ -595,17 +596,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     ///
     private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue): Promise<Content> {
-        const contentType = form.contentType ?? "application/json";
-
-        // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
-        const contentSerDes = ContentSerdes.get();
-        if (contentType === "application/json") {
-            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, []);
-            const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
-            return content;
-        }
-        const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
-        return content;
+        // Binding-scoped negotiation: OPC UA payloads never go through the global
+        // ContentSerdes registry, where application/octet-stream belongs to Modbus.
+        const format = resolveContentFormat(form.contentType);
+        const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`);
+        return new Content(form.contentType ?? DEFAULT_CONTENT_TYPE, Readable.from(body));
     }
 
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {

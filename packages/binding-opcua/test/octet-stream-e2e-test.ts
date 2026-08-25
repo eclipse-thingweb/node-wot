@@ -203,9 +203,13 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
                 case "C":
                 case "D":
                 case "E":
-                    // core OctetstreamCodec still processes OPC UA content -> issue #1400
-                    expect(outcome.ok, `${s.key} should currently fail`).to.equal(false);
-                    expect(outcome.error).to.match(/toLowerCase is not a function/);
+                    // Before the content-negotiation fix these failed inside core's
+                    // OctetstreamCodec with "dataType.toLowerCase is not a function".
+                    // Now the binding rejects them itself, naming the form and the
+                    // actual OPC UA dataType, and pointing at a usable alternative.
+                    expect(outcome.ok, `${s.key} should fail: the value is not a ByteString`).to.equal(false);
+                    expect(outcome.error).to.match(/only supported when the value is a ByteString/);
+                    expect(outcome.error, "the error should name the offending form").to.match(/SpecialVariable/);
                     break;
                 case "F":
                     expect(outcome.ok).to.equal(false);
