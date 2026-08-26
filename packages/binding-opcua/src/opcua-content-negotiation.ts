@@ -28,13 +28,30 @@
 //
 
 import { DataValue } from "node-opcua-data-value";
-import { DataType, Variant } from "node-opcua-variant";
-import { JsonEncoderMode, opcuaJsonEncodeDataValue, opcuaJsonEncodeVariant } from "node-opcua-json/104";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import {
+    ExtensionObjectBuilder,
+    ExtensionObjectConstructorFuncWithSchema,
+    JsonEncoderMode,
+    opcuaJsonDecodeDataValue,
+    opcuaJsonDecodeVariant,
+    opcuaJsonEncodeDataValue,
+    opcuaJsonEncodeVariant,
+} from "node-opcua-json/104";
+import { NodeId } from "node-opcua-nodeid";
+import { coerceInt64, coerceUInt64 } from "node-opcua-basic-types";
 import { createLoggers } from "@node-wot/core";
 
 import { theOpcuaBinaryCodec } from "./codecs/opcua-binary-codec";
 
 const { debug } = createLoggers("binding-opcua", "content-negotiation");
+
+// Same stance as OpcuaJSONCodec: structures with a custom dataType are not decoded here.
+const builder: ExtensionObjectBuilder = {
+    getExtensionObjectConstructor(_dataTypeNodeId: NodeId): ExtensionObjectConstructorFuncWithSchema {
+        throw new Error("Not implemented");
+    },
+};
 
 /** How much of the DataValue the consumer asked for. */
 export type OPCUAFlavour =
@@ -177,4 +194,69 @@ export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hin
 export function describeFormat(format: ContentFormat): string {
     debug(`format ${format.mediaType} -> ${format.flavour}`);
     return `${format.mediaType} (${format.flavour})`;
+}
+
+/**
+ * Coerce a JSON-decoded value into something a Variant of `dataType` accepts.
+ *
+ * The cases that matter: OPC UA JSON carries 64-bit integers as strings (a JSON
+ * number is an IEEE-754 double and cannot round-trip past 2^53), and a ByteString
+ * as base64.
+ */
+function coerceForDataType(value: unknown, dataType: DataType): unknown {
+    switch (dataType) {
+        case DataType.Int64:
+            return typeof value === "string" || typeof value === "number" ? coerceInt64(value) : value;
+        case DataType.UInt64:
+            return typeof value === "string" || typeof value === "number" ? coerceUInt64(value) : value;
+        case DataType.ByteString:
+            return typeof value === "string" ? Buffer.from(value, "base64") : value;
+        default:
+            return value;
+    }
+}
+
+/**
+ * Decode a request body into a DataValue, according to the negotiated format.
+ *
+ * `dataType` is the type the server expects for the target node; it is needed for
+ * the bare-value flavour, where the payload carries no type information at all.
+ */
+export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType: DataType, hint: string): DataValue {
+    switch (format.flavour) {
+        case "value": {
+            const parsed = JSON.parse(body.toString("utf-8"));
+            const value = coerceForDataType(parsed, dataType);
+            // coerceInt64/coerceUInt64 yield a [high, low] pair, and node-opcua cannot
+            // tell that from a two-element array: the arrayType must be stated.
+            const needsScalarHint =
+                (dataType === DataType.Int64 || dataType === DataType.UInt64) && !Array.isArray(parsed);
+            return new DataValue({
+                value: needsScalarHint ? { dataType, arrayType: VariantArrayType.Scalar, value } : { dataType, value },
+            });
+        }
+        case "variant": {
+            const variant = opcuaJsonDecodeVariant(JSON.parse(body.toString("utf-8")), builder, []);
+            return new DataValue({ value: variant });
+        }
+        case "dataValue": {
+            return opcuaJsonDecodeDataValue(JSON.parse(body.toString("utf-8")), builder, []);
+        }
+        case "binary": {
+            const decoded = theOpcuaBinaryCodec.bytesToValue(body, { type: "object", properties: {} });
+            return opcuaJsonDecodeDataValue(decoded, builder, []);
+        }
+        case "byteString": {
+            if (dataType !== DataType.ByteString) {
+                throw new Error(
+                    `binding-opcua: contentType 'application/octet-stream' is only supported when the target is a ` +
+                        `ByteString, but ${hint} expects ${DataType[dataType]}. ` +
+                        `Use application/json for the bare value, or application/opcua+json;type=DataValue.`
+                );
+            }
+            return new DataValue({ value: { dataType: DataType.ByteString, value: body } });
+        }
+        default:
+            throw new Error(`binding-opcua: internal error, unhandled flavour ${format.flavour}`);
+    }
 }
