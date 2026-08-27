@@ -34,6 +34,8 @@ import {
     DataTypeIds,
     UAVariable,
     VariantLike,
+    StatusCodes,
+    coerceLocalizedText,
 } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
@@ -53,6 +55,7 @@ interface Shape {
     id: string;
     uaDataType: string;
     valueRank: number;
+    arrayDimensions?: number[];
     variant: () => VariantLike;
     wotType: string;
 }
@@ -182,6 +185,195 @@ const SHAPES: Shape[] = [
         }),
         wotType: "array",
     },
+    // ---- remaining numeric scalars -------------------------------------
+    {
+        key: "Float",
+        id: "s=Shape_Float",
+        uaDataType: "Float",
+        valueRank: -1,
+        // 0.1 is not exactly representable in float32; the value that comes back
+        // shows whether the float32 -> double widening is being reported honestly.
+        variant: () => ({ dataType: DataType.Float, value: 0.1 }),
+        wotType: "number",
+    },
+    {
+        key: "UInt64",
+        id: "s=Shape_UInt64",
+        uaDataType: "UInt64",
+        valueRank: -1,
+        // 2^63 + 1, far beyond Number.MAX_SAFE_INTEGER
+        variant: () => ({
+            dataType: DataType.UInt64,
+            arrayType: VariantArrayType.Scalar,
+            value: [0x80000000, 0x00000001],
+        }),
+        wotType: "string",
+    },
+    {
+        key: "UInt32",
+        id: "s=Shape_UInt32",
+        uaDataType: "UInt32",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.UInt32, value: 4294967295 }),
+        wotType: "integer",
+    },
+    {
+        key: "Int16",
+        id: "s=Shape_Int16",
+        uaDataType: "Int16",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.Int16, value: -32768 }),
+        wotType: "integer",
+    },
+    {
+        key: "Byte",
+        id: "s=Shape_Byte",
+        uaDataType: "Byte",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.Byte, value: 255 }),
+        wotType: "integer",
+    },
+    {
+        key: "SByte",
+        id: "s=Shape_SByte",
+        uaDataType: "SByte",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.SByte, value: -128 }),
+        wotType: "integer",
+    },
+    // ---- non-numeric built-ins -----------------------------------------
+    {
+        key: "DateTime",
+        id: "s=Shape_DateTime",
+        uaDataType: "DateTime",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.DateTime, value: new Date(Date.UTC(2026, 0, 8, 10, 0, 0)) }),
+        wotType: "string",
+    },
+    {
+        key: "Guid",
+        id: "s=Shape_Guid",
+        uaDataType: "Guid",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.Guid, value: "72962B91-FA75-4AE6-8D28-B404DC7DAF63" }),
+        wotType: "string",
+    },
+    {
+        key: "NodeId",
+        id: "s=Shape_NodeId",
+        uaDataType: "NodeId",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.NodeId, value: coerceNodeId("ns=1;s=SomeNode") }),
+        wotType: "string",
+    },
+    {
+        key: "QualifiedName",
+        id: "s=Shape_QualifiedName",
+        uaDataType: "QualifiedName",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.QualifiedName, value: { namespaceIndex: 1, name: "SomeName" } }),
+        wotType: "object",
+    },
+    {
+        key: "StatusCode",
+        id: "s=Shape_StatusCode",
+        uaDataType: "StatusCode",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.StatusCode, value: StatusCodes.BadInternalError }),
+        wotType: "object",
+    },
+    {
+        key: "XmlElement",
+        id: "s=Shape_XmlElement",
+        uaDataType: "XmlElement",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.XmlElement, value: "<a>1</a>" }),
+        wotType: "string",
+    },
+    {
+        // an enumeration is an Int32 on the wire, but its DataType node names the
+        // enum. Nothing in the TD can express "this 0 means Running".
+        key: "Enumeration",
+        id: "s=Shape_Enum",
+        uaDataType: "ServerState",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.Int32, value: 0 }),
+        wotType: "integer",
+    },
+    {
+        // an OPC UA variable may legitimately hold no value at all
+        key: "Null",
+        id: "s=Shape_Null",
+        uaDataType: "BaseDataType",
+        valueRank: -2,
+        variant: () => ({ dataType: DataType.Null, value: null }),
+        wotType: "null",
+    },
+    // ---- more arrays ----------------------------------------------------
+    {
+        key: "String[]",
+        id: "s=Shape_StringArray",
+        uaDataType: "String",
+        valueRank: 1,
+        variant: () => ({ dataType: DataType.String, arrayType: VariantArrayType.Array, value: ["a", "b"] }),
+        wotType: "array",
+    },
+    {
+        key: "ByteString[]",
+        id: "s=Shape_ByteStringArray",
+        uaDataType: "ByteString",
+        valueRank: 1,
+        variant: () => ({
+            dataType: DataType.ByteString,
+            arrayType: VariantArrayType.Array,
+            value: [Buffer.from([0x01, 0x02]), Buffer.from([0x03])],
+        }),
+        wotType: "array",
+    },
+    {
+        key: "LocalizedText[]",
+        id: "s=Shape_LocalizedTextArray",
+        uaDataType: "LocalizedText",
+        valueRank: 1,
+        variant: () => ({
+            dataType: DataType.LocalizedText,
+            arrayType: VariantArrayType.Array,
+            value: [coerceLocalizedText("one"), coerceLocalizedText("two")],
+        }),
+        wotType: "array",
+    },
+    // ---- matrices -------------------------------------------------------
+    {
+        // 2x3 matrix. On the wire OPC UA sends a FLAT array plus a separate
+        // `dimensions` field. JSON Schema has no way to say "this flat array is
+        // really 2x3", so the shape is lost unless the DataValue is exposed.
+        key: "Double[2][3]",
+        id: "s=Shape_DoubleMatrix",
+        uaDataType: "Double",
+        valueRank: 2,
+        arrayDimensions: [2, 3],
+        variant: () => ({
+            dataType: DataType.Double,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [2, 3],
+            value: [1, 2, 3, 4, 5, 6],
+        }),
+        wotType: "array",
+    },
+    {
+        key: "Int32[2][2]",
+        id: "s=Shape_Int32Matrix",
+        uaDataType: "Int32",
+        valueRank: 2,
+        arrayDimensions: [2, 2],
+        variant: () => ({
+            dataType: DataType.Int32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [2, 2],
+            value: [1, 2, 3, 4],
+        }),
+        wotType: "array",
+    },
 ];
 
 const CONTENT_TYPES: { key: string; contentType?: string; overrideType?: string }[] = [
@@ -264,7 +456,7 @@ function render(v: unknown): string {
     if (s === undefined) {
         s = String(v);
     }
-    return s.length > 38 ? s.slice(0, 35) + "..." : s;
+    return s.length > 200 ? s.slice(0, 197) + "..." : s;
 }
 
 describe("contentType x data shape matrix (issue #1400)", function () {
@@ -308,6 +500,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                 nodeId: shape.id,
                 dataType: shape.uaDataType,
                 valueRank: shape.valueRank,
+                arrayDimensions: shape.arrayDimensions,
                 componentOf: folder,
             }) as UAVariable & { setValueFromSource(v: VariantLike): void };
             v.setValueFromSource(shape.variant());
@@ -333,7 +526,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                     return "?".padEnd(30);
                 }
                 const txt = cell.ok ? "OK " + cell.rendered : "THROW " + (cell.error ?? "");
-                return (txt.length > 29 ? txt.slice(0, 26) + "..." : txt).padEnd(30);
+                return txt;
             }).join("");
             line("  " + shape.key.padEnd(22) + row);
         }
