@@ -57,7 +57,7 @@ import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { AttributeIds } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
+import { coercePrivateKeyPem } from "node-opcua-crypto";
 import { opcuaJsonEncodeVariant } from "node-opcua-json";
 import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2 } from "node-opcua";
@@ -164,7 +164,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
             // adjust with private key
             if (this._userIdentity.type === UserTokenType.Certificate && !this._userIdentity.privateKey) {
-                const internalKey = readPrivateKey(client.clientCertificateManager.privateKey);
+                const internalKey = await clientCertificateManager.getPrivateKey();
                 const privateKeyPem = coercePrivateKeyPem(internalKey);
                 this._userIdentity.privateKey = privateKeyPem;
             }
