@@ -36,7 +36,7 @@
         "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
         "update:wot-typescript-definitions": "npx npm-check-updates  -u -f \"wot-typescript-definitions\" --deep",
         "link": "npm link -ws",
-        "ncu:opcua": "npx -y npm-check-updates -u --deep --dep=dev,prod -f \"node-opcua*\" -t newest"
+        "ncu:opcua": "npx -y node-opcua-versions@latest bump -w --latest"
     },
     "workspaces": [
         "./packages/core",
