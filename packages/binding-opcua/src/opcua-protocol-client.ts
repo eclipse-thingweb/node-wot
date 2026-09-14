@@ -525,8 +525,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return true;
     }
 
-    #setAuthentication(security: OPCUACAuthenticationScheme): boolean {
-        this._userIdentity = resolvedUserIdentity(security);
+    #setAuthentication(security: OPCUACAuthenticationScheme, credentials?: unknown): boolean {
+        this._userIdentity = resolvedUserIdentity(security, credentials);
         return true;
     }
 
@@ -548,11 +548,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     success = true;
                     break;
                 }
-                case "uav:channel-security":
+                case "uav:channelsec":
                     success = this.#setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
                     break;
                 case "uav:authentication":
-                    success = this.#setAuthentication(securityScheme as OPCUACAuthenticationScheme);
+                    success = this.#setAuthentication(securityScheme as OPCUACAuthenticationScheme, credentials);
                     break;
                 case "combo": {
                     const combo = securityScheme as AllOfSecurityScheme | OneOfSecurityScheme;
@@ -567,9 +567,19 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     }
                     break;
                 }
-                default:
+                default: {
+                    // A scheme in our own namespace that we cannot honour is an error: ignoring it
+                    // would connect with the insecure defaults while reporting success. This also
+                    // covers the pre-OPC-10101 names, such as "uav:channel-security". (#1401)
+                    if (securityScheme.scheme?.startsWith("uav:")) {
+                        throw new Error(
+                            `Unsupported OPC UA security scheme '${securityScheme.scheme}'. ` +
+                                `Supported schemes are 'uav:channelsec' and 'uav:authentication'.`
+                        );
+                    }
                     // not for us , ignored
                     break;
+                }
             }
             if (!success) return false;
         }

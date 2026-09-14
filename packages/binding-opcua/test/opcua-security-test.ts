@@ -17,21 +17,28 @@
 
 import { expect } from "chai";
 import path from "path";
-import { Servient, createLoggers } from "@node-wot/core";
+import { SecurityScheme, Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
-import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy } from "node-opcua";
+import { MessageSecurityMode, OPCUAClient, OPCUAServer, SecurityPolicy, UserTokenType } from "node-opcua";
+import { UserIdentityInfoUserName } from "node-opcua-client";
 import { coercePrivateKeyPem, readCertificate, readCertificatePEM, readPrivateKey } from "node-opcua-crypto";
 import {
     OPCUAClientFactory,
     OPCUACUserNameAuthenticationScheme,
     OPCUACertificateAuthenticationScheme,
     OPCUAChannelSecurityScheme,
+    OPCUAProtocolClient,
+    OPCUACAuthenticationScheme,
+    OPCUACredentials,
 } from "../src";
+import { resolveChannelSecurity, resolvedUserIdentity } from "../src/opcua-security-resolver";
 
 import { startServer } from "./fixture/basic-opcua-server";
 import { CertificateManagerSingleton } from "../src/certificate-manager-singleton";
 const endpoint = "opc.tcp://localhost:7890";
+// credentials are registered against the thing id (see credentialsFor / makeThing)
+const thingId = "urn:node-wot:opcua-security-test";
 
 const { debug } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
@@ -44,6 +51,8 @@ interface WhoAmI {
 const thingDescription: WoT.ThingDescription = {
     "@context": "https://www.w3.org/2019/wot/td/v1",
     "@type": ["Thing"],
+    // credentials are registered against the thing id
+    id: thingId,
 
     securityDefinitions: {
         nosec_sc: {
@@ -51,55 +60,50 @@ const thingDescription: WoT.ThingDescription = {
         },
         // OPCUAChannelSecurityScheme
         "c:sign-encrypt_basic256Sha256": <OPCUAChannelSecurityScheme>{
-            scheme: "uav:channel-security",
-            messageMode: "sign_encrypt",
-            policy: "Basic256Sha256", // deprecated
+            scheme: "uav:channelsec",
+            "uav:securityMode": "SignAndEncrypt",
+            "uav:securityPolicy": "Basic256Sha256", // deprecated
         },
         // Aes128_Sha256_RsaOaep
         "c:sign-encrypt_aes128Sha256RsaOaep": <OPCUAChannelSecurityScheme>{
-            scheme: "uav:channel-security",
-            messageMode: "sign_encrypt",
-            policy: "Aes128_Sha256_RsaOaep",
+            scheme: "uav:channelsec",
+            "uav:securityMode": "SignAndEncrypt",
+            "uav:securityPolicy": "Aes128_Sha256_RsaOaep",
         },
 
         "c:sign_basic256Sha256": <OPCUAChannelSecurityScheme>{
-            scheme: "uav:channel-security",
-            messageMode: "sign",
-            policy: "Basic256Sha256",
+            scheme: "uav:channelsec",
+            "uav:securityMode": "Sign",
+            "uav:securityPolicy": "Basic256Sha256",
         },
         "c:invalid-sign": <OPCUAChannelSecurityScheme>{
-            scheme: "uav:channel-security",
-            messageMode: "sign",
-            policy: "Basic192Rsa15", // Basic192Rsa15 valid policy but unsupported by server
+            scheme: "uav:channelsec",
+            "uav:securityMode": "Sign",
+            "uav:securityPolicy": "Basic192Rsa15", // Basic192Rsa15 valid policy but unsupported by server
         },
         "c:no_security": <OPCUAChannelSecurityScheme>{
-            scheme: "uav:channel-security",
-            messageMode: "none",
+            scheme: "uav:channelsec",
+            "uav:securityMode": "None",
         },
         //
+        // Note: the schemes below carry no credentials. OPC 10101 6.3.3 requires those to be
+        // supplied out of band; the test harness registers them with servient.addCredentials()
+        // and derives which ones from the definition name (see credentialsFor).
         "a:username-password": <OPCUACUserNameAuthenticationScheme>{
             scheme: "uav:authentication",
-            tokenType: "username",
-            userName: "joe",
-            password: "password_for_joe",
+            "uav:userIdentityToken": "UserName",
         },
         "a:username-invalid-password": <OPCUACUserNameAuthenticationScheme>{
             scheme: "uav:authentication",
-            tokenType: "username",
-            userName: "joe",
-            password: "**INVALID**password_for_joe",
+            "uav:userIdentityToken": "UserName",
         },
         "a:x509-certificate": <OPCUACertificateAuthenticationScheme>{
             scheme: "uav:authentication",
-            tokenType: "certificate",
-            certificate: "....",
-            privateKey: "....",
+            "uav:userIdentityToken": "Certificate",
         },
         "a:x509-certificate-no-private-key": <OPCUACertificateAuthenticationScheme>{
             scheme: "uav:authentication",
-            tokenType: "certificate",
-            certificate: "....",
-            privateKey: undefined,
+            "uav:userIdentityToken": "Certificate",
         },
         // compbo
         "c:sign_basic256Sha256-a:username-password": {
@@ -299,21 +303,19 @@ describe("verify test securityDefinitions", () => {
                 for (const subKey of comboDef.allOf) {
                     expect(definitions).to.have.property(subKey);
                 }
-            } else if (def.scheme === "uav:channel-security") {
+            } else if (def.scheme === "uav:channelsec") {
                 const channelDef = def as OPCUAChannelSecurityScheme;
-                expect(channelDef).to.have.property("messageMode");
-                expect(["none", "sign", "sign_encrypt"]).to.include(channelDef.messageMode);
-                // policy is optional
+                expect(channelDef).to.have.property("uav:securityMode");
+                expect(["None", "Sign", "SignAndEncrypt"]).to.include(channelDef["uav:securityMode"]);
+                // uav:securityPolicy is optional
             } else if (def.scheme === "uav:authentication") {
                 const authDef = def as OPCUACertificateAuthenticationScheme | OPCUACUserNameAuthenticationScheme;
-                expect(authDef).to.have.property("tokenType");
-                if (authDef.tokenType === "username") {
-                    expect(authDef).to.have.property("userName");
-                    expect(authDef).to.have.property("password");
-                } else if (authDef.tokenType === "certificate") {
-                    expect(authDef).to.have.property("certificate");
-                    expect(authDef).to.have.property("privateKey");
-                }
+                expect(authDef).to.have.property("uav:userIdentityToken");
+                // credentials must NOT appear in the thing description (OPC 10101 6.3.3)
+                expect(authDef).to.not.have.property("userName");
+                expect(authDef).to.not.have.property("password");
+                expect(authDef).to.not.have.property("certificate");
+                expect(authDef).to.not.have.property("privateKey");
             }
         }
     });
@@ -322,6 +324,29 @@ describe("verify test securityDefinitions", () => {
 describe("Testing OPCUA Security Combination", () => {
     let opcuaServer: OPCUAServer;
     let endpoint: string;
+    // filled in by before(), once the self-signed material has been generated
+    let certificatePem: string;
+    let privateKeyPem: string;
+
+    /**
+     * Credentials are no longer part of the thing description, so the harness derives
+     * them from the security definition name, the same way inferExpectedSecurityMode does.
+     */
+    function credentialsFor(security: string): OPCUACredentials | undefined {
+        if (security.match(/username-invalid-password/)) {
+            return { userName: "joe", password: "**INVALID**password_for_joe" };
+        }
+        if (security.match(/username-password/)) {
+            return { userName: "joe", password: "password_for_joe" };
+        }
+        if (security.match(/no-private-key/)) {
+            return { certificate: certificatePem, privateKey: undefined };
+        }
+        if (security.match(/certificate/)) {
+            return { certificate: certificatePem, privateKey: privateKeyPem };
+        }
+        return undefined;
+    }
     before(async () => {
         opcuaServer = await startServer();
         endpoint = opcuaServer.getEndpointUrl();
@@ -368,14 +393,8 @@ describe("Testing OPCUA Security Combination", () => {
         // adjust thingDescription x509 parameters with generated certficate info
         const joedoeX509CertificatePem = readCertificatePEM(joedoeX509CertificateFilename);
 
-        const x509 = thingDescription.securityDefinitions["a:x509-certificate"];
-        x509.certificate = joedoeX509CertificatePem;
-        const privateKeyPem = coercePrivateKeyPem(readPrivateKey(clientCertificateManager.privateKey));
-        x509.privateKey = privateKeyPem;
-
-        const x509NoPrivateKey = thingDescription.securityDefinitions["a:x509-certificate-no-private-key"];
-        x509NoPrivateKey.certificate = joedoeX509CertificatePem;
-        x509NoPrivateKey.privateKey = undefined;
+        certificatePem = joedoeX509CertificatePem;
+        privateKeyPem = coercePrivateKeyPem(readPrivateKey(clientCertificateManager.privateKey));
     });
     after(async () => {
         await opcuaServer.shutdown();
@@ -394,6 +413,11 @@ describe("Testing OPCUA Security Combination", () => {
         const opcuaClientFactory = new OPCUAClientFactory();
 
         servient.addClientFactory(opcuaClientFactory);
+
+        const credentials = credentialsFor(security);
+        if (credentials !== undefined) {
+            servient.addCredentials({ [thingId]: credentials });
+        }
 
         const wot = await servient.start();
 
@@ -454,5 +478,139 @@ describe("Testing OPCUA Security Combination", () => {
                 await servient.shutdown();
             }
         });
+    });
+});
+
+describe("Testing OPCUA Security Scheme Migration (OPC 10101 v1.00)", () => {
+    it("MIG1 - should reject the pre-1.00 'uav:channel-security' scheme rather than ignore it", () => {
+        const client = new OPCUAProtocolClient();
+        expect(() =>
+            client.setSecurity([
+                {
+                    scheme: "uav:channel-security",
+                    messageMode: "sign_encrypt",
+                    policy: "Basic256Sha256",
+                } as unknown as SecurityScheme,
+            ])
+        ).to.throw(/Unsupported OPC UA security scheme 'uav:channel-security'/);
+    });
+
+    it("MIG1b - should still refuse any other unknown scheme in our namespace", () => {
+        const client = new OPCUAProtocolClient();
+        expect(() => client.setSecurity([{ scheme: "uav:whatever" } as unknown as SecurityScheme])).to.throw(
+            /Unsupported OPC UA security scheme/
+        );
+    });
+
+    it("MIG2 - should still ignore security schemes that belong to another binding", () => {
+        const client = new OPCUAProtocolClient();
+        expect(client.setSecurity([{ scheme: "basic" } as SecurityScheme])).to.eql(true);
+    });
+});
+
+describe("Testing OPCUA Security Scheme conformance (OPC 10101 6.3.3)", () => {
+    it("CONF1 - should accept the full policy URI as well as the short name", () => {
+        const resolved = resolveChannelSecurity({
+            scheme: "uav:channelsec",
+            "uav:securityMode": "Sign",
+            "uav:securityPolicy": "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256",
+        } as unknown as OPCUAChannelSecurityScheme);
+        expect(resolved.securityPolicy).to.eql(SecurityPolicy.Basic256Sha256);
+        expect(resolved.messageSecurityMode).to.eql(MessageSecurityMode.Sign);
+    });
+
+    it("CONF2 - should accept securityPolicy 'None' together with securityMode 'None'", () => {
+        const resolved = resolveChannelSecurity({
+            scheme: "uav:channelsec",
+            "uav:securityMode": "None",
+            "uav:securityPolicy": "None",
+        } as unknown as OPCUAChannelSecurityScheme);
+        expect(resolved.securityPolicy).to.eql(SecurityPolicy.None);
+        expect(resolved.messageSecurityMode).to.eql(MessageSecurityMode.None);
+    });
+
+    it("CONF3 - should refuse an unknown securityMode instead of downgrading to None", () => {
+        expect(() =>
+            resolveChannelSecurity({
+                scheme: "uav:channelsec",
+                "uav:securityMode": "sign_encrypt",
+                "uav:securityPolicy": "Basic256Sha256",
+            } as unknown as OPCUAChannelSecurityScheme)
+        ).to.throw(/Invalid security mode/);
+    });
+
+    it("CONF4 - should refuse securityPolicy 'None' when the mode asks for security", () => {
+        expect(() =>
+            resolveChannelSecurity({
+                scheme: "uav:channelsec",
+                "uav:securityMode": "SignAndEncrypt",
+                "uav:securityPolicy": "None",
+            } as unknown as OPCUAChannelSecurityScheme)
+        ).to.throw(/cannot be used with security mode/);
+    });
+
+    it("CONF5 - should refuse IssuedToken rather than connect anonymously", () => {
+        expect(() =>
+            resolvedUserIdentity({
+                scheme: "uav:authentication",
+                "uav:userIdentityToken": "IssuedToken",
+                "uav:issueToken": "oauth2_sc",
+            } as unknown as OPCUACAuthenticationScheme)
+        ).to.throw(/IssuedToken/);
+    });
+
+    it("CONF6 - should refuse an unknown userIdentityToken rather than connect anonymously", () => {
+        expect(() =>
+            resolvedUserIdentity({
+                scheme: "uav:authentication",
+                "uav:userIdentityToken": "username",
+            } as unknown as OPCUACAuthenticationScheme)
+        ).to.throw(/Invalid user identity token/);
+    });
+});
+
+describe("Testing OPCUA credentials (OPC 10101 6.3.3)", () => {
+    const userNameScheme = {
+        scheme: "uav:authentication",
+        "uav:userIdentityToken": "UserName",
+    } as unknown as OPCUACAuthenticationScheme;
+
+    it("CRED1 - should refuse a UserName scheme when no credentials are registered", () => {
+        expect(() => resolvedUserIdentity(userNameScheme)).to.throw(/No user name credentials/);
+    });
+
+    it("CRED2 - should refuse a Certificate scheme when no credentials are registered", () => {
+        expect(() =>
+            resolvedUserIdentity({
+                scheme: "uav:authentication",
+                "uav:userIdentityToken": "Certificate",
+            } as unknown as OPCUACAuthenticationScheme)
+        ).to.throw(/No certificate credentials/);
+    });
+
+    it("CRED3 - should accept credentials given as a single object (thing-level security)", () => {
+        const identity = resolvedUserIdentity(userNameScheme, { userName: "joe", password: "secret" });
+        expect(identity.type).to.eql(UserTokenType.UserName);
+        expect((identity as UserIdentityInfoUserName).userName).to.eql("joe");
+    });
+
+    it("CRED4 - should accept credentials given as an array (form-level security)", () => {
+        const identity = resolvedUserIdentity(userNameScheme, [{ userName: "joe", password: "secret" }]);
+        expect(identity.type).to.eql(UserTokenType.UserName);
+        expect((identity as UserIdentityInfoUserName).userName).to.eql("joe");
+    });
+
+    it("CRED5 - should pick the entry matching the scheme when several are registered", () => {
+        const identity = resolvedUserIdentity(userNameScheme, [
+            { certificate: "-----BEGIN CERTIFICATE-----" },
+            { userName: "joe", password: "secret" },
+        ]);
+        expect((identity as UserIdentityInfoUserName).userName).to.eql("joe");
+    });
+
+    it("CRED6 - should ignore credentials that do not match the scheme, and refuse", () => {
+        expect(() => resolvedUserIdentity(userNameScheme, [{ certificate: "..." }])).to.throw(
+            /No user name credentials/
+        );
     });
 });

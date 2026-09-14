@@ -17,7 +17,7 @@
 import * as TDT from "wot-thing-description-types";
 import { SecurityScheme } from "@node-wot/core";
 export interface OPCUASecuritySchemeBase extends SecurityScheme, TDT.AdditionalSecurityScheme {
-    scheme: "uav:channel-security" | "uav:authentication";
+    scheme: "uav:channelsec" | "uav:authentication";
 }
 
 export type ValidOPCUASecurityPolicy =
@@ -43,34 +43,79 @@ export type ValidOPCUASecurityPolicy =
 // deprecated |  "Basic256" | "http://opcfoundation.org/UA/SecurityPolicy#Basic256"
 
 /**
- *
+ * A channel security scheme, as defined in OPC 10101 "OPC UA for WoT Binding" §6.3.3.
  */
 export interface OPCUASecureSecurityScheme extends OPCUASecuritySchemeBase {
-    scheme: "uav:channel-security";
-    policy: ValidOPCUASecurityPolicy;
-    messageMode: "sign" | "sign_encrypt";
+    scheme: "uav:channelsec";
+    "uav:securityPolicy": ValidOPCUASecurityPolicy;
+    "uav:securityMode": "Sign" | "SignAndEncrypt";
 }
 export interface OPCUAUnsecureChannelScheme extends OPCUASecuritySchemeBase {
-    scheme: "uav:channel-security";
-    policy: never;
-    messageMode: "none";
+    scheme: "uav:channelsec";
+    // OPC 10101 lists uav:securityPolicy as required and allows the value "None",
+    // so it is accepted here, but it carries no information when the mode is "None".
+    "uav:securityPolicy"?: "None";
+    "uav:securityMode": "None";
 }
 
 export type OPCUAChannelSecurityScheme = OPCUASecureSecurityScheme | OPCUAUnsecureChannelScheme;
+
+/**
+ * An authentication scheme, as defined in OPC 10101 "OPC UA for WoT Binding" §6.3.3.
+ *
+ * The scheme states *which kind* of identity to use. It never carries the identity
+ * itself: §6.3.2 and §6.3.3 both require that credentials be supplied out of band.
+ * See {@link OPCUACredentials}.
+ *
+ * Note: "IssuedToken" (uav:issueToken) is not implemented, as node-opcua does not
+ * support issued tokens yet.
+ */
 export interface OPCUACAuthenticationSchemeBase extends OPCUASecuritySchemeBase {
     scheme: "uav:authentication";
-    tokenType: "username" | "certificate" | "anonymous";
+    "uav:userIdentityToken": "UserName" | "Certificate" | "Anonymous" | "IssuedToken";
 }
 
 export interface OPCUACUserNameAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
     scheme: "uav:authentication";
-    tokenType: "username";
-    userName: string;
-    password?: string;
+    "uav:userIdentityToken": "UserName";
 }
 export interface OPCUACertificateAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
     scheme: "uav:authentication";
-    tokenType: "certificate";
+    "uav:userIdentityToken": "Certificate";
+}
+export interface OPCUAAnonymousAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
+    scheme: "uav:authentication";
+    "uav:userIdentityToken": "Anonymous";
+}
+/**
+ * Declared for completeness with OPC 10101 6.3.3. Recognised but not usable:
+ * node-opcua has no support for issued tokens, so resolving one raises an error
+ * rather than falling back to a weaker identity.
+ */
+export interface OPCUAIssuedTokenAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
+    scheme: "uav:authentication";
+    "uav:userIdentityToken": "IssuedToken";
+    // name of another security scheme in the same thing description, e.g. an oauth2 one
+    "uav:issueToken"?: string;
+}
+export type OPCUACAuthenticationScheme =
+    | OPCUAAnonymousAuthenticationScheme
+    | OPCUAIssuedTokenAuthenticationScheme
+    | OPCUACertificateAuthenticationScheme
+    | OPCUACUserNameAuthenticationScheme;
+
+/**
+ * Credentials for a "UserName" authentication scheme.
+ */
+export interface OPCUAUserNameCredentials {
+    userName: string;
+    password?: string;
+}
+
+/**
+ * Credentials for a "Certificate" authentication scheme.
+ */
+export interface OPCUACertificateCredentials {
     // the certificate in PEM format
     //  -----BEGIN CERTIFICATE----
     //  ...
@@ -83,11 +128,25 @@ export interface OPCUACertificateAuthenticationScheme extends OPCUACAuthenticati
     //  -----END PRIVATE KEY-----
     privateKey?: string;
 }
-export interface OPCUAAnonymousAuthenticationScheme extends OPCUACAuthenticationSchemeBase {
-    scheme: "uav:authentication";
-    tokenType: "anonymous";
+
+/**
+ * Credentials for an OPC UA thing.
+ *
+ * OPC 10101 §6.3.2 and §6.3.3 state that "login credentials such as user name and
+ * passwords or certificates are not shared in WoT Thing Descriptions and must be
+ * provided separately". They are therefore supplied through the servient, keyed by
+ * the thing id:
+ *
+ * ```js
+ * servient.addCredentials({ "urn:my-thing": { userName: "joe", password: "secret" } });
+ * ```
+ */
+export type OPCUACredentials = OPCUAUserNameCredentials | OPCUACertificateCredentials;
+
+export function isUserNameCredentials(credentials: OPCUACredentials): credentials is OPCUAUserNameCredentials {
+    return (credentials as OPCUAUserNameCredentials).userName !== undefined;
 }
-export type OPCUACAuthenticationScheme =
-    | OPCUAAnonymousAuthenticationScheme
-    | OPCUACertificateAuthenticationScheme
-    | OPCUACUserNameAuthenticationScheme;
+
+export function isCertificateCredentials(credentials: OPCUACredentials): credentials is OPCUACertificateCredentials {
+    return (credentials as OPCUACertificateCredentials).certificate !== undefined;
+}
