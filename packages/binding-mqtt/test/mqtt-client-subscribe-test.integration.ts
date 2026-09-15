@@ -21,7 +21,6 @@ import { createInfoLogger, ProtocolHelpers, Servient } from "@node-wot/core";
 import { expect, should } from "chai";
 import MqttBrokerServer from "../src/mqtt-broker-server";
 import MqttClientFactory from "../src/mqtt-client-factory";
-import MqttsClientFactory from "../src/mqtts-client-factory";
 
 const info = createInfoLogger("binding-mqtt", "mqtt-client-subscribe-test.integration");
 
@@ -110,8 +109,8 @@ describe("MQTT client implementation - integration", () => {
         });
         servient.addServer(brokerServer);
 
-        servient.addClientFactory(new MqttClientFactory());
-        servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
+        // MqttClientFactory now handles all MQTT protocols (mqtt, mqtts, ws+mqtt, wss+mqtt)
+        servient.addClientFactory(new MqttClientFactory({ rejectUnauthorized: false }));
 
         servient.start().then((WoT) => {
             expect(brokerServer.getPort()).to.equal(brokerPort);

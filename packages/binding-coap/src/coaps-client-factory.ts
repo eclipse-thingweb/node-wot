@@ -25,6 +25,10 @@ const { debug } = createLoggers("binding-coap", "coaps-client-factory");
 export default class CoapsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "coaps";
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["coaps"]];
+    }
+
     public getClient(): ProtocolClient {
         debug(`CoapsClientFactory creating client for '${this.scheme}'`);
         return new CoapsClient();

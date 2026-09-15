@@ -31,6 +31,10 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
         this.contentSerdes.addCodec(new OpcuaBinaryCodec());
     }
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["opc.tcp"]];
+    }
+
     getClient(): ProtocolClient {
         debug(`OpcuaClientFactory creating client for '${this.scheme}'`);
         if (this._clients[0] != null) {
