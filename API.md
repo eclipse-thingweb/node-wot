@@ -230,7 +230,7 @@ thing.setActionHandler("increment", () => {
 The Event Interaction Affordance describes event sources that asynchronously push messages.
 This means that instead of communicating state, state transitions (events) are communicated (e.g. "clicked").
 Events may be triggered by internal state changes that are not exposed as Properties.
-Events usually follow strong consistency, where messages need to be queued to ensure eventual delivery of all occured events.
+Events usually follow strong consistency, where messages need to be queued to ensure eventual delivery of all occurred events.
 
 Just like Actions above, Events are added as part of `WoT.produce`.
 In the following, we will add the Event `onchange`:
