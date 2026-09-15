@@ -572,11 +572,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
      *
      * @experimental
      */
-    public handleUnsubscribeEvent(
+    public async handleUnsubscribeEvent(
         name: string,
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
-    ): void {
+    ): Promise<void> {
         if (this.events[name] != null) {
             Helpers.validateInteractionOptions(this, this.events[name], options);
 
@@ -595,7 +595,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
             }
             const unsubscribe = this.#eventHandlers.get(name)?.unsubscribe;
             if (unsubscribe) {
-                unsubscribe(options);
+                await unsubscribe(options);
             }
             debug(`ExposedThing '${this.title}' unsubscribes from event '${name}'`);
         } else {
@@ -639,11 +639,11 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         }
     }
 
-    public handleUnobserveProperty(
+    public async handleUnobserveProperty(
         name: string,
         listener: ContentListener,
         options: WoT.InteractionOptions & { formIndex: number }
-    ): void {
+    ): Promise<void> {
         if (this.properties[name] != null) {
             Helpers.validateInteractionOptions(this, this.properties[name], options);
             const formIndex = ProtocolHelpers.getFormIndexForOperation(
@@ -663,7 +663,7 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
 
             const unobserveHandler = this.#propertyHandlers.get(name)?.unobserveHandler;
             if (unobserveHandler) {
-                unobserveHandler(options);
+                await unobserveHandler(options);
             }
         } else {
             throw new Error(`ExposedThing '${this.title}', no property found for '${name}'`);
