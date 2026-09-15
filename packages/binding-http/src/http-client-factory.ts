@@ -28,7 +28,7 @@ export default class HttpClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "http";
     private config: HttpConfig | null = null;
     private oAuthManager: OAuthManager = new OAuthManager();
-    private readonly clients = new Set<ProtocolClient>();
+    private readonly clients: Array<ProtocolClient> = [];
 
     constructor(config: HttpConfig | null = null) {
         this.config = config;
@@ -44,7 +44,7 @@ export default class HttpClientFactory implements ProtocolClientFactory {
             debug(`HttpClientFactory creating client for '${this.scheme}'`);
             client = new HttpClient(this.config);
         }
-        this.clients.add(client);
+        this.clients.push(client);
         return client;
     }
 
@@ -57,7 +57,7 @@ export default class HttpClientFactory implements ProtocolClientFactory {
     public destroy(): boolean {
         debug(`HttpClientFactory stopping all clients for '${this.scheme}'`);
         this.clients.forEach((client) => void client.stop());
-        this.clients.clear();
+        this.clients.length = 0;
         return true;
     }
 }

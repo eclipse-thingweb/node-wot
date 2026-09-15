@@ -26,7 +26,7 @@ const { debug, warn } = createLoggers("binding-http", "https-client-factory");
 export default class HttpsClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "https";
     private config: HttpConfig | null = null;
-    private readonly clients = new Set<ProtocolClient>();
+    private readonly clients: Array<ProtocolClient> = [];
 
     constructor(config: HttpConfig | null = null) {
         this.config = config;
@@ -42,7 +42,7 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
             debug(`HttpsClientFactory creating client for '${this.scheme}'`);
             client = new HttpClient(this.config, true);
         }
-        this.clients.add(client);
+        this.clients.push(client);
         return client;
     }
 
@@ -55,7 +55,7 @@ export default class HttpsClientFactory implements ProtocolClientFactory {
     public destroy(): boolean {
         debug(`HttpsClientFactory stopping all clients for '${this.scheme}'`);
         this.clients.forEach((client) => void client.stop());
-        this.clients.clear();
+        this.clients.length = 0;
         return true;
     }
 }
