@@ -49,7 +49,10 @@ describe("MQTT client implementation - integration", () => {
         brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
         servient.addServer(brokerServer);
 
-        servient.addClientFactory(new MqttClientFactory());
+        servient.addClientFactory(new MqttClientFactory("mqtt"));
+        servient.addClientFactory(new MqttClientFactory("mqtts"));
+        servient.addClientFactory(new MqttClientFactory("ws+mqtt"));
+        servient.addClientFactory(new MqttClientFactory("wss+mqtt"));
 
         servient.start().then((WoT) => {
             expect(brokerServer.getPort()).to.equal(brokerPort);
@@ -110,7 +113,10 @@ describe("MQTT client implementation - integration", () => {
         });
         servient.addServer(brokerServer);
 
-        servient.addClientFactory(new MqttClientFactory());
+        servient.addClientFactory(new MqttClientFactory("mqtt"));
+        servient.addClientFactory(new MqttClientFactory("mqtts"));
+        servient.addClientFactory(new MqttClientFactory("ws+mqtt"));
+        servient.addClientFactory(new MqttClientFactory("wss+mqtt"));
         servient.addClientFactory(new MqttsClientFactory({ rejectUnauthorized: false }));
 
         servient.start().then((WoT) => {
