@@ -22,7 +22,7 @@ export default function thingsRoute(
     res: ServerResponse,
     _params: unknown
 ): void {
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", this.getAllowedOrigins());
     res.setHeader("Content-Type", ContentSerdes.DEFAULT);
     res.writeHead(200);
     const list = [];
