@@ -249,4 +249,17 @@ class HttpServerCorsTest {
         expect(response.status).to.equal(204); // Action without output returns 204
         expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
     }
+
+    @test async "should include CORS headers on 404 response"() {
+        const uri = `http://localhost:${this.httpServer.getPort()}/nonexistent-resource`;
+
+        const response = await fetch(uri, {
+            headers: {
+                Origin: "http://example.com",
+            },
+        });
+
+        expect(response.status).to.equal(404);
+        expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://example.com");
+    }
 }
