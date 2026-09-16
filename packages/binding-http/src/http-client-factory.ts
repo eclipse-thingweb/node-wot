@@ -28,20 +28,24 @@ export default class HttpClientFactory implements ProtocolClientFactory {
     public readonly scheme: string = "http";
     private config: HttpConfig | null = null;
     private oAuthManager: OAuthManager = new OAuthManager();
+    private readonly clients: Array<ProtocolClient> = [];
 
     constructor(config: HttpConfig | null = null) {
         this.config = config;
     }
 
     public getClient(): ProtocolClient {
+        let client: HttpClient;
         // HTTP over HTTPS proxy requires HttpsClient
         if (this.config && this.config.proxy && this.config.proxy.href && this.config.proxy.href.startsWith("https:")) {
             warn("HttpClientFactory creating client for 'https' due to secure proxy configuration");
-            return new HttpClient(this.config, true, this.oAuthManager);
+            client = new HttpClient(this.config, true, this.oAuthManager);
         } else {
             debug(`HttpClientFactory creating client for '${this.scheme}'`);
-            return new HttpClient(this.config);
+            client = new HttpClient(this.config);
         }
+        this.clients.push(client);
+        return client;
     }
 
     public init(): boolean {
@@ -51,8 +55,9 @@ export default class HttpClientFactory implements ProtocolClientFactory {
     }
 
     public destroy(): boolean {
-        // info(`HttpClientFactory for '${HttpClientFactory.scheme}' destroyed`);
-        // TODO uncomment info if something is executed here
+        debug(`HttpClientFactory stopping all clients for '${this.scheme}'`);
+        this.clients.forEach((client) => void client.stop());
+        this.clients.length = 0;
         return true;
     }
 }
