@@ -1,0 +1,15 @@
+{
+    // Type-checks the test suite, which the build (tsconfig.json) deliberately excludes.
+    // ts-node compiles the tests at run time, so a type error there only surfaces as a
+    // confusing mocha loader failure; `npm run check:types:test` surfaces it directly.
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "composite": false,
+        "incremental": false,
+        "declaration": false,
+        "rootDir": ".",
+        "types": ["node", "mocha"]
+    },
+    "include": ["./src/**/*", "./test/**/*"]
+}

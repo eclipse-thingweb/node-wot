@@ -21,7 +21,7 @@ import { ContentSerdes, Helpers, ObjectSchema, createLoggers } from "@node-wot/c
 import { DataValue } from "node-opcua-data-value";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
-import { opcuaJsonEncodeDataValue, DataValueJSON } from "node-opcua-json";
+import { DataValueJSON, JsonEncoderMode, opcuaJsonEncodeDataValue } from "node-opcua-json/104";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
@@ -48,9 +48,9 @@ const dataValue3 = new DataValue({
     },
 });
 
-const dataValue1Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue1, true));
-const dataValue2Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue2, true));
-const dataValue3Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue3, true));
+const dataValue1Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue1, JsonEncoderMode.Reversible, []));
+const dataValue2Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue2, JsonEncoderMode.Reversible, []));
+const dataValue3Json = Helpers.structuredClone(opcuaJsonEncodeDataValue(dataValue3, JsonEncoderMode.Reversible, []));
 
 describe("OPCUA Binary Serdes ", () => {
     [dataValue1Json, dataValue2Json, dataValue3Json].forEach((dataValue, index) => {

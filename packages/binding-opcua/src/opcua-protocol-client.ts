@@ -58,7 +58,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { coercePrivateKeyPem } from "node-opcua-crypto";
-import { opcuaJsonEncodeVariant } from "node-opcua-json";
+import { JsonEncoderMode, opcuaJsonEncodeVariant } from "node-opcua-json/104";
 import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2 } from "node-opcua";
 
@@ -100,13 +100,13 @@ function _variantToJSON(variant: Variant, contentType: string) {
 
     switch (contentType) {
         case "application/opcua+json": {
-            return opcuaJsonEncodeVariant(variant, true);
+            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, []);
         }
         case "application/json": {
-            return opcuaJsonEncodeVariant(variant, false);
+            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.NonReversible, []);
         }
         default: {
-            throw new Error("Unsupported content type here : " + contentType);
+            throw new Error(`Unsupported content type here : ${contentType}`);
         }
     }
 }
@@ -326,7 +326,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             if (dataTypeOrNull !== undefined && dataTypeOrNull !== DataType.Null) {
                 return dataTypeOrNull;
             }
-            throw new Error("cannot predict dataType for nodeId " + nodeId.toString());
+            throw new Error(`cannot predict dataType for nodeId ${nodeId.toString()}`);
         });
     }
 
@@ -388,10 +388,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
             });
             // Shall we throw an exception if call failed ?
             if (callResult.statusCode !== StatusCodes.Good) {
-                throw new Error("Error in Calling OPCUA Method : " + callResult.statusCode.toString());
+                throw new Error(`Error in Calling OPCUA Method : ${callResult.statusCode.toString()}`);
             }
             const output = await this._resolveOutputArguments(
-                session,
                 form,
                 argumentDefinition,
                 callResult.outputArguments ?? []
@@ -601,7 +600,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
         const contentSerDes = ContentSerdes.get();
         if (contentType === "application/json") {
-            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, false);
+            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, []);
             const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
             return content;
         }
@@ -634,7 +633,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 const dataValue = contentSerDes.contentToValue(content3, schemaDataValue) as DataValue;
                 if (!(dataValue instanceof DataValue)) {
                     contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
-                    throw new Error("Internal Error, expecting a DataValue here ");
+                    throw new Error(`Internal Error, expecting a DataValue here `);
                 }
                 debug(`_contentToDataValue: write ${form}`);
                 debug(
@@ -710,11 +709,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const { name, dataType, /* description, */ arrayDimensions, valueRank } = argument;
 
             if (bodyInput[name ?? "null"] === undefined) {
-                throw new Error("missing value in bodyInput for argument " + name);
+                throw new Error(`missing value in bodyInput for argument ${name}`);
             }
             const basicDataType = await this._findBasicDataType(session, dataType);
             if (basicDataType === undefined) {
-                throw new Error("basicDataType is undefined for dataType " + dataType);
+                throw new Error(`basicDataType is undefined for dataType ${dataType}`);
             }
 
             const arrayType: VariantArrayType =
@@ -738,7 +737,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     private async _resolveOutputArguments(
-        session: IBasicSession,
         form: OPCUAForm,
         argumentDefinition: ArgumentDefinition,
         outputVariants: Variant[]

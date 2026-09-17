@@ -14,10 +14,23 @@
  ********************************************************************************/
 
 import { ContentCodec, DataSchema } from "@node-wot/core";
+import { NodeId } from "node-opcua";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { DataValue } from "node-opcua-data-value";
+import {
+    DataValueJSON,
+    ExtensionObjectBuilder,
+    ExtensionObjectConstructorFuncWithSchema,
+    JsonEncoderMode,
+    opcuaJsonDecodeDataValue,
+    opcuaJsonEncodeDataValue,
+} from "node-opcua-json/104";
 
-import { opcuaJsonEncodeDataValue, opcuaJsonDecodeDataValue, DataValueJSON } from "node-opcua-json";
+const builder: ExtensionObjectBuilder = {
+    getExtensionObjectConstructor(_dataTypeNodeId: NodeId): ExtensionObjectConstructorFuncWithSchema {
+        throw new Error("Not implemented");
+    },
+};
 
 export class OpcuaBinaryCodec implements ContentCodec {
     getMediaType(): string {
@@ -28,7 +41,7 @@ export class OpcuaBinaryCodec implements ContentCodec {
         const binaryStream = new BinaryStream(bytes);
         const dataValue = new DataValue();
         dataValue.decode(binaryStream);
-        return opcuaJsonEncodeDataValue(dataValue, true);
+        return opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []);
     }
 
     valueToBytes(
@@ -36,7 +49,7 @@ export class OpcuaBinaryCodec implements ContentCodec {
         schema: DataSchema,
         parameters?: { [key: string]: string }
     ): Buffer {
-        dataValue = dataValue instanceof DataValue ? dataValue : opcuaJsonDecodeDataValue(dataValue);
+        dataValue = dataValue instanceof DataValue ? dataValue : opcuaJsonDecodeDataValue(dataValue, builder, []);
 
         // remove unwanted properties
         dataValue.serverPicoseconds = 0;

@@ -3,7 +3,13 @@
     "compilerOptions": {
         "outDir": "dist",
         "rootDir": "src",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        // node-opcua >= 2.184 ships as ES modules (package.json "type": "module").
+        // "nodenext" is the resolution mode that knows a modern Node can require() an
+        // ES module; "node16" (inherited from the root config) rejects it with TS1479.
+        // This package itself stays CommonJS.
+        "module": "nodenext",
+        "moduleResolution": "nodenext"
     },
     "include": ["./src/**/*"],
     "references": [{ "path": "../core" }]
