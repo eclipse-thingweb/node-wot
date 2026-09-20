@@ -103,7 +103,13 @@ export default class HttpServer implements ProtocolServer {
                 }
 
                 // No url-rewrite mapping found -> resource not found
-                res.writeHead(404);
+                const origin = req.headers["origin"];
+                if (typeof origin === "string") {
+                    res.setHeader("Access-Control-Allow-Origin", origin);
+                    res.setHeader("Vary", "Origin");
+                }
+
+                res.writeHead(404, { "Content-Type": "text/plain" });
                 res.end("Not Found");
             },
         });
@@ -622,6 +628,14 @@ export default class HttpServer implements ProtocolServer {
     }
 
     private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+        // --- GLOBAL CORS HANDLING ---
+        const origin = req.headers["origin"];
+        if (typeof origin === "string") {
+            res.setHeader("Access-Control-Allow-Origin", origin);
+            res.setHeader("Vary", "Origin");
+        }
+        // -----------------------------
+
         const requestUri = new URL(req.url ?? "", `${this.scheme}://${req.headers.host}`);
 
         debug(
