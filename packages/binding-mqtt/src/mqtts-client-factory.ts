@@ -17,30 +17,15 @@
  * Protocol test suite to test protocol implementations
  */
 
-import { ProtocolClientFactory, ProtocolClient, createDebugLogger } from "@node-wot/core";
 import { MqttClientConfig } from "./mqtt";
-import MqttClient from "./mqtt-client";
+import MqttClientFactory from "./mqtt-client-factory";
 
-const debug = createDebugLogger("binding-mqtt", "mqtts-client-factory");
-
-export default class MqttsClientFactory implements ProtocolClientFactory {
-    public readonly scheme: string = "mqtts";
-    private readonly clients: Array<ProtocolClient> = [];
-
-    constructor(private readonly config: MqttClientConfig) {}
-    getClient(): ProtocolClient {
-        const client = new MqttClient(this.config, true);
-        this.clients.push(client);
-        return client;
-    }
-
-    init(): boolean {
-        return true;
-    }
-
-    destroy(): boolean {
-        debug(`MqttClientFactory stopping all clients for '${this.scheme}'`);
-        this.clients.forEach((client) => client.stop());
-        return true;
+/**
+ * @deprecated Use MqttClientFactory instead. MqttClientFactory now handles both secure and non-secure MQTT protocols.
+ * This class is kept for backward compatibility and simply wraps MqttClientFactory.
+ */
+export default class MqttsClientFactory extends MqttClientFactory {
+    constructor(config: MqttClientConfig) {
+        super(config);
     }
 }

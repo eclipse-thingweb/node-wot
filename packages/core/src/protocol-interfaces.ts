@@ -89,6 +89,26 @@ export interface ProtocolClientFactory {
     getClient(): ProtocolClient;
     init(): boolean;
     destroy(): boolean;
+
+    /**
+     * Returns all protocol combinations this factory supports as tuples [scheme, subprotocol?].
+     *
+     * Examples:
+     * - HTTP factory: [["http"], ["https"]]
+     * - MQTT factory: [["mqtt"], ["mqtts"], ["ws", "mqtt"], ["wss", "mqtt"]]
+     * - WebSocket factory: [["ws"], ["wss"]]
+     *
+     * Implementation requirements:
+     * - Must return a non-empty array
+     * - Each tuple must have at least one element (the scheme)
+     * - Scheme (first element) must be a non-empty string
+     * - Subprotocol (second element) is optional and should be a non-empty string if provided
+     * - Empty strings, null, or undefined schemes will be rejected
+     * - Invalid tuples will be skipped with a warning
+     *
+     * @returns Array of tuples where first element is scheme, optional second is subprotocol
+     */
+    getSupportedProtocols?(): Array<[string, string?]>;
 }
 
 export interface ProtocolServer {

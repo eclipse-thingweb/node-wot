@@ -30,6 +30,10 @@ export default class WebSocketClientFactory implements ProtocolClientFactory {
         this.clientSideProxy = proxy;
     }
 
+    public getSupportedProtocols(): Array<[string, string?]> {
+        return [["ws"]];
+    }
+
     public getClient(): ProtocolClient {
         debug(`HttpClientFactory creating client for '${this.scheme}'`);
         return new WebSocketClient();
