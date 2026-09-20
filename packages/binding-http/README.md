@@ -180,6 +180,7 @@ The protocol binding can be configured using his constructor or trough servient 
     baseUri?: string                         // A Base URI to be used in the TD in cases where the client will access a different URL than the actual machine serving the thing.  [See Using BaseUri below]
     urlRewrite?: Record<string, string>      // A record to allow for other URLs pointing to existing endpoints, e.g., { "/myroot/myUrl": "/test/properties/test" }
     middleware?: MiddlewareRequestHandler;   // the MiddlewareRequestHandler function. See [Adding a middleware] section below.
+    allowedOrigins?: string;                 // Configures the Access-Control-Allow-Origin header. Defaults to "*" (any origin). See [Configuring CORS] section below.
 }
 ```
 
@@ -304,6 +305,21 @@ The exposed thing on the internal server will product form URLs such as:
 > `baseUri` tells the producer to prefix URLs which may include hostnames, network interfaces, and URI prefixes which are not local to the machine exposing the Thing.
 
 > `address` tells the HttpServer a specific local network interface to bind its TCP listener.
+
+### Configuring CORS
+
+By default, the HTTP binding sets the `Access-Control-Allow-Origin` header to `"*"`, allowing any origin to access exposed Things. You can restrict this to a specific origin using the `allowedOrigins` configuration option:
+
+```js
+servient.addServer(
+    new HttpServer({
+        port: 8080,
+        allowedOrigins: "https://my-app.example.com",
+    })
+);
+```
+
+When a security scheme (e.g. `basic`, `bearer`) is configured, the server echoes the request's `Origin` header and sets `Access-Control-Allow-Credentials: true`, regardless of the `allowedOrigins` value. This is required for browsers to send credentials in cross-origin requests.
 
 ### Adding a middleware
 

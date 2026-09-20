@@ -47,7 +47,7 @@ export default async function eventRoute(
         return;
     }
     // TODO: refactor this part to move into a common place
-    setCorsForThing(req, res, thing);
+    setCorsForThing(req, res, thing, this.getAllowedOrigins());
     let corsPreflightWithCredentials = false;
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
@@ -109,7 +109,7 @@ export default async function eventRoute(
     } else {
         // may have been OPTIONS that failed the credentials check
         // as a result, we pass corsPreflightWithCredentials
-        respondUnallowedMethod(req, res, "GET", corsPreflightWithCredentials);
+        respondUnallowedMethod(req, res, "GET", corsPreflightWithCredentials, this.getAllowedOrigins());
     }
     // resource found and response sent
 }

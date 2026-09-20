@@ -250,3 +250,252 @@ class HttpServerCorsTest {
         expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
     }
 }
+
+@suite("HTTP Server CORS with allowedOrigins config")
+class HttpServerCorsAllowedOriginsTest {
+    @test async "should use configured allowedOrigins for nosec things"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginConfig",
+                properties: {
+                    test: {
+                        type: "string",
+                        forms: [],
+                    },
+                },
+            });
+
+            thing.setPropertyReadHandler("test", () => Promise.resolve("value"));
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testoriginconfig/properties/test`;
+            const response = await fetch(uri, {
+                headers: { Origin: "http://other.example.com" },
+            });
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should use configured allowedOrigins for thing listing"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const uri = `http://localhost:${httpServer.getPort()}/`;
+            const response = await fetch(uri);
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should use configured allowedOrigins for thing description"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginTD",
+                properties: {
+                    test: {
+                        type: "string",
+                        forms: [],
+                    },
+                },
+            });
+
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testorigintd`;
+            const response = await fetch(uri, {
+                headers: { Accept: "application/td+json" },
+            });
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should use configured allowedOrigins in CORS preflight for nosec"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginPreflight",
+                properties: {
+                    test: {
+                        type: "string",
+                        forms: [],
+                    },
+                },
+            });
+
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testoriginpreflight/properties/test`;
+            const response = await fetch(uri, {
+                method: "OPTIONS",
+                headers: {
+                    Origin: "http://other.example.com",
+                    "Access-Control-Request-Method": "GET",
+                },
+            });
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should default to * when allowedOrigins is not configured"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0 });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginDefault",
+                properties: {
+                    test: {
+                        type: "string",
+                        forms: [],
+                    },
+                },
+            });
+
+            thing.setPropertyReadHandler("test", () => Promise.resolve("value"));
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testorigindefault/properties/test`;
+            const response = await fetch(uri, {
+                headers: { Origin: "http://any.example.com" },
+            });
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("*");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should use configured allowedOrigins for invoke action (POST)"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginAction",
+                actions: {
+                    doSomething: {
+                        forms: [],
+                    },
+                },
+            });
+
+            thing.setActionHandler("doSomething", () => Promise.resolve(undefined));
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testoriginaction/actions/doSomething`;
+            const response = await fetch(uri, {
+                method: "POST",
+                headers: { Origin: "http://other.example.com" },
+            });
+
+            expect(response.status).to.equal(204);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should use configured allowedOrigins for subscribe event (GET)"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({ port: 0, allowedOrigins: "http://my-app.example.com" });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginEvent",
+                events: {
+                    onChange: {
+                        forms: [],
+                    },
+                },
+            });
+
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testoriginevent/events/onChange`;
+            const response = await fetch(uri, {
+                method: "OPTIONS",
+                headers: {
+                    Origin: "http://other.example.com",
+                    "Access-Control-Request-Method": "GET",
+                },
+            });
+
+            expect(response.status).to.equal(200);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://my-app.example.com");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should still use origin for secured things regardless of config"() {
+        const servient = new Servient();
+        const httpServer = new HttpServer({
+            port: 0,
+            allowedOrigins: "http://my-app.example.com",
+            security: [{ scheme: "basic" }],
+        });
+        await httpServer.start(servient);
+
+        try {
+            const thing = new ExposedThing(servient, {
+                title: "TestOriginSecured",
+                securityDefinitions: {
+                    basic_sc: { scheme: "basic" },
+                },
+                security: ["basic_sc"],
+                properties: {
+                    test: {
+                        type: "string",
+                        forms: [],
+                    },
+                },
+            });
+
+            await httpServer.expose(thing);
+
+            const uri = `http://localhost:${httpServer.getPort()}/testoriginsecured/properties/test`;
+            const response = await fetch(uri, {
+                headers: { Origin: "http://caller.example.com" },
+            });
+
+            // Security scheme is basic, so origin should be echoed back (not allowedOrigins)
+            expect(response.status).to.equal(401);
+            expect(response.headers.get("Access-Control-Allow-Origin")).to.equal("http://caller.example.com");
+            expect(response.headers.get("Access-Control-Allow-Credentials")).to.equal("true");
+        } finally {
+            await httpServer.stop();
+        }
+    }
+}

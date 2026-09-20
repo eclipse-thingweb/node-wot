@@ -57,7 +57,7 @@ export default async function propertyObserveRoute(
     }
 
     // TODO: refactor this part to move into a common place
-    setCorsForThing(req, res, thing);
+    setCorsForThing(req, res, thing, this.getAllowedOrigins());
     let corsPreflightWithCredentials = false;
     const securityScheme = thing.securityDefinitions[Helpers.toStringArray(thing.security)[0]].scheme;
 
@@ -113,6 +113,6 @@ export default async function propertyObserveRoute(
         res.writeHead(202);
         res.end();
     } else {
-        respondUnallowedMethod(req, res, "GET", corsPreflightWithCredentials);
+        respondUnallowedMethod(req, res, "GET", corsPreflightWithCredentials, this.getAllowedOrigins());
     }
 }
