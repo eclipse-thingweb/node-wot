@@ -41,7 +41,7 @@ const { debug, warn, info, error } = createLoggers("binding-coap", "coap-server"
 
 type CoreLinkFormatParameters = Map<string, string[] | number[]>;
 
-type AffordanceElement = PropertyElement | ActionElement | EventElement;
+type AffordanceElement = Omit<PropertyElement, "forms"> | Omit<ActionElement, "forms"> | Omit<EventElement, "forms">;
 
 // TODO: Move to core?
 type AugmentedInteractionOptions = WoT.InteractionOptions & { formIndex: number };
@@ -145,11 +145,6 @@ export default class CoapServer implements ProtocolServer {
         const port = this.getPort();
         const urlPath = this.createThingUrlPath(thing);
 
-        if (port === -1) {
-            warn("CoapServer is assigned an invalid port, aborting expose process.");
-            return;
-        }
-
         this.fillInBindingData(thing, port, urlPath);
 
         debug(`CoapServer on port ${port} exposes '${thing.title}' as unique '/${urlPath}'`);
@@ -236,12 +231,8 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private addFormToAffordance(form: Form, affordance: AffordanceElement): void {
-        const affordanceForms = affordance.forms;
-        if (affordanceForms == null) {
-            affordance.forms = [form];
-        } else {
-            affordanceForms.push(form);
-        }
+        const withForms = affordance as AffordanceElement & { forms?: Form[] };
+        (withForms.forms ??= []).push(form);
     }
 
     private fillInPropertyBindingData(thing: ExposedThing, base: string, offeredMediaType: string) {
@@ -354,9 +345,8 @@ export default class CoapServer implements ProtocolServer {
 
     public async destroy(thingId: string): Promise<boolean> {
         debug(`CoapServer on port ${this.getPort()} destroying thingId '${thingId}'`);
-        for (const name of this.things.keys()) {
-            const exposedThing = this.things.get(name);
-            if (exposedThing?.id === thingId) {
+        for (const [name, exposedThing] of this.things.entries()) {
+            if (exposedThing.id === thingId) {
                 this.things.delete(name);
                 this.coreResources.delete(name);
                 this.mdnsIntroducer?.delete(name);
@@ -374,7 +364,7 @@ export default class CoapServer implements ProtocolServer {
         return Array.from(this.coreResources.values())
             .map((resource) => {
                 const formattedPath = `</${resource.urlPath}>`;
-                const parameters = Array.from(resource.parameters?.entries() ?? []);
+                const parameters = resource.parameters ? Array.from(resource.parameters.entries()) : [];
 
                 const parameterValues = parameters.map((parameter) => {
                     const key = parameter[0];
@@ -499,20 +489,24 @@ export default class CoapServer implements ProtocolServer {
         const { thingKey, affordanceType, affordanceKey } = this.parseUriSegments(requestUri);
         const thing = this.things.get(thingKey);
 
-        if (thing == null) {
+        if (thing === undefined) {
             this.sendNotFoundResponse(res);
             return;
         }
 
         // TODO: Remove support for trailing slashes (or rather: trailing empty URI path segments)
-        if (affordanceType == null || affordanceType === "") {
+        if (!affordanceType) {
             await this.handleTdRequest(req, res, thing);
             return;
         }
 
         switch (affordanceType) {
             case this.PROPERTY_DIR:
-                this.handlePropertyRequest(thing, affordanceKey, req, res, contentType);
+                if (!affordanceKey) {
+                    this.handlePropertiesRequest(req, contentType, thing, res);
+                } else {
+                    this.handlePropertyRequest(thing, affordanceKey, req, res, contentType);
+                }
                 break;
             case this.ACTION_DIR:
                 this.handleActionRequest(thing, affordanceKey, req, res, contentType);
@@ -554,11 +548,6 @@ export default class CoapServer implements ProtocolServer {
     ) {
         const property = thing.properties[affordanceKey];
 
-        if (property == null) {
-            this.handlePropertiesRequest(req, contentType, thing, res);
-            return;
-        }
-
         switch (req.method) {
             case "GET":
                 if (req.headers.Observe == null) {
@@ -588,7 +577,7 @@ export default class CoapServer implements ProtocolServer {
     ) {
         const forms = thing.forms;
 
-        if (forms == null) {
+        if (!forms || forms.length === 0) {
             this.sendNotFoundResponse(res);
             return;
         }
@@ -618,26 +607,30 @@ export default class CoapServer implements ProtocolServer {
                 contentType,
                 thing.uriVariables
             );
-            const readablePropertyKeys = this.getReadableProperties(thing).map(([key, _]) => key);
+
+            const readablePropertyKeys = this.getReadableProperties(thing).map(([key]) => key);
+
             const contentMap = await thing.handleReadMultipleProperties(readablePropertyKeys, interactionOptions);
 
             const recordResponse: Record<string, DataSchemaValue> = {};
             for (const [key, content] of contentMap.entries()) {
-                const value = ContentSerdes.get().contentToValue(
-                    { type: ContentSerdes.DEFAULT, body: await content.toBuffer() },
-                    {}
-                );
+                try {
+                    if (content.type !== ContentSerdes.DEFAULT && content.type !== "application/json") {
+                        continue;
+                    }
+                    const buffer = await content.toBuffer();
+                    const parsed = JSON.parse(buffer.toString());
 
-                if (value == null) {
-                    // TODO: How should this case be handled?
+                    recordResponse[key] = parsed;
+                } catch {
+                    // Ignore non-JSON properties
                     continue;
                 }
-
-                recordResponse[key] = value;
             }
 
-            const content = ContentSerdes.get().valueToContent(recordResponse, undefined, contentType);
-            this.streamContentResponse(res, content);
+            const responseContent = ContentSerdes.get().valueToContent(recordResponse, undefined, contentType);
+
+            this.streamContentResponse(res, responseContent);
         } catch (err) {
             const errorMessage = `${err}`;
             error(`CoapServer on port ${this.getPort()} got internal error on read '${req.url}': ${errorMessage}`);
@@ -775,11 +768,6 @@ export default class CoapServer implements ProtocolServer {
     ) {
         const action = thing.actions[affordanceKey];
 
-        if (action == null) {
-            this.sendNotFoundResponse(res);
-            return;
-        }
-
         if (req.method !== "POST") {
             this.sendMethodNotAllowedResponse(res);
             return;
@@ -837,19 +825,14 @@ export default class CoapServer implements ProtocolServer {
     ) {
         const event = thing.events[affordanceKey];
 
-        if (event == null) {
-            this.sendNotFoundResponse(res);
-            return;
-        }
-
         if (req.method !== "GET") {
             this.sendMethodNotAllowedResponse(res);
             return;
         }
 
-        const observe = req.headers.Observe as number;
+        const observe = req.headers.Observe as number | undefined;
 
-        if (observe == null) {
+        if (observe === undefined) {
             debug(
                 `CoapServer on port ${this.getPort()} rejects '${affordanceKey}' event subscription from ${Helpers.toUriLiteral(
                     req.rsinfo.address
@@ -923,17 +906,18 @@ export default class CoapServer implements ProtocolServer {
     }
 
     private getContentTypeFromRequest(req: IncomingMessage): string {
-        const contentType = req.headers["Content-Format"] as string;
+        const contentType = req.headers["Content-Format"] as string | undefined;
 
-        if (contentType == null) {
+        if (contentType === undefined) {
             warn(
                 `CoapServer on port ${this.getPort()} received no Content-Format from ${Helpers.toUriLiteral(
                     req.rsinfo.address
                 )}:${req.rsinfo.port}`
             );
+            return ContentSerdes.DEFAULT;
         }
 
-        return contentType ?? ContentSerdes.DEFAULT;
+        return contentType;
     }
 
     private checkContentTypeSupportForInput(method: string, contentType: string): boolean {
@@ -974,7 +958,7 @@ export default class CoapServer implements ProtocolServer {
     }
 
     // TODO: The name of this method might not be ideal yet.
-    private streamContentResponse(res: OutgoingMessage, content: Content, options?: { end?: boolean | undefined }) {
+    private streamContentResponse(res: OutgoingMessage, content: Content, options?: { end?: boolean }) {
         res.setOption("Content-Format", content.type);
         res.code = "2.05";
         content.body.pipe(res, options);
