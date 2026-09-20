@@ -53,7 +53,7 @@ export class ContentSerdes {
     public static readonly TD: string = "application/td+json";
     public static readonly JSON_LD: string = "application/ld+json";
 
-    private codecs: Map<string, ContentCodec> = new Map();
+    private codecs: Map<string, Map<string | undefined, ContentCodec>> = new Map();
     private offered: Set<string> = new Set<string>();
 
     public static get(): ContentSerdes {
@@ -107,9 +107,31 @@ export class ContentSerdes {
         return params;
     }
 
-    public addCodec(codec: ContentCodec, offered = false): void {
-        ContentSerdes.get().codecs.set(codec.getMediaType(), codec);
-        if (offered) ContentSerdes.get().offered.add(codec.getMediaType());
+    public addCodec(codec: ContentCodec, offered = false, scheme?: string) : void {
+        const mediaType = codec.getMediaType();
+
+        if (!this.codecs.has(mediaType)) {
+            this.codecs.set(mediaType, new Map());
+        }
+
+        const schemeMap = this.codecs.get(mediaType)!;
+
+        // store codec under specific scheme (or undefined for generic)
+        schemeMap.set(scheme, codec);
+
+        if (offered) {
+            this.offered.add(mediaType);
+        }
+    }
+    private getCodec(mediaType: string, scheme?: string): ContentCodec | undefined {
+        const schemeMap = this.codecs.get(mediaType);
+        if (!schemeMap) return undefined;
+
+        if (scheme !== undefined && schemeMap.has(scheme)) {
+            return schemeMap.get(scheme);
+        }
+
+        return schemeMap.get(undefined);
     }
 
     public getSupportedMediaTypes(): Array<string> {
@@ -122,7 +144,7 @@ export class ContentSerdes {
 
     public isSupported(contentType: string): boolean {
         const mt = ContentSerdes.getMediaType(contentType);
-        return this.codecs.has(mt);
+        return this.getCodec(mt) !== undefined;
     }
 
     public contentToValue(content: ReadContent, schema: DataSchema): DataSchemaValue | undefined {
@@ -141,20 +163,15 @@ export class ContentSerdes {
         const par = ContentSerdes.getMediaTypeParameters(content.type);
 
         // choose codec based on mediaType
-        if (this.codecs.has(mt)) {
+        const codec = this.getCodec(mt);
+
+        if (codec) {
             debug(`ContentSerdes deserializing from ${content.type}`);
-
-            const codec = this.codecs.get(mt);
-
-            // use codec to deserialize
-            // this.codecs.has(mt) is true
-            const res = codec!.bytesToValue(content.body, schema, par);
-
-            return res;
-        } else {
-            warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
-            return content.body.toString();
-        }
+            return codec.bytesToValue(content.body, schema, par);
+       } else {
+        warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
+        return content.body.toString();
+       }
     }
 
     public valueToContent(
@@ -175,7 +192,7 @@ export class ContentSerdes {
         const par = ContentSerdes.getMediaTypeParameters(contentType);
 
         // choose codec based on mediaType
-        const codec = this.codecs.get(mt);
+        const codec = this.getCodec(mt);
         if (codec) {
             debug(`ContentSerdes serializing to ${contentType}`);
             bytes = codec.valueToBytes(value, schema, par);
