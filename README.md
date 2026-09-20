@@ -213,7 +213,7 @@ servient.start().then(async (WoT) => {
 }).catch((err) => { console.error(err); });
 ```
 
-If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [http://plugfest.thingweb.io/examples/counter.html](http://plugfest.thingweb.io/examples/counter.html) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
+If you execute both scripts you will see `count: ${count}` printed 5 times. We host a more complex version of this example at [https://thingweb.io/webui/#tab-counter](https://thingweb.io/webui/#tab-counter) and you can find the source code in the [counter example](./examples/browser) folder. You can also find more examples in the [examples folder](./examples/scripts) for JavaScript and in the [examples folder](./packages/examples/) for TypeScript. Finally, for your convenience, we host a set of online Things that you can use to test your applications. You can find more information about them in the [Online Things](#online-things) section.
 
 ## Implemented/supported features
 
@@ -290,7 +290,7 @@ docker run -it --init -v "$(pwd)"/examples:/srv/examples --rm --net=host node-wo
 ### Using a browser
 
 An example of how to use node-wot as a browser-side library can be found under `examples/browser/index.html`.
-To run it, open [`examples/browser/index.html`](http://plugfest.thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
+To run it, open [`examples/browser/index.html`](https://thingweb.io/webui/) in a modern browser, and consume the test Thing available under `http://plugfest.thingweb.io:8083/testthing` to interact with it.
 
 The JavaScript code that uses node-wot as a library to power this application can be found under: `examples/browser/index.js`
 
@@ -308,12 +308,13 @@ Their TDs are available at the following links:
 -   Simple Coffee Machine: HTTP at <https://zion.vaimee.com/things/urn:uuid:7ba2bca0-a7f6-47b3-bdce-498caa33bbaf>
 
 All of them require no security mechanism to be communicated with.
+You can interact with them using the generic [Web UI](https://thingweb.io/webui/).
 Below are small explanations of what they can be used for:
 
 -   Counter: It has a count property that can be read or observed and can be incremented or decremented via separate actions.
     It is also possible to reset the count value, obtain when the last change occurred, subscribe to a change in the count value or get the count value as an image.
 -   TestThing: This Thing exists primarily for testing different data schemas and payload formats. It also has events attached to affordances that notify when a value changes.
--   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](http://plugfest.thingweb.io/examples/smart-coffee-machine.html) that displays the values of properties.
+-   Smart Coffee Machine: This is a simulation of a coffee machine that also has a [simple user interface](https://thingweb.io/webui/#tab-smartcoffee) that displays the values of properties.
     In addition to proving a real-life device example, it can be used for testing `uriVariables`. You can ask it to brew different coffees and monitor the available resource level.
 -   Presence Sensor: It mocks the detection of a person by firing an event every 5 seconds.
 -   Smart Clock: It simply has a property affordance for the time. However, it runs 60 times faster than real-time to allow time-based decisions that can be easily tested.
