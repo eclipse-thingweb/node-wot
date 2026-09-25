@@ -195,7 +195,7 @@ export const thingDescription: WoT.ThingDescription = {
                     type: "object",
                     href: "/",
                     op: ["invokeaction"],
-                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}` },
+                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet` },
                     "opcua:method": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet/17:MakeCoffee`,
@@ -219,7 +219,7 @@ export const thingDescription: WoT.ThingDescription = {
                     type: "object",
                     href: "/",
                     op: ["invokeaction"],
-                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}` },
+                    "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet` },
                     "opcua:method": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet/17:FillTank`,
