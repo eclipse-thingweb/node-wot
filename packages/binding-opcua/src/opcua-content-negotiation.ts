@@ -146,6 +146,14 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
  * knows nothing about OPC UA, so we refuse rather than emit a lossy encoding.
  */
 function assertByteStringOnly(variant: Variant, hint: string): void {
+    if (variant.dataType === DataType.ByteString && variant.arrayType !== VariantArrayType.Scalar) {
+        throw new Error(
+            `binding-opcua: contentType 'application/octet-stream' carries one ByteString, and ${hint} holds ` +
+                `${VariantArrayType[variant.arrayType]} of ByteString, which a raw octet stream cannot frame. ` +
+                `Use application/json to get the byte strings as base64, or ` +
+                `application/opcua+json;type=DataValue to keep StatusCode and timestamps.`
+        );
+    }
     if (variant.dataType !== DataType.ByteString) {
         throw new Error(
             `binding-opcua: contentType 'application/octet-stream' is only supported when the value is a ByteString, ` +

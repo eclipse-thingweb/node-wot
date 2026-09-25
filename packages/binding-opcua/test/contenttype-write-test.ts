@@ -191,35 +191,39 @@ describe("contentType write round-trip", function () {
     });
 
     describe("application/octet-stream", function () {
-        // KNOWN LIMITATION, and the main architectural finding of this POC.
-        //
-        // On READ the binding owns content negotiation end to end, because it is
-        // handed raw bytes and decides what they mean. On WRITE it does not:
-        // ConsumedThing.writeProperty calls ContentSerdes.valueToContent BEFORE the
-        // binding is reached, so core has already chosen a codec from the global
-        // media-type registry. For application/octet-stream that is the Modbus-oriented
-        // OctetstreamCodec, and no binding-scoped resolution can intercept it.
-        //
-        // Fixing this needs the core change @egekorkan proposed in Dec 2025: let a
-        // binding override content-serdes resolution. See gap G8 in
-        // 06-content-types-101.md.
-        it("cannot yet be intercepted on write - core serializes first", async function () {
+        // The binding registers OpcuaByteStringCodec for the opc.tcp scheme (core #1409,
+        // PR #1572), so OPC UA content no longer reaches the generic OctetstreamCodec,
+        // which packs Modbus registers. Before that, core serialized the write before the
+        // binding was called and this test could only record the failure.
+        it("round-trips a ByteString as raw bytes", async function () {
             const c = CASES.find((x) => x.key === "ByteString");
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
             const thing = await wot.consume(makeTD(c, "application/octet-stream"));
-            let message = "";
-            try {
-                await thing.writeProperty("v", Buffer.from([0x01, 0x02, 0x03]) as unknown as WoT.DataSchemaValue);
-            } catch (err) {
-                message = (err as Error).message;
+
+            await thing.writeProperty("v", Buffer.from([0xde, 0xad, 0xbe, 0xef]) as unknown as WoT.DataSchemaValue);
+
+            // value() reports base64, the same as the JSON flavours
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.equal("3q2+7w==");
+
+            // and the bytes themselves are untouched
+            const raw = await thing.readProperty("v");
+            expect(Buffer.from(await raw.arrayBuffer())).to.deep.equal(Buffer.from([0xde, 0xad, 0xbe, 0xef]));
+        });
+
+        it("accepts a base64 string as well as a Buffer", async function () {
+            const c = CASES.find((x) => x.key === "ByteString");
+            if (c === undefined) {
+                throw new Error("missing ByteString case");
             }
-            // the error comes from core's OctetstreamCodec, not from the binding:
-            // proof that the binding never saw this write
-            expect(message, "expected core's codec to reject before the binding is reached").to.match(
-                /Value is not a string/
-            );
+            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+
+            await thing.writeProperty("v", "AQID" as WoT.DataSchemaValue);
+
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.equal("AQID");
         });
 
         it("is refused for a non-ByteString target, naming the form", async function () {
@@ -234,10 +238,8 @@ describe("contentType write round-trip", function () {
             } catch (err) {
                 message = (err as Error).message;
             }
-            // core's OctetstreamCodec rejects a number before the binding is reached,
-            // for the same reason as above. Either way the write is refused rather
-            // than silently truncated to float32, which is the behaviour that matters.
-            expect(message).to.match(/not a string|only supported when the target is a ByteString/);
+            // the binding now owns the refusal, and says which form and which OPC UA type
+            expect(message).to.match(/only supported when the target is a ByteString|must be a Buffer/);
         });
     });
 

@@ -19,7 +19,6 @@ import { URL } from "url";
 import {
     ProtocolClient,
     Content,
-    ContentSerdes,
     Form,
     SecurityScheme,
     createLoggers,
@@ -62,7 +61,6 @@ import { JsonEncoderMode, opcuaJsonEncodeVariant } from "node-opcua-json/104";
 import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2 } from "node-opcua";
 
-import { schemaDataValue } from "./codecs/opcua-data-schemas";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";

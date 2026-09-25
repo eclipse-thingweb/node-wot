@@ -158,6 +158,7 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
 
         // Print the matrix so the behaviour is visible without reading assertions.
         // Deliberately console output, not the logger: the table is the deliverable.
+        // eslint-disable-next-line no-console
         const line = (t: string) => console.info(t);
         line("");
         line("=== contentType matrix: read a Double (42.0) over OPC UA ===");

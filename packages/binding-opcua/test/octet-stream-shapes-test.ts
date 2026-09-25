@@ -447,15 +447,14 @@ function makeTD(shape: Shape, contentType?: string, overrideType?: string): WoT.
 }
 
 function render(v: unknown): string {
-    let s: string;
+    // JSON.stringify returns undefined for undefined and for a function
+    let s: string | undefined;
     try {
         s = JSON.stringify(v);
     } catch {
         s = String(v);
     }
-    if (s === undefined) {
-        s = String(v);
-    }
+    s ??= String(v);
     return s.length > 200 ? s.slice(0, 197) + "..." : s;
 }
 
@@ -515,6 +514,8 @@ describe("contentType x data shape matrix (issue #1400)", function () {
         await servient.shutdown();
         await opcuaServer.shutdown();
 
+        // Deliberately console output, not the logger: the table is the deliverable.
+        // eslint-disable-next-line no-console
         const line = (t: string) => console.info(t);
         line("");
         line("=== contentType x OPC UA data shape ===");
@@ -563,7 +564,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                 try {
                     const rawRead = await thing.readProperty("v");
                     cell.hex = toHex(await rawRead.arrayBuffer());
-                } catch (err) {
+                } catch {
                     cell.hex = "n/a";
                 }
 
