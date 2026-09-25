@@ -22,7 +22,10 @@
 // the plant.
 //
 
-import { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
+import { expect, use } from "chai";
+
+use(chaiAsPromised);
 import { Servient, createLoggers } from "@node-wot/core";
 import { OPCUAServer, DataType, VariantArrayType, UAVariable, VariantLike, makeAccessLevelFlag } from "node-opcua";
 
@@ -240,6 +243,72 @@ describe("contentType write round-trip", function () {
             }
             // the binding now owns the refusal, and says which form and which OPC UA type
             expect(message).to.match(/only supported when the target is a ByteString|must be a Buffer/);
+        });
+    });
+
+    describe("OPC UA JSON edition (version parameter)", function () {
+        // 1.04 is the deprecated Reversible/NonReversible pair, 1.05 the Compact/Verbose one
+        // that replaced it (OPC 10000-6 5.4). See doc/opcua-json-encoding.md.
+        function doubleCase(): WriteCase {
+            const c = CASES.find((x) => x.key === "Double");
+            if (c === undefined) {
+                throw new Error("missing Double case");
+            }
+            // the envelope flavours return an object, so the TD must say so: core
+            // validates what value() returns against the schema
+            return { ...c, wotType: "object" };
+        }
+
+        it("1.04 is the default and names the Variant fields Type and Body", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=Variant"));
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.have.keys(["Type", "Body"]);
+        });
+
+        it("version=1.05 names them UaType and Value", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=Variant;version=1.05"));
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.have.keys(["UaType", "Value"]);
+        });
+
+        it("version=1.05 flattens the DataValue onto the value", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=DataValue;version=1.05"));
+            const read = await thing.readProperty("v");
+            const value = (await read.value()) as Record<string, unknown>;
+            expect(value).to.have.property("UaType");
+            expect(value).to.have.property("SourceTimestamp");
+            // 1.04 nests the Variant under "Value"; 1.05 puts the value itself there
+            expect(value.Value).to.be.a("number");
+        });
+
+        it("round-trips a write in 1.05", async function () {
+            const c = doubleCase();
+            const thing = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.05"));
+            await thing.writeProperty("v", { UaType: 11, Value: 1.25 } as unknown as WoT.DataSchemaValue);
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.deep.equal({ UaType: 11, Value: 1.25 });
+        });
+
+        it("accepts the other edition on write, whatever the form says", async function () {
+            const c = doubleCase();
+            // form says 1.05, payload is 1.04: decoding follows the payload
+            const thing105 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.05"));
+            await thing105.writeProperty("v", { Type: 11, Body: 2.5 } as unknown as WoT.DataSchemaValue);
+            expect(await (await thing105.readProperty("v")).value()).to.deep.equal({ UaType: 11, Value: 2.5 });
+
+            // and the reverse
+            const thing104 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant"));
+            await thing104.writeProperty("v", { UaType: 11, Value: 3.5 } as unknown as WoT.DataSchemaValue);
+            expect(await (await thing104.readProperty("v")).value()).to.deep.equal({ Type: 11, Body: 3.5 });
+        });
+
+        it("refuses an unknown version, and mode without 1.05", async function () {
+            const c = doubleCase();
+            const bad = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.06"));
+            await expect(bad.readProperty("v")).to.be.rejectedWith(/unsupported 'version' parameter/);
+
+            const modeOn104 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;mode=verbose"));
+            await expect(modeOn104.readProperty("v")).to.be.rejectedWith(/'mode' parameter belongs to/);
         });
     });
 

@@ -28,8 +28,15 @@ import {
     opcuaJsonEncodeDataValue,
     opcuaJsonEncodeVariant,
 } from "node-opcua-json/104";
+import {
+    JsonEncoderMode as JsonEncoderMode105,
+    opcuaJsonDecodeDataValue as opcuaJsonDecodeDataValue105,
+    opcuaJsonDecodeVariant as opcuaJsonDecodeVariant105,
+    opcuaJsonEncodeDataValue as opcuaJsonEncodeDataValue105,
+    opcuaJsonEncodeVariant as opcuaJsonEncodeVariant105,
+} from "node-opcua-json/105";
 import { DataSchemaValue } from "wot-typescript-definitions";
-import { schemaDataValueJSONValidate } from "./opcua-data-schemas";
+import { schemaDataValueJSONAnyEditionValidate } from "./opcua-data-schemas";
 import { NodeId } from "node-opcua";
 
 const { debug } = createLoggers("binding-opcua", "codec");
@@ -58,6 +65,28 @@ const builder: ExtensionObjectBuilder = {
     },
 };
 
+/**
+ * Which OPC UA JSON edition a payload is written in, from its own field names:
+ * 1.05 uses UaType/Value, 1.04 Type/Body (OPC 10000-6 Annex H). Decoding follows the
+ * payload, so a form declaring one edition still reads the other.
+ */
+function is105(parsed: unknown): boolean {
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const keys = Object.keys(parsed as Record<string, unknown>);
+        return keys.includes("UaType") || keys.includes("UaDimensions") || keys.includes("UaStatus");
+    }
+    return false;
+}
+
+/** the edition to emit, from the contentType parameters; 1.04 unless asked otherwise */
+function wants105(parameters?: { [key: string]: string }): boolean {
+    return parameters?.version === "1.05";
+}
+
+function mode105(parameters?: { [key: string]: string }): JsonEncoderMode105 {
+    return parameters?.mode?.toLowerCase() === "verbose" ? JsonEncoderMode105.Verbose : JsonEncoderMode105.Compact;
+}
+
 // application/json   => is equivalent to application/opcua+json;type=Value
 export class OpcuaJSONCodec implements ContentCodec {
     getMediaType(): string {
@@ -72,37 +101,39 @@ export class OpcuaJSONCodec implements ContentCodec {
 
         switch (type) {
             case "DataValue": {
-                const isValid = schemaDataValueJSONValidate(parsed);
+                const isValid = schemaDataValueJSONAnyEditionValidate(parsed);
                 if (!isValid) {
                     debug(`bytesToValue: parsed = ${parsed}`);
-                    debug(`bytesToValue: ${schemaDataValueJSONValidate.errors}`);
+                    debug(`bytesToValue: ${schemaDataValueJSONAnyEditionValidate.errors}`);
                     throw new Error(`Invalid JSON dataValue : ${JSON.stringify(parsed, null, " ")}`);
                 }
 
+                const payloadIs105 = is105(parsed);
+                const dataValue = payloadIs105
+                    ? opcuaJsonDecodeDataValue105(parsed, builder, [])
+                    : opcuaJsonDecodeDataValue(parsed, builder, []);
                 if (wantDataValue) {
-                    return opcuaJsonDecodeDataValue(parsed, builder, []);
-                }
-                return formatForNodeWoT(
-                    opcuaJsonEncodeDataValue(
-                        opcuaJsonDecodeDataValue(parsed, builder, []),
-                        JsonEncoderMode.Reversible,
-                        []
-                    )
-                );
-                // return parsed;
-            }
-            case "Variant": {
-                if (wantDataValue) {
-                    const dataValue = new DataValue({ value: opcuaJsonDecodeVariant(parsed, builder, []) });
                     return dataValue;
                 }
-                const v = opcuaJsonEncodeVariant(
-                    opcuaJsonDecodeVariant(parsed, builder, []),
-                    JsonEncoderMode.Reversible,
-                    []
-                );
+                if (payloadIs105 || wants105(parameters)) {
+                    return opcuaJsonEncodeDataValue105(dataValue, mode105(parameters), []) as DataSchemaValue;
+                }
+                return formatForNodeWoT(opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []));
+            }
+            case "Variant": {
+                const payloadIs105 = is105(parsed);
+                const variant = payloadIs105
+                    ? opcuaJsonDecodeVariant105(parsed, builder, [])
+                    : opcuaJsonDecodeVariant(parsed, builder, []);
+                if (wantDataValue) {
+                    return new DataValue({ value: variant });
+                }
+                const v =
+                    payloadIs105 || wants105(parameters)
+                        ? opcuaJsonEncodeVariant105(variant, mode105(parameters), [])
+                        : opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, []);
                 debug(`${v}`);
-                return v;
+                return v as DataSchemaValue;
             }
             case "Value": {
                 if (wantDataValue) {
@@ -132,34 +163,42 @@ export class OpcuaJSONCodec implements ContentCodec {
     valueToBytes(value: unknown, _schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         const type = parameters?.type ?? "DataValue";
         const namespaceArray: string[] = [];
+        // an already-encoded payload keeps its own edition; otherwise the form decides
+        const emit105 = is105(value) || wants105(parameters);
         switch (type) {
             case "DataValue": {
-                let dataValueJSON: DataValueJSON;
+                let dataValue: DataValue | undefined;
                 if (value instanceof DataValue) {
-                    dataValueJSON = opcuaJsonEncodeDataValue(value, JsonEncoderMode.Reversible, namespaceArray);
+                    dataValue = value;
                 } else if (value instanceof Variant) {
-                    dataValueJSON = opcuaJsonEncodeDataValue(
-                        new DataValue({ value }),
-                        JsonEncoderMode.Reversible,
-                        namespaceArray
-                    );
-                } else if (typeof value === "string") {
-                    dataValueJSON = JSON.parse(value) as DataValueJSON;
-                } else {
-                    dataValueJSON = opcuaJsonEncodeDataValue(
-                        opcuaJsonDecodeDataValue(value as DataValueJSON, builder, namespaceArray),
-                        JsonEncoderMode.Reversible,
-                        namespaceArray
-                    );
+                    dataValue = new DataValue({ value });
+                } else if (typeof value !== "string") {
+                    dataValue = is105(value)
+                        ? opcuaJsonDecodeDataValue105(value as never, builder, namespaceArray)
+                        : opcuaJsonDecodeDataValue(value as DataValueJSON, builder, namespaceArray);
                 }
-                dataValueJSON = formatForNodeWoT(dataValueJSON);
+                if (dataValue === undefined) {
+                    // a string is passed through as the JSON it already is
+                    return Buffer.from(JSON.stringify(JSON.parse(value as string)), "utf-8");
+                }
+                if (emit105) {
+                    const encoded = opcuaJsonEncodeDataValue105(dataValue, mode105(parameters), namespaceArray);
+                    return Buffer.from(JSON.stringify(encoded), "utf-8");
+                }
+                const dataValueJSON = formatForNodeWoT(
+                    opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, namespaceArray)
+                );
                 return Buffer.from(JSON.stringify(dataValueJSON), "utf-8");
             }
             case "Variant": {
                 if (value instanceof DataValue) {
-                    value = opcuaJsonEncodeVariant(value.value, JsonEncoderMode.Reversible, namespaceArray);
+                    value = emit105
+                        ? opcuaJsonEncodeVariant105(value.value, mode105(parameters), namespaceArray)
+                        : opcuaJsonEncodeVariant(value.value, JsonEncoderMode.Reversible, namespaceArray);
                 } else if (value instanceof Variant) {
-                    value = opcuaJsonEncodeVariant(value, JsonEncoderMode.Reversible, namespaceArray);
+                    value = emit105
+                        ? opcuaJsonEncodeVariant105(value, mode105(parameters), namespaceArray)
+                        : opcuaJsonEncodeVariant(value, JsonEncoderMode.Reversible, namespaceArray);
                 } else if (typeof value === "string") {
                     value = JSON.parse(value);
                 }

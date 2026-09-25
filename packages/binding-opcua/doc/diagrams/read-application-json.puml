@@ -1,5 +1,5 @@
 @startuml
-title application/json (default) — read
+title application/json (default) - read
 actor Application as App
 participant ConsumedThing as CT
 participant "binding-opcua" as B

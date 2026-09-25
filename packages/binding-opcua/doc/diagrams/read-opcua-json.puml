@@ -1,11 +1,11 @@
 @startuml
-title application/opcua+json — read
+title application/opcua+json - read
 actor Application as App
 participant "binding-opcua" as B
 participant InteractionOutput as IO
 participant "OpcuaJSONCodec\n(binding's)" as OJ
 App -> B : readProperty (via ConsumedThing)
-note over B : DataValue → reversible JSON\n{"Value":{"Type":11,"Body":42},\n "SourceTimestamp":"..."}
+note over B : DataValue -> reversible JSON\n{"Value":{"Type":11,"Body":42},\n "SourceTimestamp":"..."}
 B --> App : Content("application/opcua+json")
 App -> IO : value()
 alt TD declares no type

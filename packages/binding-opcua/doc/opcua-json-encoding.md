@@ -82,6 +82,29 @@ is abstract, omit it where the metadata already pins the type. A binding can fol
 rather than invent one: when the node's DataType is concrete, the bare value carries no less
 information than the envelope.
 
-This is why moving to 1.05 is not a one-line change of import, and why it is proposed as its own
-step with its own decisions: how the edition is selected, what `application/json` then returns,
-and what happens to Thing Descriptions written against the current output.
+That is what `;type=Value;version=1.05` does: the binding encodes the 1.05 envelope and returns
+its payload, so a NodeId still arrives as a string and a LocalizedText keeps its locale.
+
+## How a form selects the edition
+
+| parameter | values                           | default   |
+| --------- | -------------------------------- | --------- |
+| `version` | `1.04`, `1.05`                   | `1.04`    |
+| `mode`    | `compact`, `verbose` (1.05 only) | `compact` |
+
+```jsonc
+"forms": [
+  {
+    "href": "/?id=ns=1;s=Temperature",
+    "contentType": "application/opcua+json;type=Variant;version=1.05"
+  }
+]
+```
+
+The default stays 1.04, so a Thing Description written against the current output keeps working.
+**Decoding accepts either edition whatever the form declares**: the field names identify it, which
+is the detection rule Part 6 Annex H defines for exactly this purpose. Strict on what is produced,
+liberal in what is accepted.
+
+Still on 1.04 by default because the field names are visible to every consumer; flipping the
+default is a separate decision for the maintainers, not a side effect of a dependency upgrade.

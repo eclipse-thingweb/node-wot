@@ -17,6 +17,48 @@ receives. Background: issue #1400, core issue #1409 and PR #1572.
 Anything else is refused with an error naming the form, rather than handed to a codec that knows
 nothing about OPC UA.
 
+Every `application/opcua+json` form also takes `;version=1.04|1.05` (default `1.04`) and, for
+1.05, `;mode=compact|verbose` (default `compact`). Writes accept either edition whatever the form
+says. See [opcua-json-encoding.md](opcua-json-encoding.md).
+
+## Payloads by example
+
+The same three values, as they appear on the wire. This is also what a write must send, except for
+the bare value, where the binding takes the type from the server.
+
+**A ByteString** holding `DE AD BE EF`:
+
+| contentType                                        | payload                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------- |
+| `application/json`                                 | `"3q2+7w=="`                                                  |
+| `application/opcua+json;type=Variant`              | `{"Type":15,"Body":"3q2+7w=="}`                               |
+| `application/opcua+json;type=Variant;version=1.05` | `{"UaType":15,"Value":"3q2+7w=="}`                            |
+| `application/opcua+json;type=DataValue`            | `{"Value":{"Type":15,"Body":"3q2+7w=="},"SourceTimestamp":…}` |
+| `application/octet-stream`                         | the four bytes themselves; `value()` reports `"3q2+7w=="`     |
+
+**An array of ByteStrings**, `[01 02]` and `[03]`:
+
+| contentType                                        | payload                                                                                   |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `application/json`                                 | `["AQI=","Aw=="]` — reads fine, but writing it back stores the base64 text, not the bytes |
+| `application/opcua+json;type=Variant`              | `{"Type":15,"Body":["AQI=","Aw=="]}` — round-trips                                        |
+| `application/opcua+json;type=Variant;version=1.05` | `{"UaType":15,"Value":["AQI=","Aw=="]}`                                                   |
+| `application/octet-stream`                         | refused: a raw octet stream cannot frame several byte strings                             |
+
+**An ExtensionObject** (an `Argument` structure):
+
+| contentType                                        | payload                                                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `application/json`                                 | `{"Name":"Arg1","DataType":{"Id":6},"ValueRank":-1,…}` — the fields only, with no type identity |
+| `application/opcua+json;type=Variant`              | `{"Type":22,"Body":{"TypeId":{"Id":296},"Body":{"Name":"Arg1",…}}}`                             |
+| `application/opcua+json;type=Variant;version=1.05` | `{"UaType":22,"Value":{"UaTypeId":"i=296","UaBody":{"Name":"Arg1",…}}}`                         |
+| `application/octet-stream`                         | refused: not a ByteString                                                                       |
+
+Note what the structure's identity costs: the bare value has no `TypeId`, so the server cannot tell
+which structure it is being handed. That is why writing a structure back currently fails, and why
+the envelope forms are the ones to use for structures. 1.05 states the identity as a plain NodeId
+string (`"i=296"`) instead of an object.
+
 ## Where each conversion happens
 
 The binding owns the OPC UA side of both directions. Core owns the media-type side: it decodes

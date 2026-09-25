@@ -38,6 +38,13 @@ import {
     opcuaJsonEncodeDataValue,
     opcuaJsonEncodeVariant,
 } from "node-opcua-json/104";
+import {
+    JsonEncoderMode as JsonEncoderMode105,
+    opcuaJsonDecodeDataValue as opcuaJsonDecodeDataValue105,
+    opcuaJsonDecodeVariant as opcuaJsonDecodeVariant105,
+    opcuaJsonEncodeDataValue as opcuaJsonEncodeDataValue105,
+    opcuaJsonEncodeVariant as opcuaJsonEncodeVariant105,
+} from "node-opcua-json/105";
 import { NodeId } from "node-opcua-nodeid";
 import { coerceInt64, coerceUInt64 } from "node-opcua-basic-types";
 import { createLoggers } from "@node-wot/core";
@@ -66,12 +73,55 @@ export type OPCUAFlavour =
     /** raw bytes, legal only when the Variant holds a ByteString */
     | "byteString";
 
+/**
+ * Which edition of the OPC UA JSON encoding is produced. 1.04 is the deprecated
+ * Reversible/NonReversible pair (Part 6 Annex H), 1.05 the Compact/Verbose pair that
+ * replaced it. Selected per form with `;version=`, defaulting to 1.04 so that existing
+ * Thing Descriptions keep the payloads they were written against.
+ * Decoding accepts either edition whatever this says: see detectEdition below.
+ */
+export type JsonEdition = "1.04" | "1.05";
+
+/** 1.05 only: Compact omits defaults, Verbose keeps everything and names enumerations. */
+export type JsonMode = "compact" | "verbose";
+
 export interface ContentFormat {
     /** media type with parameters stripped */
     mediaType: string;
     flavour: OPCUAFlavour;
+    edition: JsonEdition;
+    mode: JsonMode;
     /** parameters parsed off the contentType string */
     parameters: Record<string, string>;
+}
+
+export const DEFAULT_JSON_EDITION: JsonEdition = "1.04";
+
+function resolveEdition(
+    parameters: Record<string, string>,
+    mediaType: string
+): { edition: JsonEdition; mode: JsonMode } {
+    const version = parameters.version ?? DEFAULT_JSON_EDITION;
+    if (version !== "1.04" && version !== "1.05") {
+        throw new Error(
+            `binding-opcua: unsupported 'version' parameter '${version}' on ${mediaType}. ` +
+                `Expected 1.04 (OPC UA Reversible/NonReversible JSON) or 1.05 (Compact/Verbose).`
+        );
+    }
+    const rawMode = parameters.mode?.toLowerCase();
+    if (rawMode !== undefined && rawMode !== "compact" && rawMode !== "verbose") {
+        throw new Error(
+            `binding-opcua: unsupported 'mode' parameter '${parameters.mode}' on ${mediaType}. ` +
+                `Expected compact or verbose.`
+        );
+    }
+    if (rawMode !== undefined && version === "1.04") {
+        throw new Error(
+            `binding-opcua: the 'mode' parameter belongs to the OPC UA 1.05 JSON encoding, ` +
+                `but ${mediaType} asks for version=1.04. Add version=1.05, or drop mode.`
+        );
+    }
+    return { edition: version, mode: (rawMode as JsonMode) ?? "compact" };
 }
 
 /**
@@ -102,9 +152,11 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
     const mediaType = raw.split(";")[0].trim();
     const parameters = parseParameters(raw);
 
+    const { edition, mode } = resolveEdition(parameters, mediaType);
+
     switch (mediaType) {
         case "application/json":
-            return { mediaType, flavour: "value", parameters };
+            return { mediaType, flavour: "value", edition, mode, parameters };
 
         case "application/opcua+json": {
             const t = (parameters.type ?? "DataValue").toLowerCase();
@@ -120,21 +172,22 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
                         `Expected one of: Value, Variant, DataValue.`
                 );
             }
-            return { mediaType, flavour, parameters };
+            return { mediaType, flavour, edition, mode, parameters };
         }
 
         case "application/opcua+octet-stream":
-            return { mediaType, flavour: "binary", parameters };
+            return { mediaType, flavour: "binary", edition, mode, parameters };
 
         case "application/octet-stream":
             // Legal only for a ByteString Variant; decided at encode time when the
             // actual dataType is known. See assertByteStringOnly below.
-            return { mediaType, flavour: "byteString", parameters };
+            return { mediaType, flavour: "byteString", edition, mode, parameters };
 
         default:
             throw new Error(
                 `binding-opcua: unsupported contentType '${raw}'. ` +
-                    `Supported: application/json, application/opcua+json;type=Value|Variant|DataValue, ` +
+                    `Supported: application/json, application/opcua+json;type=Value|Variant|DataValue ` +
+                    `(optionally ;version=1.05[;mode=compact|verbose]), ` +
                     `application/opcua+octet-stream, and application/octet-stream for ByteString values only.`
             );
     }
@@ -171,19 +224,38 @@ function assertByteStringOnly(variant: Variant, hint: string): void {
  * Returns { type, body } rather than a Content so that the caller decides how to
  * wrap it; this keeps the module free of stream plumbing.
  */
+function mode105(format: ContentFormat): JsonEncoderMode105 {
+    return format.mode === "verbose" ? JsonEncoderMode105.Verbose : JsonEncoderMode105.Compact;
+}
+
 export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hint: string): { body: Buffer } {
     switch (format.flavour) {
         case "value": {
-            // non-reversible JSON: just the value, no OPC UA decoration
+            // the bare value, no OPC UA decoration. 1.05 has no such encoding: both Compact
+            // and Verbose carry the type, so the envelope is encoded and its payload taken.
+            // That follows OPC 10000-14 section 7.2.5.4: drop the type where the node's
+            // DataType already pins it. See doc/opcua-json-encoding.md.
+            if (format.edition === "1.05") {
+                const envelope = opcuaJsonEncodeVariant105(dataValue.value, mode105(format), []) as {
+                    Value?: unknown;
+                } | null;
+                return { body: Buffer.from(JSON.stringify(envelope?.Value ?? null), "utf-8") };
+            }
             const value = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, []);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "variant": {
-            const value = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.Reversible, []);
+            const value =
+                format.edition === "1.05"
+                    ? opcuaJsonEncodeVariant105(dataValue.value, mode105(format), [])
+                    : opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.Reversible, []);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "dataValue": {
-            const value = opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []);
+            const value =
+                format.edition === "1.05"
+                    ? opcuaJsonEncodeDataValue105(dataValue, mode105(format), [])
+                    : opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "binary": {
@@ -230,6 +302,21 @@ function coerceForDataType(value: unknown, dataType: DataType): unknown {
  * `dataType` is the type the server expects for the target node; it is needed for
  * the bare-value flavour, where the payload carries no type information at all.
  */
+/**
+ * Which edition a payload is written in, from its own shape rather than from the
+ * contentType: 1.05 names the Variant fields UaType/Value, 1.04 Type/Body. OPC 10000-6
+ * Annex H defines exactly this detection so that a decoder can accept both.
+ */
+export function detectEdition(parsed: unknown): JsonEdition {
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const keys = Object.keys(parsed as Record<string, unknown>);
+        if (keys.includes("UaType") || keys.includes("UaDimensions") || keys.includes("UaStatus")) {
+            return "1.05";
+        }
+    }
+    return "1.04";
+}
+
 export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType: DataType, hint: string): DataValue {
     switch (format.flavour) {
         case "value": {
@@ -244,11 +331,19 @@ export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType:
             });
         }
         case "variant": {
-            const variant = opcuaJsonDecodeVariant(JSON.parse(body.toString("utf-8")), builder, []);
+            // liberal on input: the payload's own shape decides, not the contentType
+            const parsed = JSON.parse(body.toString("utf-8"));
+            const variant =
+                detectEdition(parsed) === "1.05"
+                    ? opcuaJsonDecodeVariant105(parsed, builder, [])
+                    : opcuaJsonDecodeVariant(parsed, builder, []);
             return new DataValue({ value: variant });
         }
         case "dataValue": {
-            return opcuaJsonDecodeDataValue(JSON.parse(body.toString("utf-8")), builder, []);
+            const parsed = JSON.parse(body.toString("utf-8"));
+            return detectEdition(parsed) === "1.05"
+                ? opcuaJsonDecodeDataValue105(parsed, builder, [])
+                : opcuaJsonDecodeDataValue(parsed, builder, []);
         }
         case "binary": {
             const decoded = theOpcuaBinaryCodec.bytesToValue(body, { type: "object", properties: {} });
