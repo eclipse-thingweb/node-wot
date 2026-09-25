@@ -229,10 +229,41 @@ describe("contentType write round-trip", function () {
             expect(await read.value()).to.equal("AQID");
         });
 
-        it("is refused for a non-ByteString target, naming the form", async function () {
+        it("accepts a Uint8Array as well as a Buffer", async function () {
+            const c = CASES.find((x) => x.key === "ByteString");
+            if (c === undefined) {
+                throw new Error("missing ByteString case");
+            }
+            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+
+            await thing.writeProperty("v", new Uint8Array([1, 2, 3]) as unknown as WoT.DataSchemaValue);
+
+            const read = await thing.readProperty("v");
+            expect(await read.value()).to.equal("AQID");
+        });
+
+        it("is refused for a non-ByteString target, naming the form and the OPC UA type", async function () {
             const c = CASES.find((x) => x.key === "Double");
             if (c === undefined) {
                 throw new Error("missing Double case");
+            }
+            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            let message = "";
+            try {
+                // valid octet-stream payload, so the codec is happy and the refusal can only
+                // come from the binding noticing that the target is not a ByteString
+                await thing.writeProperty("v", "AQID" as WoT.DataSchemaValue);
+            } catch (err) {
+                message = (err as Error).message;
+            }
+            expect(message).to.match(/only supported when the target is a ByteString/);
+            expect(message).to.match(/Double/);
+        });
+
+        it("refuses a value that is not bytes at all, naming what it got", async function () {
+            const c = CASES.find((x) => x.key === "ByteString");
+            if (c === undefined) {
+                throw new Error("missing ByteString case");
             }
             const thing = await wot.consume(makeTD(c, "application/octet-stream"));
             let message = "";
@@ -241,8 +272,7 @@ describe("contentType write round-trip", function () {
             } catch (err) {
                 message = (err as Error).message;
             }
-            // the binding now owns the refusal, and says which form and which OPC UA type
-            expect(message).to.match(/only supported when the target is a ByteString|must be a Buffer/);
+            expect(message).to.match(/must be a Buffer, a Uint8Array or a base64 string/);
         });
     });
 

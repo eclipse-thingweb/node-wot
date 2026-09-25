@@ -47,11 +47,8 @@ import {
 } from "node-opcua-json/105";
 import { NodeId } from "node-opcua-nodeid";
 import { coerceInt64, coerceUInt64 } from "node-opcua-basic-types";
-import { createLoggers } from "@node-wot/core";
 
 import { theOpcuaBinaryCodec } from "./codecs/opcua-binary-codec";
-
-const { debug } = createLoggers("binding-opcua", "content-negotiation");
 
 // Same stance as OpcuaJSONCodec: structures with a custom dataType are not decoded here.
 const builder: ExtensionObjectBuilder = {
@@ -269,11 +266,6 @@ export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hin
         default:
             throw new Error(`binding-opcua: internal error, unhandled flavour ${format.flavour}`);
     }
-}
-
-export function describeFormat(format: ContentFormat): string {
-    debug(`format ${format.mediaType} -> ${format.flavour}`);
-    return `${format.mediaType} (${format.flavour})`;
 }
 
 /**
