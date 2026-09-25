@@ -1,0 +1,32 @@
+@startuml
+title application/octet-stream on an opc.tcp form (ByteString DE AD BE EF)
+actor Application as App
+participant ConsumedThing as CT
+participant "ContentSerdes" as CS
+participant "OpcuaByteStringCodec\n(binding's, opc.tcp only)" as BS #DDFFDD
+participant "binding-opcua" as B
+database "OPC UA server" as Srv
+participant InteractionOutput as IO
+== Write ==
+App -> CT : writeProperty("image", Buffer DE AD BE EF)
+CT -> CS : valueToContent(Buffer, "application/octet-stream",\nscheme "opc.tcp")
+CS -> BS : valueToBytes
+BS --> CT : raw bytes DE AD BE EF
+CT -> B : writeResource(form, Content)
+note over B : target is a ByteString,\nchecked with the server
+B -> Srv : Write ByteString DE AD BE EF
+Srv --> B : Good
+B --> App : done
+== Read ==
+App -> CT : readProperty("image")
+CT -> B : readResource(form)
+B -> Srv : Read
+Srv --> B : DataValue { ByteString DE AD BE EF }
+B --> CT : Content("application/octet-stream", DE AD BE EF)
+App -> IO : value()
+IO -> CS : contentToValue(bytes, scheme "opc.tcp")
+CS -> BS : bytesToValue
+BS --> IO : "3q2+7w==" (base64)
+IO --> App : "3q2+7w=="
+note over App : arrayBuffer() returns DE AD BE EF
+@enduml

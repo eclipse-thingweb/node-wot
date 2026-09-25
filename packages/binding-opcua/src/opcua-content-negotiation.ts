@@ -23,8 +23,8 @@
 // there means "Modbus register packing" (big-endian, fixed width, scalars only),
 // which silently truncates an OPC UA Double to a 32-bit float.
 //
-// See ../../../../node-wot-mission/06-content-types-101.md for the reasoning, and
-// test/octet-stream-shapes-test.ts for the measured behaviour this replaces.
+// See doc/content-negotiation.md for the reasoning and the measured behaviour per OPC UA
+// data type, and doc/decisions.md for why each contentType means what it does.
 //
 
 import { DataValue } from "node-opcua-data-value";

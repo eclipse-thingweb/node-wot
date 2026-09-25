@@ -1,0 +1,22 @@
+@startuml
+title application/opcua+json — read
+actor Application as App
+participant "binding-opcua" as B
+participant InteractionOutput as IO
+participant "OpcuaJSONCodec\n(binding's)" as OJ
+App -> B : readProperty (via ConsumedThing)
+note over B : DataValue → reversible JSON\n{"Value":{"Type":11,"Body":42},\n "SourceTimestamp":"..."}
+B --> App : Content("application/opcua+json")
+App -> IO : value()
+alt TD declares no type
+  IO --> App : error "No schema type defined"
+else TD declares a type
+  IO -> OJ : bytesToValue
+  OJ --> IO : object { Value, SourceTimestamp }
+  alt TD type is "object"
+    IO --> App : the DataValue object
+  else TD type is "number"
+    IO --> App : error "Invalid value\naccording to DataSchema"
+  end
+end
+@enduml

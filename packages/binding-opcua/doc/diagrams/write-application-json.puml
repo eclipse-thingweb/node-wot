@@ -1,0 +1,18 @@
+@startuml
+title application/json (default) — write
+actor Application as App
+participant ConsumedThing as CT
+participant "JsonCodec\n(core, generic)" as J
+participant "binding-opcua" as B
+database "OPC UA server" as Srv
+App -> CT : writeProperty("setpoint", 42)
+CT -> J : valueToContent(42, "application/json")
+J --> CT : bytes "42"
+CT -> B : writeResource(form, Content)
+B -> Srv : read the node's DataType
+Srv --> B : Double
+note over B : parse "42" → Variant Double 42\nInt64 accepted as a string,\nByteString as base64
+B -> Srv : Write
+Srv --> B : Good
+B --> App : done
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+title application/json (default) — read
+actor Application as App
+participant ConsumedThing as CT
+participant "binding-opcua" as B
+database "OPC UA server" as Srv
+participant InteractionOutput as IO
+participant "JsonCodec\n(core, generic)" as J
+App -> CT : readProperty("temperature")
+CT -> B : readResource(form)
+B -> Srv : Read
+Srv --> B : DataValue { Double 42 }
+note over B : encode as OPC UA\nnon-reversible JSON
+B --> CT : Content("application/json", "42")
+CT --> App : InteractionOutput
+App -> IO : value()
+IO -> J : bytesToValue("42")
+J --> IO : 42
+note over IO : validate against\nTD type "number"
+IO --> App : 42
+@enduml
