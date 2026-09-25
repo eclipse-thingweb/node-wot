@@ -40,6 +40,7 @@ import {
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
+import { printTable, shortVerdict, truncate } from "./report-table";
 
 const { info } = createLoggers("binding-opcua", "octet-stream-shapes-test");
 
@@ -395,8 +396,8 @@ interface Cell {
     rendered?: string;
     /** what JS type value() actually handed back */
     jsType?: string;
-    /** raw bytes on the wire, from arrayBuffer(), as hex */
-    hex?: string;
+    /** what the binding actually put on the wire, from arrayBuffer() */
+    wire?: string;
     error?: string;
 }
 
@@ -411,8 +412,18 @@ function jsTypeOf(v: unknown): string {
     return t;
 }
 
-function toHex(buf: ArrayBuffer): string {
+/**
+ * What went over the wire, in the form that says something: the payload as text when it
+ * is JSON, hex when it is binary. `value()` shows what a consumer ends up with after core
+ * has decoded and validated it, which is not the same thing - a read can fail validation
+ * while the bytes were perfectly good.
+ */
+function renderWire(buf: ArrayBuffer, contentType: string | undefined): string {
     const b = Buffer.from(buf);
+    const isBinary = contentType === "application/octet-stream" || contentType === "application/opcua+octet-stream";
+    if (!isBinary) {
+        return `${b.toString("utf-8")} (${b.length}B)`;
+    }
     const head = b.subarray(0, 12);
     const hex = head.toString("hex").replace(/(..)/g, "$1 ").trim();
     return b.length > 12 ? `${hex} ... (${b.length}B)` : `${hex} (${b.length}B)`;
@@ -514,44 +525,45 @@ describe("contentType x data shape matrix (issue #1400)", function () {
         await servient.shutdown();
         await opcuaServer.shutdown();
 
-        // Deliberately console output, not the logger: the table is the deliverable.
-        // eslint-disable-next-line no-console
-        const line = (t: string) => console.info(t);
-        line("");
-        line("=== contentType x OPC UA data shape ===");
-        line("  shape                 " + CONTENT_TYPES.map((c) => c.key.padEnd(30)).join(""));
-        for (const shape of SHAPES) {
-            const row = CONTENT_TYPES.map((c) => {
-                const cell = cells.find((x) => x.shape === shape.key && x.ct === c.key);
-                if (!cell) {
-                    return "?".padEnd(30);
-                }
-                const txt = cell.ok ? "OK " + cell.rendered : "THROW " + (cell.error ?? "");
-                return txt;
-            }).join("");
-            line("  " + shape.key.padEnd(22) + row);
-        }
+        // The tables below show, in one place, what each contentType does to each OPC UA
+        // shape. They print only with BINDING_OPCUA_TEST_VERBOSE=1; see report-table.ts.
+        const verdict = (cell: Cell | undefined): string => {
+            if (cell === undefined) {
+                return "-";
+            }
+            return cell.ok ? (cell.rendered ?? "") : shortVerdict(cell.error);
+        };
+
+        printTable({
+            title: "contentType x OPC UA data shape - what value() returns",
+            subtitle: "x marks a refusal; the detail tables below give the value and the bytes",
+            headers: ["shape", ...CONTENT_TYPES.map((c) => c.key)],
+            rows: SHAPES.map((shape) => [
+                shape.key,
+                ...CONTENT_TYPES.map((c) => verdict(cells.find((x) => x.shape === shape.key && x.ct === c.key))),
+            ]),
+            // narrow on purpose: this table is for spotting patterns, the detail
+            // tables below carry the full values
+            maxWidth: 22,
+        });
 
         for (const c of CONTENT_TYPES) {
-            line("");
-            line(`--- ${c.key}: what value() returns, and the raw bytes on the wire ---`);
-            line("  shape                 jsType            value / error                  wire bytes");
-            for (const shape of SHAPES) {
-                const cell = cells.find((x) => x.shape === shape.key && x.ct === c.key);
-                if (!cell) {
-                    continue;
-                }
-                const v = cell.ok ? (cell.rendered ?? "") : "THROW " + (cell.error ?? "");
-                line(
-                    "  " +
-                        shape.key.padEnd(22) +
-                        (cell.jsType ?? "-").padEnd(18) +
-                        (v.length > 29 ? v.slice(0, 26) + "..." : v).padEnd(31) +
-                        (cell.hex ?? "-")
-                );
-            }
+            printTable({
+                title: `${c.key}: what the binding sends, and what value() gives back`,
+                subtitle: "the payload is shown as text, or as hex when the contentType is binary",
+                headers: ["shape", "js type", "value() returns", "payload on the wire"],
+                rows: SHAPES.map((shape) => {
+                    const cell = cells.find((x) => x.shape === shape.key && x.ct === c.key);
+                    return [
+                        shape.key,
+                        cell?.jsType ?? "-",
+                        cell === undefined ? "-" : cell.ok ? (cell.rendered ?? "") : shortVerdict(cell.error),
+                        truncate(cell?.wire ?? "-", 44),
+                    ];
+                }),
+                maxWidth: 40,
+            });
         }
-        line("");
     });
 
     for (const shape of SHAPES) {
@@ -563,9 +575,9 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                 // raw bytes first, on their own read: this is what actually crossed the wire
                 try {
                     const rawRead = await thing.readProperty("v");
-                    cell.hex = toHex(await rawRead.arrayBuffer());
+                    cell.wire = renderWire(await rawRead.arrayBuffer(), ct.contentType);
                 } catch {
-                    cell.hex = "n/a";
+                    cell.wire = "n/a";
                 }
 
                 try {

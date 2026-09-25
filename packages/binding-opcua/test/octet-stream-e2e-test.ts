@@ -32,6 +32,7 @@ import { OPCUAServer } from "node-opcua";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
+import { printTable, shortVerdict } from "./report-table";
 
 const { info } = createLoggers("binding-opcua", "octet-stream-e2e-test");
 
@@ -156,18 +157,20 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
         await servient.shutdown();
         await opcuaServer.shutdown();
 
-        // Print the matrix so the behaviour is visible without reading assertions.
-        // Deliberately console output, not the logger: the table is the deliverable.
-        // eslint-disable-next-line no-console
-        const line = (t: string) => console.info(t);
-        line("");
-        line("=== contentType matrix: read a Double (42.0) over OPC UA ===");
-        line("  id  contentType                type@        result");
-        for (const o of outcomes) {
-            const verdict = o.ok ? `OK     ${JSON.stringify(o.value)} (${o.valueType})` : `THROW  ${o.error}`;
-            line(`  ${o.key}   ${o.contentType.padEnd(26)} ${o.typeAt.padEnd(12)} ${verdict}`);
-        }
-        line("");
+        // Shows the behaviour without reading the assertions one by one.
+        // Prints only with BINDING_OPCUA_TEST_VERBOSE=1; see report-table.ts.
+        printTable({
+            title: "contentType matrix: reading a Double (42.0) over OPC UA",
+            subtitle: "where `type` is declared varies per row; x marks a refusal",
+            headers: ["id", "contentType", "type declared on", "result"],
+            rows: outcomes.map((o) => [
+                o.key,
+                o.contentType,
+                o.typeAt,
+                o.ok ? `${JSON.stringify(o.value)} (${o.valueType})` : shortVerdict(o.error),
+            ]),
+            maxWidth: 46,
+        });
     });
 
     for (const s of SCENARIOS) {

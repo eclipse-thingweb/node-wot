@@ -55,7 +55,8 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\"",
         "ncu:opcua": "npx node-opcua-versions@latest bump -w --all --install",
-        "test": "mocha"
+        "test": "mocha",
+        "test:verbose": "mocha --require ./test/enable-verbose-reports.js"
     },
     "bugs": {
         "url": "https://github.com/eclipse-thingweb/node-wot/issues"

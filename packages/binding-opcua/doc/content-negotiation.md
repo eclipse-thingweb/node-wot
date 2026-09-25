@@ -154,6 +154,13 @@ with the value it started with.
 | matrices (`Double[2][3]`)                                   | an envelope with `Dimensions`      | ✘                                          | ✔                                  | refused                                    |
 | ExtensionObject, arrays and matrices of them                | the structure's fields             | ✘ a plain object is not an ExtensionObject | ✘ under investigation               | refused                                    |
 
+These tests also print the whole matrix as a table, the quickest way to see what a change does to
+every type at once. It is off by default so pipelines stay readable:
+
+```sh
+cd packages/binding-opcua && npm run test:verbose
+```
+
 Two conclusions worth keeping in mind:
 
 -   **`opcua+json;type=Variant` and `type=DataValue` are the lossless forms.** Use them when a value
