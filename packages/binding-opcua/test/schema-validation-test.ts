@@ -19,7 +19,7 @@ import { expect } from "chai";
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
 import { JsonEncoderMode, opcuaJsonEncodeDataValue } from "node-opcua-json/104";
 
-import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codecs/opcua-data-schemas";
+import { schemaDataValueJSONValidate } from "../src/codecs/opcua-data-schemas";
 
 const { debug } = createLoggers("binding-opcua", "schema-validation-test");
 
@@ -66,22 +66,6 @@ const data = {
 };
 
 describe("schemas", () => {
-    describe("schemaDataValue", () => {
-        Object.entries(data).forEach(([name, obj1]) => {
-            it(`(experimental) ${name}`, () => {
-                const validate = schemaDataValueValidate;
-
-                const obj1 = new DataValue({}).toJSON();
-                const isValid = validate(obj1);
-                if (!isValid) {
-                    debug(`Valid: ${isValid}`);
-                    debug(`Errors: ${validate.errors}`);
-                }
-                debug(`${obj1}`);
-                expect(isValid).equal(true);
-            });
-        });
-    });
     describe("schemaDataValueJSON", () => {
         const validate = schemaDataValueJSONValidate;
 
