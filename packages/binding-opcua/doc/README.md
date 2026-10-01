@@ -9,7 +9,6 @@ as it does, and where it knowingly differs from the specifications.
 | [content-negotiation.md](content-negotiation.md) | Which `contentType` a form may use, what each one produces, and how a value travels between the OPC UA server and a WoT application                           |
 | [opcua-json-encoding.md](opcua-json-encoding.md) | The essence of OPC UA JSON: Compact and Verbose, the deprecated Reversible/NonReversible pair we currently emit, and what each OPC UA type looks like in both |
 | [decisions.md](decisions.md)                     | The choices made, with their reasons and their known costs                                                                                                    |
-| [diagrams/](diagrams/)                           | PlantUML sources of the sequence diagrams used in these pages                                                                                                 |
 
 ## The one thing to know first
 
