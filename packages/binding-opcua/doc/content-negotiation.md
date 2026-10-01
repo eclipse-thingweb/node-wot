@@ -133,7 +133,46 @@ sequenceDiagram
     B-->>App: done
 ```
 
-PlantUML sources of both: [diagrams/](diagrams/).
+## `application/octet-stream`
+
+The one case where the bytes are the payload rather than a JSON encoding of it. Core hands the
+value to the binding's own codec because the form's scheme is `opc.tcp`; before PR #1572 it reached
+the codec that packs Modbus registers, which is the whole of issue #1400.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor App as Application
+    participant CT as ConsumedThing
+    participant CS as ContentSerdes
+    participant BS as OpcuaByteStringCodec
+    participant B as binding-opcua
+    participant Srv as OPC UA server
+    participant IO as InteractionOutput
+    Note over BS: the binding's own codec,<br/>registered for the opc.tcp scheme only
+    Note over App,Srv: Write
+    App->>CT: writeProperty("image", Buffer DE AD BE EF)
+    CT->>CS: valueToContent(Buffer, "application/octet-stream",<br/>scheme "opc.tcp")
+    CS->>BS: valueToBytes
+    BS-->>CT: the raw bytes DE AD BE EF
+    CT->>B: writeResource(form, Content)
+    Note over B: the target must be a ByteString,<br/>checked against the server
+    B->>Srv: Write ByteString DE AD BE EF
+    Srv-->>B: Good
+    B-->>App: done
+    Note over App,IO: Read
+    App->>CT: readProperty("image")
+    CT->>B: readResource(form)
+    B->>Srv: Read
+    Srv-->>B: DataValue { ByteString DE AD BE EF }
+    B-->>CT: Content("application/octet-stream", DE AD BE EF)
+    App->>IO: value()
+    IO->>CS: contentToValue(bytes, scheme "opc.tcp")
+    CS->>BS: bytesToValue
+    BS-->>IO: "3q2+7w=="
+    IO-->>App: "3q2+7w=="
+    Note over App: value() reports base64,<br/>arrayBuffer() returns the raw DE AD BE EF
+```
 
 ## What each OPC UA type does
 
@@ -176,5 +215,32 @@ Two conclusions worth keeping in mind:
     `"type": "number"` and asks for `type=DataValue` gets `Invalid value according to DataSchema`,
     because a DataValue is an object. A TD with no `type` gets `No schema type defined` before
     decoding even starts. See node-wot issues #1243 and #1265.
+
 -   **`application/octet-stream` writes were impossible before PR #1572**, because core serializes a
     value before the binding is called.
+
+The two schema errors in the first point happen in core, after the binding has done its part:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor App as Application
+    participant B as binding-opcua
+    participant IO as InteractionOutput
+    participant OJ as OpcuaJSONCodec
+    App->>B: readProperty (via ConsumedThing)
+    Note over B: DataValue to reversible JSON<br/>{"Value":{"Type":11,"Body":42},"SourceTimestamp":"..."}
+    B-->>App: Content("application/opcua+json")
+    App->>IO: value()
+    alt the TD declares no type
+        IO-->>App: error "No schema type defined" (issue 1243)
+    else the TD declares a type
+        IO->>OJ: bytesToValue
+        OJ-->>IO: object { Value, SourceTimestamp }
+        alt the TD type is "object"
+            IO-->>App: the DataValue object
+        else the TD type is "number"
+            IO-->>App: error "Invalid value according to DataSchema" (issue 1265)
+        end
+    end
+```
