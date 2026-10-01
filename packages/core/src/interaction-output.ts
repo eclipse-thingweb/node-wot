@@ -15,6 +15,8 @@
 import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
+import { csvBindingOptionsFromForm } from "./csv-binding";
+import { applyFromWireMapping } from "./data-mapping";
 import { DataSchemaMapping, ProtocolHelpers } from "./core";
 import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
@@ -133,7 +135,18 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema, scheme);
+        const decodingOptions =
+            ContentSerdes.getMediaType(this.#content.type) === "text/csv"
+                ? csvBindingOptionsFromForm(this.form as unknown as Record<string, unknown>)
+                : undefined;
+        let json = ContentSerdes.get().contentToValue(
+            { type: this.#content.type, body: bytes },
+            this.schema,
+            scheme,
+            decodingOptions
+        );
+
+        json = applyFromWireMapping(json, this.form as unknown as Record<string, unknown>) as WoT.DataSchemaValue | undefined;
 
         if (this.mapping !== undefined) {
             json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);

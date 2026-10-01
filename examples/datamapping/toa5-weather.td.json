@@ -1,0 +1,142 @@
+{
+    "@context": [
+        "https://www.w3.org/2019/wot/td/v1",
+        {
+            "csvv": "https://www.w3.org/wot/payload-binding/csv/v1#",
+            "map": "https://www.w3.org/wot/data-mapping/v1#",
+            "jsonv": "https://www.w3.org/wot/payload-binding/json/v1#"
+        }
+    ],
+    "id": "urn:example:thing:toa5-weather",
+    "title": "TOA5 Weather Logger",
+    "security": ["nosec_sc"],
+    "securityDefinitions": {
+        "nosec_sc": {
+            "scheme": "nosec"
+        }
+    },
+    "properties": {
+        "timestamp": {
+            "type": "string",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "toa5-weather.csv",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/TIMESTAMP" },
+                            { "map:proc": "coerce", "map:type": "string" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "airTemperature": {
+            "type": "number",
+            "unit": "Cel",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "toa5-weather.csv",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/AirTemp_C" },
+                            { "map:proc": "coerce", "map:type": "number" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "relativeHumidity": {
+            "type": "number",
+            "unit": "percent",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "toa5-weather.csv",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/RH" },
+                            { "map:proc": "coerce", "map:type": "number" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "windSpeed": {
+            "type": "number",
+            "unit": "m/s",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "toa5-weather.csv",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/WindSpeed_ms" },
+                            { "map:proc": "coerce", "map:type": "number" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "windSpeedSeries": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timestamp": { "type": "string" },
+                    "value": { "type": "number", "unit": "m/s" }
+                },
+                "required": ["timestamp", "value"]
+            },
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "toa5-weather.csv",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            {
+                                "map:proc": "record",
+                                "map:fields": {
+                                    "timestamp": [
+                                        { "map:proc": "pick", "jsonv:path": "/TIMESTAMP" },
+                                        { "map:proc": "coerce", "map:type": "string" }
+                                    ],
+                                    "value": [
+                                        { "map:proc": "pick", "jsonv:path": "/WindSpeed_ms" },
+                                        { "map:proc": "coerce", "map:type": "number" }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

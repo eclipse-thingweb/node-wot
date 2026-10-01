@@ -1,0 +1,162 @@
+{
+    "@context": [
+        "https://www.w3.org/2019/wot/td/v1",
+        {
+            "csvv": "https://www.w3.org/wot/payload-binding/csv/v1#",
+            "map": "https://www.w3.org/wot/data-mapping/v1#",
+            "jsonv": "https://www.w3.org/wot/payload-binding/json/v1#"
+        }
+    ],
+    "id": "urn:example:thing:storm-data",
+    "title": "Severe Storm Event Archive",
+    "security": ["nosec_sc"],
+    "securityDefinitions": {
+        "nosec_sc": { "scheme": "nosec" }
+    },
+    "properties": {
+        "EVENT_ID": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/EVENT_ID" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "CZ_NAME_STR": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/CZ_NAME_STR" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "BEGIN_LOCATION": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_LOCATION" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "BEGIN_DATE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_DATE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "BEGIN_TIME": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_TIME" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "EVENT_TYPE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/EVENT_TYPE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "TOR_F_SCALE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/TOR_F_SCALE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "DEATHS_DIRECT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/DEATHS_DIRECT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "INJURIES_DIRECT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/INJURIES_DIRECT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "DAMAGE_PROPERTY_NUM": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/DAMAGE_PROPERTY_NUM" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "DAMAGE_CROPS_NUM": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/DAMAGE_CROPS_NUM" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "CZ_TIMEZONE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/CZ_TIMEZONE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "MAGNITUDE_TYPE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/MAGNITUDE_TYPE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "EPISODE_ID": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/EPISODE_ID" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "CZ_TYPE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/CZ_TYPE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "CZ_FIPS": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/CZ_FIPS" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "WFO": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/WFO" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "INJURIES_INDIRECT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/INJURIES_INDIRECT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "DEATHS_INDIRECT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/DEATHS_INDIRECT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "SOURCE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/SOURCE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "FLOOD_CAUSE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/FLOOD_CAUSE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "TOR_LENGTH": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/TOR_LENGTH" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "TOR_WIDTH": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/TOR_WIDTH" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "BEGIN_RANGE": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_RANGE" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "BEGIN_AZIMUTH": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_AZIMUTH" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "END_RANGE": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_RANGE" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "END_AZIMUTH": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_AZIMUTH" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "END_LOCATION": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_LOCATION" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "END_DATE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_DATE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "END_TIME": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_TIME" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "BEGIN_LAT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_LAT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "BEGIN_LON": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/BEGIN_LON" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "END_LAT": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_LAT" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "END_LON": { "oneOf": [{ "type": "number" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/END_LON" }, { "map:proc": "coerce", "map:type": "number" }] } }] },
+        "EVENT_NARRATIVE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/EVENT_NARRATIVE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "EPISODE_NARRATIVE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/EPISODE_NARRATIVE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "STATE": { "oneOf": [{ "type": "string" }, { "type": "null" }], "readOnly": true, "forms": [{ "href": "storm_data.csv", "op": ["readproperty"], "contentType": "text/csv", "csvv:rowRepresentation": "object", "csvv:headerRow": 0, "map:valueMapping": { "map:fromWire": [{ "map:proc": "pick", "jsonv:path": "/0/STATE" }, { "map:proc": "coerce", "map:type": "string" }] } }] },
+        "MAGNITUDE": {
+            "oneOf": [
+                {
+                    "type": "number"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "storm_data.csv",
+                    "op": [
+                        "readproperty"
+                    ],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            {
+                                "map:proc": "pick",
+                                "jsonv:path": "/0/MAGNITUDE"
+                            },
+                            {
+                                "map:proc": "coerce",
+                                "map:type": "number"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "magnitudeSeries": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "value": {
+                        "oneOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "value"
+                ]
+            },
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "storm_data.csv",
+                    "op": [
+                        "readproperty"
+                    ],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            {
+                                "map:proc": "record",
+                                "map:fields": {
+                                    "timestamp": [
+                                        {
+                                            "map:proc": "pick",
+                                            "jsonv:path": "/BEGIN_DATE"
+                                        },
+                                        {
+                                            "map:proc": "coerce",
+                                            "map:type": "string"
+                                        }
+                                    ],
+                                    "value": [
+                                        {
+                                            "map:proc": "pick",
+                                            "jsonv:path": "/MAGNITUDE"
+                                        },
+                                        {
+                                            "map:proc": "coerce",
+                                            "map:type": "number"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
