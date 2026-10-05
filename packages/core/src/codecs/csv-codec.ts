@@ -14,9 +14,8 @@
  ********************************************************************************/
 
 import { parse } from "csv-parse/sync";
-import { ContentCodec } from "../content-serdes";
-import { normalizeCsvBindingOptions } from "../csv-binding";
-import { CsvBindingOptions } from "../csv-binding";
+import { ContentCodec, ContentDecodingContext } from "../content-serdes";
+import { csvBindingOptionsFromForm, CsvBindingOptions, normalizeCsvBindingOptions } from "../csv-binding";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { createLoggers } from "../logger";
 
@@ -31,8 +30,10 @@ export default class CsvCodec implements ContentCodec {
         bytes: Buffer,
         schema?: DataSchema,
         parameters?: { [key: string]: string | undefined },
-        options: Partial<CsvBindingOptions> = {}
+        context?: ContentDecodingContext
     ): DataSchemaValue {
+        const options: Partial<CsvBindingOptions> =
+            context?.form == null ? {} : csvBindingOptionsFromForm(context.form);
         const csvOptions = normalizeCsvBindingOptions({
             ...options,
             delimiter: options.delimiter ?? parameters?.delimiter,

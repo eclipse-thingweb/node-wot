@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { expect } from "chai";
-import { ContentSerdes } from "../src/content-serdes";
+import { ContentCodec, ContentDecodingContext, ContentSerdes } from "../src/content-serdes";
 import { Content } from "../src/content";
 import { InteractionOutput } from "../src/interaction-output";
 import { Readable } from "stream";
@@ -37,9 +37,11 @@ describe("CSV codec", () => {
             { type: "array" },
             undefined,
             {
-                rowRepresentation: "object",
-                headerRow: 1,
-                metadataRows: [0, 2, 3],
+                form: {
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 1,
+                    "csvv:metadataRows": [0, 2, 3],
+                },
             }
         );
 
@@ -52,6 +54,30 @@ describe("CSV codec", () => {
                 WindSpeed_ms: "4.8",
             },
         ]);
+    });
+
+    it("should forward decoding context to non-CSV codecs", () => {
+        let receivedContext: ContentDecodingContext | undefined;
+        const codec: ContentCodec = {
+            getMediaType: () => "application/x-context-test",
+            bytesToValue(_bytes, _schema, _parameters, context) {
+                receivedContext = context;
+                return "decoded";
+            },
+            valueToBytes: () => Buffer.alloc(0),
+        };
+        ContentSerdes.get().addCodec(codec);
+
+        const context: ContentDecodingContext = { form: { "test:option": "value" } };
+        const value = ContentSerdes.get().contentToValue(
+            { type: "application/x-context-test", body: Buffer.alloc(0) },
+            { type: "string" },
+            undefined,
+            context
+        );
+
+        expect(value).to.equal("decoded");
+        expect(receivedContext).to.equal(context);
     });
 
     it("should pass CSV form terms to the codec", async () => {

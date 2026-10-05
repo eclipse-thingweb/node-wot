@@ -25,9 +25,12 @@ import { Readable } from "stream";
 import { ProtocolHelpers } from "./core";
 import { ReadableStream } from "web-streams-polyfill";
 import { createLoggers } from "./logger";
-import { CsvBindingOptions } from "./csv-binding";
 
 const { debug, warn } = createLoggers("core", "content-serdes");
+
+export interface ContentDecodingContext {
+    form?: Record<string, unknown>;
+}
 
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
@@ -36,7 +39,7 @@ export interface ContentCodec {
         bytes: Buffer,
         schema?: DataSchema,
         parameters?: { [key: string]: string | undefined },
-        options?: Partial<CsvBindingOptions>
+        context?: ContentDecodingContext
     ): DataSchemaValue;
     valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string | undefined }): Buffer;
 }
@@ -171,7 +174,7 @@ export class ContentSerdes {
         content: ReadContent,
         schema: DataSchema,
         scheme?: string,
-        options?: Partial<CsvBindingOptions>
+        context?: ContentDecodingContext
     ): DataSchemaValue | undefined {
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
@@ -191,7 +194,7 @@ export class ContentSerdes {
         const codec = this.findCodec(mt, scheme);
         if (codec !== undefined) {
             debug(`ContentSerdes deserializing from ${content.type}${scheme !== undefined ? ` (${scheme})` : ""}`);
-            return codec.bytesToValue(content.body, schema, par, options);
+            return codec.bytesToValue(content.body, schema, par, context);
         } else {
             warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
             return content.body.toString();
