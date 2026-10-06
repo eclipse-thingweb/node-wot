@@ -15,6 +15,7 @@
 import * as util from "util";
 import * as WoT from "wot-typescript-definitions";
 import { ContentSerdes } from "./content-serdes";
+import { applyFromWireMapping } from "./data-mapping";
 import { DataSchemaMapping, ProtocolHelpers } from "./core";
 import Helpers from "./helpers";
 import { DataSchemaError, NotReadableError, NotSupportedError } from "./errors";
@@ -133,7 +134,15 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema, scheme);
+        const decodingContext = { form: this.form as unknown as Record<string, unknown> };
+        let json = ContentSerdes.get().contentToValue(
+            { type: this.#content.type, body: bytes },
+            this.schema,
+            scheme,
+            decodingContext
+        );
+
+        json = applyFromWireMapping(json, this.form as unknown as Record<string, unknown>) as WoT.DataSchemaValue | undefined;
 
         if (this.mapping !== undefined) {
             json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);
