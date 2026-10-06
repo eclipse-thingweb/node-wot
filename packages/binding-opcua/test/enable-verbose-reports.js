@@ -1,5 +1,5 @@
 /********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+ * Copyright (c) 2026 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -12,7 +12,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export * from "./codecs/opcua-binary-codec";
-export * from "./codecs/opcua-bytestring-codec";
-export * from "./codecs/opcua-json-codec";
-export * from "./codecs/opcua-data-schemas";
+
+// Turns on the contentType tables printed by the octet-stream tests; see
+// test/report-table.ts. Used by "npm run test:verbose", which works the same on
+// every platform, unlike a VAR=1 prefix.
+process.env.BINDING_OPCUA_TEST_VERBOSE = "1";

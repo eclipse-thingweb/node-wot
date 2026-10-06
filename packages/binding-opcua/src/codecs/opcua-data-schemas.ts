@@ -20,49 +20,12 @@ import addFormats from "ajv-formats";
 // TODO: in the future we should use the strict mode
 const ajv = new Ajv({ strict: false });
 addFormats(ajv);
-/**
- * this schema, describe the node-opcua JSON format for a DataValue object
- *
- * const pojo = (new DataValue({})).toString();
- *
+/*
+ * Only the OPC UA JSON encodings are described here: 1.04 (Part 6 Annex H, the deprecated
+ * Reversible/NonReversible pair) and 1.05 (Part 6 5.4, Compact/Verbose). node-opcua's own
+ * object shapes - what DataValue.toJSON() or Variant.toString() produce - are internals of
+ * the library and are never exposed to a WoT consumer, so no schema describes them.
  */
-export const schemaDataValue = {
-    type: ["object"], // "number", "integer", "string", "boolean", "array", "null"],
-    properties: {
-        serverPicoseconds: { type: "integer" },
-        sourcePicoseconds: { type: "integer" },
-        serverTimestamp: { type: "string", /* format: "date", */ nullable: true },
-        sourceTimestamp: { type: "string", /* format: "date", */ nullable: true },
-        statusCode: {
-            type: ["object"],
-            properties: {
-                value: {
-                    type: "number",
-                },
-            },
-        },
-        value: {
-            type: ["object"],
-            properties: {
-                dataType: {
-                    type: ["string", "integer"],
-                },
-                arrayType: {
-                    type: ["string"],
-                },
-                value: {
-                    type: ["number", "integer", "string", "boolean", "array", "null", "object"],
-                },
-                dimension: {
-                    type: ["array"],
-                    items: { type: "integer" },
-                },
-                additionalProperties: false,
-            },
-        },
-    },
-    additionalProperties: true,
-};
 
 export const schemaVariantJSONNull = {
     type: "null",
@@ -124,5 +87,59 @@ export const schemaDataValueJSON2 = {
 export const schemaDataValueJSON = {
     oneOf: [schemaDataValueJSON2, schemaDataValueJSON1],
 };
+
+/**
+ * OPC UA 1.05 renames the Variant fields (Part 6 section 5.4.2.17) and flattens the
+ * DataValue onto them (section 5.4.2.18), so a 1.05 payload never matches the shapes
+ * above. See doc/opcua-json-encoding.md.
+ */
+export const schemaVariantJSON105 = {
+    type: "object",
+    properties: {
+        UaType: {
+            type: "number",
+            description: "The OPCUA DataType of the Variant",
+        },
+        Value: {
+            type: ["number", "integer", "string", "boolean", "array", "null", "object"],
+            nullable: true,
+        },
+        UaDimensions: {
+            type: "array",
+            items: { type: "integer" },
+        },
+    },
+    additionalProperties: false,
+    required: ["UaType"],
+};
+
+export const schemaDataValueJSON105 = {
+    type: "object",
+    properties: {
+        UaType: { type: "number" },
+        Value: {
+            type: ["number", "integer", "string", "boolean", "array", "null", "object"],
+            nullable: true,
+        },
+        UaDimensions: { type: "array", items: { type: "integer" } },
+        UaStatus: { type: "integer", minimum: 0 },
+        SourceTimestamp: { type: "string" },
+        ServerTimestamp: { type: "string" },
+        SourcePicoseconds: { type: "integer" },
+        ServerPicoseconds: { type: "integer" },
+    },
+    additionalProperties: false,
+};
+
+/**
+ * Accepts either edition. anyOf, not oneOf: a 1.04 payload whose optional fields happen to
+ * be a subset of the 1.05 shape would match both, and oneOf demands exactly one match.
+ * Which decoder runs is decided by the field names, not by this schema.
+ */
+export const schemaDataValueJSONAnyEdition = {
+    anyOf: [schemaDataValueJSON2, schemaDataValueJSON1, schemaDataValueJSON105],
+};
+
 export const schemaDataValueJSONValidate = ajv.compile(schemaDataValueJSON);
-export const schemaDataValueValidate = ajv.compile(schemaDataValue);
+export const schemaVariantJSON105Validate = ajv.compile(schemaVariantJSON105);
+export const schemaDataValueJSONAnyEditionValidate = ajv.compile(schemaDataValueJSONAnyEdition);
