@@ -65,7 +65,8 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
-        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
+        const pathTopic = requestUri.pathname.slice(1);
+        const filter = pathTopic || form["mqv:filter"];
 
         let pool = this.pools.get(brokerUri);
 
@@ -95,7 +96,8 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
-        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
+        const pathTopic = requestUri.pathname.slice(1);
+        const filter = pathTopic || form["mqv:filter"];
 
         let pool = this.pools.get(brokerUri);
 
@@ -125,7 +127,8 @@ export default class MqttClient implements ProtocolClient {
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
         const requestUri = new url.URL(form.href);
         const brokerUri = `${this.scheme}://${requestUri.host}`;
-        const topic = requestUri.pathname.slice(1) ?? form["mqv:topic"];
+        const pathTopicPub = requestUri.pathname.slice(1);
+        const topic = pathTopicPub || form["mqv:topic"];
 
         let pool = this.pools.get(brokerUri);
 
