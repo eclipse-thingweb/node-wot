@@ -134,7 +134,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        const decodingContext = { form: this.form as unknown as Record<string, unknown> };
+        const decodingContext = { options: this.form as unknown as Record<string, unknown> };
         let json = ContentSerdes.get().contentToValue(
             { type: this.#content.type, body: bytes },
             this.schema,
