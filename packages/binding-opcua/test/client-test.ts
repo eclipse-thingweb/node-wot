@@ -20,10 +20,13 @@ import { ContentSerdes, createLoggers } from "@node-wot/core";
 import { VariableIds, OPCUAServer } from "node-opcua";
 
 import { OPCUAProtocolClient, OPCUAForm } from "../src/opcua-protocol-client";
-import { OpcuaJSONCodec, schemaDataValue } from "../src/codec";
+import { OpcuaJSONCodec } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
+
+// the payload is an OPC UA JSON DataValue; its shape is asserted below, not by a schema
+const anySchema = { type: "object" } as const;
 
 describe("OPCUA Client", function () {
     this.timeout(60000);
@@ -105,7 +108,7 @@ describe("OPCUA Client", function () {
             debug(`readResource returned: ${content2.body.toString("ascii")}`);
 
             const codecSerDes = ContentSerdes.get();
-            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
+            const dataValue = codecSerDes.contentToValue(content2, anySchema) as Record<string, unknown>;
 
             // (deal with always changing date )
             if (dataValue.SourceTimestamp != null) {
@@ -127,7 +130,7 @@ describe("OPCUA Client", function () {
             debug(`readResource returned: ${content2.body.toString("ascii")}`);
 
             const codecSerDes = ContentSerdes.get();
-            const dataValue = codecSerDes.contentToValue(content2, schemaDataValue) as Record<string, unknown>;
+            const dataValue = codecSerDes.contentToValue(content2, anySchema) as Record<string, unknown>;
 
             // (deal with always changing date )
             if (dataValue.SourceTimestamp != null) {
@@ -206,13 +209,13 @@ describe("OPCUA Client", function () {
         const ajv = new Ajv({ strict: false });
         expect(ajv.compile(inputSchema)(value)).to.equal(true);
 
-        const content = contentSerDes.valueToContent(value, schemaDataValue, contentType);
+        const content = contentSerDes.valueToContent(value, anySchema, contentType);
 
         const contentResult = await client.invokeResource(form, content);
 
         const contentResult2 = { ...contentResult, body: await contentResult.toBuffer() };
         const codecSerDes = ContentSerdes.get();
-        const outputArguments = codecSerDes.contentToValue(contentResult2, schemaDataValue);
+        const outputArguments = codecSerDes.contentToValue(contentResult2, anySchema);
         debug(`Y4: outputArguments: ${outputArguments}`);
 
         if (outputArguments == null) {

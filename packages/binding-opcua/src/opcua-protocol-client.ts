@@ -19,7 +19,6 @@ import { URL } from "url";
 import {
     ProtocolClient,
     Content,
-    ContentSerdes,
     Form,
     SecurityScheme,
     createLoggers,
@@ -62,12 +61,17 @@ import { JsonEncoderMode, opcuaJsonEncodeVariant } from "node-opcua-json/104";
 import { Argument, MessageSecurityMode, UserTokenType } from "node-opcua-types";
 import { isGoodish2 } from "node-opcua";
 
-import { schemaDataValue } from "./codecs/opcua-data-schemas";
 import { OPCUACAuthenticationScheme, OPCUAChannelSecurityScheme } from "./security-scheme";
 import { CertificateManagerSingleton } from "./certificate-manager-singleton";
 import { resolveChannelSecurity, resolvedUserIdentity } from "./opcua-security-resolver";
 import { findMostSecureChannel } from "./find-most-secure-channel";
 
+import {
+    resolveContentFormat,
+    encodeDataValue,
+    decodeToDataValue,
+    DEFAULT_CONTENT_TYPE,
+} from "./opcua-content-negotiation";
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 export type Command = "Read" | "Write" | "Subscribe";
@@ -595,60 +599,20 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     ///
     private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue): Promise<Content> {
-        const contentType = form.contentType ?? "application/json";
-
-        // QUESTION: how can we extend the default contentSerDes.valueToContent for application/json,
-        const contentSerDes = ContentSerdes.get();
-        if (contentType === "application/json") {
-            const variantInJson = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, []);
-            const content = contentSerDes.valueToContent(variantInJson, schemaDataValue, contentType);
-            return content;
-        }
-        const content = contentSerDes.valueToContent(dataValue, schemaDataValue, contentType);
-        return content;
+        // Binding-scoped negotiation: OPC UA payloads never go through the global
+        // ContentSerdes registry, where application/octet-stream belongs to Modbus.
+        const format = resolveContentFormat(form.contentType);
+        const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`);
+        return new Content(form.contentType ?? DEFAULT_CONTENT_TYPE, Readable.from(body));
     }
 
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
-        const content2: { type: string; body: Buffer } = {
-            ...content,
-            body: await content.toBuffer(),
-        };
-
-        const contentSerDes = ContentSerdes.get();
-
-        const contentType = content2.type ? content2.type.split(";")[0] : "application/json";
-
-        switch (contentType) {
-            case "application/json": {
-                const dataType = await this._predictDataType(form);
-                const value = contentSerDes.contentToValue(content2, schemaDataValue);
-                return new DataValue({ value: { dataType, value } });
-            }
-            case "application/opcua+json": {
-                const fullContentType = content2.type + ";to=DataValue";
-                const content3 = {
-                    type: fullContentType,
-                    body: content2.body,
-                };
-                const dataValue = contentSerDes.contentToValue(content3, schemaDataValue) as DataValue;
-                if (!(dataValue instanceof DataValue)) {
-                    contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
-                    throw new Error(`Internal Error, expecting a DataValue here `);
-                }
-                debug(`_contentToDataValue: write ${form}`);
-                debug(
-                    `_contentToDataValue: content ${{
-                        ...content2,
-                        body: content2.body.toString("ascii"),
-                    }}`
-                );
-
-                return dataValue;
-            }
-            default: {
-                throw new Error("Unsupported content type here : " + contentType);
-            }
-        }
+        const body = await content.toBuffer();
+        // Same binding-scoped negotiation as the read path, so write and read agree
+        // on what a given contentType means.
+        const format = resolveContentFormat(content.type ?? form.contentType);
+        const dataType = await this._predictDataType(form);
+        return decodeToDataValue(format, body, dataType, `form '${form.href}'`);
     }
 
     private async _contentToVariant(
@@ -656,32 +620,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
         body: Buffer,
         dataType: DataType
     ): Promise<Variant> {
-        const contentSerDes = ContentSerdes.get();
-
-        contentType = contentType?.split(";")[0] ?? "application/json";
-
-        switch (contentType) {
-            case "application/json": {
-                const value = contentSerDes.contentToValue({ type: contentType, body }, schemaDataValue);
-                return new Variant({ dataType, value });
-            }
-            case "application/opcua+json": {
-                contentType += ";type=Variant;to=DataValue";
-                const content2 = { type: contentType, body };
-                const dataValue = contentSerDes.contentToValue(content2, schemaDataValue) as DataValue;
-                if (!(dataValue instanceof DataValue)) {
-                    throw new Error("Internal Error, expecting a DataValue here ");
-                }
-                const variant = dataValue.value;
-                if (variant.dataType !== dataType) {
-                    debug(`Unexpected dataType ${variant.dataType}`);
-                }
-                return variant;
-            }
-            default: {
-                throw new Error("Unsupported content type here : " + contentType);
-            }
+        const format = resolveContentFormat(contentType);
+        const dataValue = decodeToDataValue(format, body, dataType, `an OPC UA write/invoke argument`);
+        const variant = dataValue.value;
+        if (variant.dataType !== dataType) {
+            debug(`_contentToVariant: expected ${DataType[dataType]}, got ${DataType[variant.dataType]}`);
         }
+        return variant;
     }
 
     private async _findBasicDataType(session: IBasicSession, dataType: NodeId): Promise<DataType | undefined> {
