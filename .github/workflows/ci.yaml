@@ -2,9 +2,9 @@ name: Default CI Pipeline
 
 on:
     push:
-        branches: [master]
+        branches: ["**"]
     pull_request:
-        branches: [master]
+        branches: ["**"]
     workflow_dispatch:
 
 # https://docs.github.com/en/actions/learn-github-actions/variables
