@@ -34,6 +34,9 @@ export { default as CborCodec } from "./codecs/cbor-codec";
 export { default as TextCodec } from "./codecs/text-codec";
 export { default as Base64Codec } from "./codecs/base64-codec";
 export { default as NetconfOctetstreamCodecCodec } from "./codecs/octetstream-codec";
+export { default as CsvCodec } from "./codecs/csv-codec";
+export * from "./csv-binding";
+export * from "./data-mapping";
 
 // Protocols & Content
 export * from "./protocol-interfaces";
