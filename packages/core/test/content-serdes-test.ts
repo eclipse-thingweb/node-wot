@@ -23,7 +23,7 @@ import { expect, should } from "chai";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import cbor from "cbor";
 
-import ContentSerdes, { ContentCodec } from "../src/content-serdes";
+import ContentSerdes, { ContentCodec, ContentSerdes as ContentSerdesClass } from "../src/content-serdes";
 import { Endianness } from "../src/protocol-interfaces";
 // should must be called to augment all variables
 should();
@@ -88,6 +88,36 @@ class HodorCodec implements ContentCodec {
 
     valueToBytes(): Buffer {
         return Buffer.from("Hodor");
+    }
+}
+
+/** a codec for any media type, answering a fixed reply both ways */
+class ReplyCodec implements ContentCodec {
+    constructor(
+        private readonly mediaType: string,
+        private readonly reply: string
+    ) {}
+
+    getMediaType(): string {
+        return this.mediaType;
+    }
+
+    bytesToValue(): string {
+        return this.reply;
+    }
+
+    valueToBytes(): Buffer {
+        return Buffer.from(this.reply);
+    }
+}
+
+class HodorHttpCodec extends HodorCodec {
+    bytesToValue(): string {
+        return "HodorHttp";
+    }
+
+    valueToBytes(): Buffer {
+        return Buffer.from("HodorHttp");
     }
 }
 
@@ -1058,6 +1088,7 @@ class CborSerdesTests {
 class SerdesCodecTests {
     static before() {
         ContentSerdes.addCodec(new HodorCodec());
+        ContentSerdes.addCodec(new HodorHttpCodec(), false, "http");
     }
 
     @test async "new codec should serialize"() {
@@ -1071,5 +1102,50 @@ class SerdesCodecTests {
         expect(ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" })).to.be.deep.equal(
             "Hodor"
         );
+    }
+
+    @test async "new codec based on scheme should serialize"() {
+        const content = ContentSerdes.valueToContent("The meaning of Life", { type: "string" }, "text/hodor", "http");
+        const body = await content.toBuffer();
+        body.toString().should.equal("HodorHttp");
+    }
+
+    @test "new codec based on scheme should deserialize"() {
+        const buffer = Buffer.from("Some actual meaningful stuff");
+        expect(
+            ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" }, "http")
+        ).to.be.deep.equal("HodorHttp");
+    }
+
+    @test "other schemes fall back to the codec registered without a scheme"() {
+        const buffer = Buffer.from("Some actual meaningful stuff");
+        expect(
+            ContentSerdes.contentToValue({ type: "text/hodor", body: buffer }, { type: "string" }, "coap")
+        ).to.be.deep.equal("Hodor");
+    }
+
+    @test "a media type registered only for a scheme is supported for that scheme only"() {
+        ContentSerdes.addCodec(new ReplyCodec("text/hodor-http-only", "HttpOnly"), false, "http");
+
+        expect(ContentSerdes.isSupported("text/hodor-http-only", "http")).to.equal(true);
+        expect(ContentSerdes.isSupported("text/hodor-http-only", "coap")).to.equal(false);
+        expect(ContentSerdes.isSupported("text/hodor-http-only")).to.equal(false);
+
+        const buffer = Buffer.from("Some actual meaningful stuff");
+        expect(
+            ContentSerdes.contentToValue({ type: "text/hodor-http-only", body: buffer }, { type: "string" }, "http")
+        ).to.be.deep.equal("HttpOnly");
+    }
+
+    @test "a codec registered for a scheme is not offered"() {
+        ContentSerdes.addCodec(new ReplyCodec("text/hodor-scoped-offer", "Scoped"), true, "http");
+        expect(ContentSerdes.getOfferedMediaTypes()).not.to.include("text/hodor-scoped-offer");
+    }
+
+    @test "schemeOf returns the scheme of an absolute href only"() {
+        expect(ContentSerdesClass.schemeOf("opc.tcp://localhost:4840/?id=i=2258")).to.equal("opc.tcp");
+        expect(ContentSerdesClass.schemeOf("http://example.com/things/a")).to.equal("http");
+        expect(ContentSerdesClass.schemeOf("/relative/path")).to.equal(undefined);
+        expect(ContentSerdesClass.schemeOf(undefined)).to.equal(undefined);
     }
 }

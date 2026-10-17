@@ -19,14 +19,18 @@ import { DataType, Variant } from "node-opcua-variant";
 
 // see https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
 import {
-    opcuaJsonEncodeDataValue,
+    DataValueJSON,
+    ExtensionObjectBuilder,
+    ExtensionObjectConstructorFuncWithSchema,
+    JsonEncoderMode,
     opcuaJsonDecodeDataValue,
     opcuaJsonDecodeVariant,
-    DataValueJSON,
+    opcuaJsonEncodeDataValue,
     opcuaJsonEncodeVariant,
-} from "node-opcua-json";
+} from "node-opcua-json/104";
 import { DataSchemaValue } from "wot-typescript-definitions";
 import { schemaDataValueJSONValidate } from "./opcua-data-schemas";
+import { NodeId } from "node-opcua";
 
 const { debug } = createLoggers("binding-opcua", "codec");
 
@@ -48,8 +52,13 @@ export function formatForNodeWoT(dataValue: DataValueJSON): DataValueJSON {
     return dataValue;
 }
 
-// application/json   => is equivalent to application/opcua+json;type=Value
+const builder: ExtensionObjectBuilder = {
+    getExtensionObjectConstructor(_dataTypeNodeId: NodeId): ExtensionObjectConstructorFuncWithSchema {
+        throw new Error("Not implemented");
+    },
+};
 
+// application/json   => is equivalent to application/opcua+json;type=Value
 export class OpcuaJSONCodec implements ContentCodec {
     getMediaType(): string {
         return "application/opcua+json";
@@ -67,27 +76,38 @@ export class OpcuaJSONCodec implements ContentCodec {
                 if (!isValid) {
                     debug(`bytesToValue: parsed = ${parsed}`);
                     debug(`bytesToValue: ${schemaDataValueJSONValidate.errors}`);
-                    throw new Error("Invalid JSON dataValue : " + JSON.stringify(parsed, null, " "));
+                    throw new Error(`Invalid JSON dataValue : ${JSON.stringify(parsed, null, " ")}`);
                 }
+
                 if (wantDataValue) {
-                    return opcuaJsonDecodeDataValue(parsed);
+                    return opcuaJsonDecodeDataValue(parsed, builder, []);
                 }
-                return formatForNodeWoT(opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(parsed), true));
+                return formatForNodeWoT(
+                    opcuaJsonEncodeDataValue(
+                        opcuaJsonDecodeDataValue(parsed, builder, []),
+                        JsonEncoderMode.Reversible,
+                        []
+                    )
+                );
                 // return parsed;
             }
             case "Variant": {
                 if (wantDataValue) {
-                    const dataValue = new DataValue({ value: opcuaJsonDecodeVariant(parsed) });
+                    const dataValue = new DataValue({ value: opcuaJsonDecodeVariant(parsed, builder, []) });
                     return dataValue;
                 }
-                const v = opcuaJsonEncodeVariant(opcuaJsonDecodeVariant(parsed), true);
+                const v = opcuaJsonEncodeVariant(
+                    opcuaJsonDecodeVariant(parsed, builder, []),
+                    JsonEncoderMode.Reversible,
+                    []
+                );
                 debug(`${v}`);
                 return v;
             }
             case "Value": {
                 if (wantDataValue) {
-                    if (!parameters || !parameters.dataType) {
-                        throw new Error("[OpcuaJSONCodec|bytesToValue]: unknown dataType for Value encoding" + type);
+                    if (!parameters?.dataType) {
+                        throw new Error(`[OpcuaJSONCodec|bytesToValue]: unknown dataType for Value encoding ${type}`);
                     }
                     if (parameters.dataType === DataType[DataType.DateTime]) {
                         parsed = new Date(parsed);
@@ -105,32 +125,41 @@ export class OpcuaJSONCodec implements ContentCodec {
                 }
             }
             default:
-                throw new Error("[OpcuaJSONCodec|bytesToValue]: Invalid type " + type);
+                throw new Error(`[OpcuaJSONCodec|bytesToValue]: Invalid type ${type}`);
         }
     }
 
     valueToBytes(value: unknown, _schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         const type = parameters?.type ?? "DataValue";
+        const namespaceArray: string[] = [];
         switch (type) {
             case "DataValue": {
                 let dataValueJSON: DataValueJSON;
                 if (value instanceof DataValue) {
-                    dataValueJSON = opcuaJsonEncodeDataValue(value, true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(value, JsonEncoderMode.Reversible, namespaceArray);
                 } else if (value instanceof Variant) {
-                    dataValueJSON = opcuaJsonEncodeDataValue(new DataValue({ value }), true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(
+                        new DataValue({ value }),
+                        JsonEncoderMode.Reversible,
+                        namespaceArray
+                    );
                 } else if (typeof value === "string") {
                     dataValueJSON = JSON.parse(value) as DataValueJSON;
                 } else {
-                    dataValueJSON = opcuaJsonEncodeDataValue(opcuaJsonDecodeDataValue(value as DataValueJSON), true);
+                    dataValueJSON = opcuaJsonEncodeDataValue(
+                        opcuaJsonDecodeDataValue(value as DataValueJSON, builder, namespaceArray),
+                        JsonEncoderMode.Reversible,
+                        namespaceArray
+                    );
                 }
                 dataValueJSON = formatForNodeWoT(dataValueJSON);
                 return Buffer.from(JSON.stringify(dataValueJSON), "ascii");
             }
             case "Variant": {
                 if (value instanceof DataValue) {
-                    value = opcuaJsonEncodeVariant(value.value, true);
+                    value = opcuaJsonEncodeVariant(value.value, JsonEncoderMode.Reversible, namespaceArray);
                 } else if (value instanceof Variant) {
-                    value = opcuaJsonEncodeVariant(value, true);
+                    value = opcuaJsonEncodeVariant(value, JsonEncoderMode.Reversible, namespaceArray);
                 } else if (typeof value === "string") {
                     value = JSON.parse(value);
                 }
@@ -141,14 +170,14 @@ export class OpcuaJSONCodec implements ContentCodec {
                     return Buffer.alloc(0);
                 }
                 if (value instanceof DataValue) {
-                    value = opcuaJsonEncodeVariant(value.value, false);
+                    value = opcuaJsonEncodeVariant(value.value, JsonEncoderMode.NonReversible, namespaceArray);
                 } else if (value instanceof Variant) {
-                    value = opcuaJsonEncodeVariant(value, false);
+                    value = opcuaJsonEncodeVariant(value, JsonEncoderMode.NonReversible, namespaceArray);
                 }
                 return Buffer.from(JSON.stringify(value), "ascii");
             }
             default:
-                throw new Error("[OpcuaJSONCodec|valueToBytes]: Invalid type : " + type);
+                throw new Error(`[OpcuaJSONCodec|valueToBytes]: Invalid type : ${type}`);
         }
     }
 }

@@ -17,7 +17,7 @@ import { Helpers, createLoggers } from "@node-wot/core";
 import { expect } from "chai";
 
 import { DataType, DataValue, StatusCodes, VariantArrayType } from "node-opcua-client";
-import { opcuaJsonEncodeDataValue } from "node-opcua-json";
+import { JsonEncoderMode, opcuaJsonEncodeDataValue } from "node-opcua-json/104";
 
 import { schemaDataValueValidate, schemaDataValueJSONValidate } from "../src/codecs/opcua-data-schemas";
 
@@ -68,7 +68,7 @@ const data = {
 describe("schemas", () => {
     describe("schemaDataValue", () => {
         Object.entries(data).forEach(([name, obj1]) => {
-            it("(experimental) " + name, () => {
+            it(`(experimental) ${name}`, () => {
                 const validate = schemaDataValueValidate;
 
                 const obj1 = new DataValue({}).toJSON();
@@ -86,8 +86,10 @@ describe("schemas", () => {
         const validate = schemaDataValueJSONValidate;
 
         Object.entries(data).forEach(([name, obj1]) => {
-            it("DataValue " + name, () => {
-                const dataValueJSON = Helpers.structuredClone(opcuaJsonEncodeDataValue(obj1, true));
+            it(`DataValue ${name}`, () => {
+                const dataValueJSON = Helpers.structuredClone(
+                    opcuaJsonEncodeDataValue(obj1, JsonEncoderMode.Reversible, [])
+                );
 
                 const isValid = validate(dataValueJSON);
                 if (!isValid) {

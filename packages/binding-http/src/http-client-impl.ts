@@ -183,6 +183,7 @@ export default class HttpClient implements ProtocolClient {
         this.activeSubscriptions.set(form.href, internalSubscription);
         return new Subscription(() => {
             internalSubscription.close();
+            this.activeSubscriptions.delete(form.href);
         });
     }
 
@@ -226,6 +227,7 @@ export default class HttpClient implements ProtocolClient {
 
         if (internalSub) {
             internalSub.close();
+            this.activeSubscriptions.delete(form.href);
         } else {
             warn(`HttpClient cannot unlink ${form.href} no subscription found`);
         }
@@ -249,6 +251,8 @@ export default class HttpClient implements ProtocolClient {
     }
 
     public async stop(): Promise<void> {
+        this.activeSubscriptions.forEach((subscription) => subscription.close());
+        this.activeSubscriptions.clear();
         // When running in browser mode, Agent.destroy() might not exist.
         this.agent?.destroy?.();
     }

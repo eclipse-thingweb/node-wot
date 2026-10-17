@@ -36,7 +36,7 @@ import {
 } from "../src/thing-description";
 import { ProtocolClient, ProtocolClientFactory } from "../src/protocol-interfaces";
 import { Content } from "../src/content";
-import { ContentSerdes } from "../src/content-serdes";
+import { ContentCodec, ContentSerdes } from "../src/content-serdes";
 import Helpers from "../src/helpers";
 import { Readable } from "stream";
 import { createLoggers, ProtocolHelpers } from "../src/core";
@@ -434,6 +434,46 @@ class WoTClientTest {
         } catch (error) {
             info("Error writing property: " + error);
         }
+    }
+
+    @test async "write and read use the codec registered for the form's scheme"() {
+        const mediaType = "application/x-issue-1409";
+        const codec = (reply: string): ContentCodec => ({
+            getMediaType: () => mediaType,
+            bytesToValue: () => `${reply}-decoded`,
+            valueToBytes: () => Buffer.from(`${reply}-encoded`),
+        });
+        ContentSerdes.get().addCodec(codec("generic"));
+        WoTClientTest.servient.addMediaType(codec("testdata"), false, "testdata");
+
+        const td: WoT.ThingDescription = {
+            "@context": "https://www.w3.org/2019/wot/td/v1",
+            title: "scheme-codec-thing",
+            securityDefinitions: { nosec_sc: { scheme: "nosec" } },
+            security: "nosec_sc",
+            properties: {
+                p: {
+                    type: "string",
+                    forms: [{ href: "testdata://host/scheme-codec-thing/p", contentType: mediaType }],
+                },
+            },
+        };
+        const thing = await WoTClientTest.WoT.consume(td);
+
+        let written = "";
+        WoTClientTest.clientFactory.setTrap(async (form: Form, content?: Content) => {
+            if (content !== undefined) {
+                written = (await content.toBuffer()).toString();
+                return content;
+            }
+            return new Content(mediaType, Readable.from(Buffer.from("raw bytes")));
+        });
+
+        await thing.writeProperty("p", "anything");
+        expect(written).to.equal("testdata-encoded");
+
+        const output = await thing.readProperty("p");
+        expect(await output.value()).to.equal("testdata-decoded");
     }
 
     @test async "write a Property with data schema value"() {

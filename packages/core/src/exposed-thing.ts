@@ -380,7 +380,12 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 );
                 if (result !== undefined) {
                     // TODO: handle form.response.contentType
-                    return ContentManager.valueToContent(result, this.actions[name].output, form.contentType);
+                    return ContentManager.valueToContent(
+                        result,
+                        this.actions[name].output,
+                        form.contentType,
+                        ContentSerdes.schemeOf(form.href)
+                    );
                 }
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no handler for Action '${name}'`);
@@ -413,7 +418,8 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
                 return ContentManager.valueToContent(
                     result,
                     this.properties[propertyName],
-                    form?.contentType ?? "application/json"
+                    form?.contentType ?? "application/json",
+                    ContentSerdes.schemeOf(form?.href)
                 );
             } else {
                 throw new Error(`ExposedThing '${this.title}' has no readHandler for Property '${propertyName}'`);

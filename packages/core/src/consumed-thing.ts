@@ -37,7 +37,7 @@ import { ProtocolClient } from "./protocol-interfaces";
 import { Content } from "./content";
 import ContentType from "content-type";
 
-import ContentManager from "./content-serdes";
+import ContentManager, { ContentSerdes } from "./content-serdes";
 
 import * as UriTemplate from "uritemplate";
 import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
@@ -697,7 +697,7 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         }
         debug(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
-        const content = ContentManager.valueToContent(value, tp, form.contentType);
+        const content = ContentManager.valueToContent(value, tp, form.contentType, ContentSerdes.schemeOf(form.href));
 
         // uriVariables ?
         const formWithUriVariables = this.handleUriVariables(tp, form, options);
@@ -745,7 +745,12 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         let input;
 
         if (parameter !== undefined) {
-            input = ContentManager.valueToContent(parameter, ta.input, form.contentType);
+            input = ContentManager.valueToContent(
+                parameter,
+                ta.input,
+                form.contentType,
+                ContentSerdes.schemeOf(form.href)
+            );
         }
 
         // uriVariables ?

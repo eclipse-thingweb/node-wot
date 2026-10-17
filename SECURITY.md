@@ -1,20 +1,30 @@
-<!--- https://www.eclipse.org/security/ --->
+# Security Policy
 
-_ISO 27005 defines vulnerability as:
-"A weakness of an asset or group of assets that can be exploited by one or more threats."_
+This Eclipse Foundation Project adheres to the [Eclipse Foundation Vulnerability Reporting Policy](https://www.eclipse.org/security/policy/).
 
-## Eclipse Foundation Security Team
+## How To Report a Vulnerability
 
-The Eclipse Foundation Security Team provides help and advice to Eclipse projects on security issues and is the first point of contact for handling security vulnerabilities. Members of the Security Team are selected from committers on Eclipse Projects, members of the [Eclipse Architecture Council](https://www.eclipse.org/projects/handbook/#roles-ac), and Eclipse Foundation staff.
+If you think you have found a vulnerability in this repository, please report it to us through coordinated disclosure.
 
-## Reporting a Security Vulnerability
+**Please do not report security vulnerabilities through public issues, discussions, or change requests.**
 
-Vulnerabilities can be reported either via email to [security@eclipse-foundation.org](mailto:security@eclipse-foundation.org) or directly with a project via the Eclipse Foundation’s [issue tracker](https://gitlab.eclipse.org/security/vulnerability-reports/-/issues/new?issuable_template=new_vulnerability).
+Instead, report it using one of the following ways:
 
-The general [security team email address](mailto:security@eclipse-foundation.org) can also be used to report vulnerabilities. Members of the Eclipse Foundation Security Team will receive messages sent to this address. This address should be used only for reporting undisclosed vulnerabilities; regular issue reports and questions unrelated to vulnerabilities in Eclipse Foundation project software will be ignored. Note that this email address is not encrypted.
+-   Create a [confidential issue](https://gitlab.eclipse.org/security/vulnerability-reports/-/issues/new?issuable_template=new_vulnerability) in the Eclipse Foundation Vulnerability Reporting Tracker
+-   Report a [vulnerability](https://github.com/eclipse-thingweb/node-wot/security/advisories/new) directly via private vulnerability reporting on GitHub
 
-## Disclosure
+You can find more information about reporting and disclosure at the [Eclipse Foundation Security page](https://www.eclipse.org/security/).
 
-Disclosure is initially limited to the reporter, the project team and the Eclipse Foundation Security Team, but is expanded to include other individuals, and the general public. The timing and manner of disclosure is governed by the [Eclipse Foundation Vulnerability Reporting Policy](https://www.eclipse.org/security/policy.php).
+Please include as much of the information listed below as you can to help us better understand and resolve the issue:
 
-Publicly disclosed issues are listed on the [Known Eclipse Security Vulnerabilities](https://www.eclipse.org/security/known.php) page.
+-   The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
+-   Affected version(s)
+-   Impact of the issue, including how an attacker might exploit the issue
+-   Step-by-step instructions to reproduce the issue
+-   The location of the affected source code (tag/branch/commit or direct URL)
+-   Full paths of source file(s) related to the manifestation of the issue
+-   Configuration required to reproduce the issue
+-   Log files that are related to this issue (if possible)
+-   Proof-of-concept or exploit code (if possible)
+
+This information will help us triage your report more quickly.

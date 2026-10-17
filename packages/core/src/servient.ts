@@ -19,7 +19,7 @@ import WoTImpl from "./wot-impl";
 import ExposedThing from "./exposed-thing";
 import { ProtocolClientFactory, ProtocolServer, ProtocolClient } from "./protocol-interfaces";
 import ContentManager, { ContentCodec } from "./content-serdes";
-import { v4 } from "uuid";
+import { randomUUID } from "crypto";
 import { createLoggers } from "./logger";
 import { Helpers, Thing } from "./core";
 
@@ -40,9 +40,12 @@ export default class Servient {
     #wotInstance?: typeof WoT;
     #shutdown = false;
 
-    /** add a new codec to support a mediatype; offered mediatypes are listed in TDs */
-    public addMediaType(codec: ContentCodec, offered = false): void {
-        ContentManager.addCodec(codec, offered);
+    /**
+     * add a new codec to support a mediatype; offered mediatypes are listed in TDs.
+     * With a scheme, the codec applies only to forms using that URI scheme.
+     */
+    public addMediaType(codec: ContentCodec, offered = false, scheme?: string): void {
+        ContentManager.addCodec(codec, offered, scheme);
     }
 
     public expose(thing: ExposedThing): Promise<void> {
@@ -90,7 +93,7 @@ export default class Servient {
 
     public addThing(thing: ExposedThing): boolean {
         if (!thing.id) {
-            thing.id = "urn:uuid:" + v4();
+            thing.id = "urn:uuid:" + randomUUID();
             warn(`Servient generating ID for '${thing.title}': '${thing.id}'`);
         }
 

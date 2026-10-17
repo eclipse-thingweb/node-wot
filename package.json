@@ -36,7 +36,7 @@
         "clean:dist": "npm exec  --workspaces -- npx rimraf tsconfig.tsbuildinfo dist",
         "update:wot-typescript-definitions": "npx npm-check-updates  -u -f \"wot-typescript-definitions\" --deep",
         "link": "npm link -ws",
-        "ncu:opcua": "npx -y npm-check-updates -u --deep --dep=dev,prod -f \"node-opcua*\" -t newest"
+        "ncu:opcua": "npx -y node-opcua-versions@latest bump -w --latest"
     },
     "workspaces": [
         "./packages/core",
@@ -50,6 +50,7 @@
         "@types/chai": "^4.2.18",
         "@types/chai-as-promised": "^7.1.4",
         "@types/chai-spies": "^1.0.4",
+        "@types/express": "4.17.25",
         "@types/mocha": "^10.0.10",
         "@types/node": "^18.19.76",
         "@types/readable-stream": "^4.0.15",
@@ -71,7 +72,7 @@
         "eslint-plugin-workspaces": "^0.11.0",
         "globals": "^16.4.0",
         "husky": "^7.0.4",
-        "mocha": "^11.7.2",
+        "mocha": "^12.0.0",
         "prettier": "3.3.3",
         "pretty-quick": "^4.0.0",
         "sinon": "11.1.1",

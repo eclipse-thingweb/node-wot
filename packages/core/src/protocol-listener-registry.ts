@@ -15,7 +15,7 @@
 import { DataSchema, InteractionInput } from "wot-typescript-definitions";
 import { ContentListener } from "./protocol-interfaces";
 import { ThingInteraction } from "./thing-description";
-import contentSerdes from "./content-serdes";
+import contentSerdes, { ContentSerdes } from "./content-serdes";
 
 export default class ProtocolListenerRegistry {
     private static EMPTY_MAP = new Map();
@@ -76,8 +76,8 @@ export default class ProtocolListenerRegistry {
         if (formIndex !== undefined) {
             const listeners = formMap.get(formIndex);
             if (listeners) {
-                const contentType = affordance.forms[formIndex].contentType;
-                const content = contentSerdes.valueToContent(data, schema, contentType);
+                const { contentType, href } = affordance.forms[formIndex];
+                const content = contentSerdes.valueToContent(data, schema, contentType, ContentSerdes.schemeOf(href));
 
                 listeners.forEach((listener) => listener(content));
                 // formIndex satisfied
@@ -87,8 +87,8 @@ export default class ProtocolListenerRegistry {
         }
 
         for (const [index, value] of formMap) {
-            const contentType = affordance.forms[index].contentType;
-            const content = contentSerdes.valueToContent(data, schema, contentType);
+            const { contentType, href } = affordance.forms[index];
+            const content = contentSerdes.valueToContent(data, schema, contentType, ContentSerdes.schemeOf(href));
             value.forEach((listener) => listener(content));
         }
     }

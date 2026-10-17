@@ -122,7 +122,8 @@ export class InteractionOutput implements WoT.InteractionOutput {
         }
 
         // is content type valid?
-        if (!ContentSerdes.get().isSupported(this.#content.type)) {
+        const scheme = ContentSerdes.schemeOf(this.form.href);
+        if (!ContentSerdes.get().isSupported(this.#content.type, scheme)) {
             const message = `Content type ${this.#content.type} not supported`;
             throw new NotSupportedError(message);
         }
@@ -132,7 +133,7 @@ export class InteractionOutput implements WoT.InteractionOutput {
         this.dataUsed = true;
         this.#valueBuffer = bytes;
 
-        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema);
+        let json = ContentSerdes.get().contentToValue({ type: this.#content.type, body: bytes }, this.schema, scheme);
 
         if (this.mapping !== undefined) {
             json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);
