@@ -36,9 +36,12 @@ import {
     VariantLike,
     StatusCodes,
     coerceLocalizedText,
+    nodesets,
 } from "node-opcua";
+import { expect } from "chai";
 
 import { OPCUAClientFactory } from "../src";
+import { decodeUABinaryDataValue } from "../src/ua-binary";
 import { startServer } from "./fixture/basic-opcua-server";
 import { printTable, shortVerdict, truncate } from "./report-table";
 
@@ -48,8 +51,11 @@ const endpoint = "opc.tcp://localhost:7890";
 const NS = "http://example.org/ShapeTest/";
 
 // populated in before(), once the address space exists
-let extensionObject1: unknown;
-let extensionObject2: unknown;
+// each variable gets its own objects: the server must not see one object in two values
+let makeArgument: (name: string, dataType: string, text: string) => unknown;
+let rfidScanResult: unknown;
+
+const AUTOID_NS = "http://opcfoundation.org/UA/AutoID/";
 
 interface Shape {
     key: string;
@@ -171,7 +177,7 @@ const SHAPES: Shape[] = [
         id: "s=Shape_ExtObj",
         uaDataType: "Argument",
         valueRank: -1,
-        variant: () => ({ dataType: DataType.ExtensionObject, value: extensionObject1 }),
+        variant: () => ({ dataType: DataType.ExtensionObject, value: makeArgument("Arg1", "i=6", "first argument") }),
         wotType: "object",
     },
     {
@@ -182,9 +188,20 @@ const SHAPES: Shape[] = [
         variant: () => ({
             dataType: DataType.ExtensionObject,
             arrayType: VariantArrayType.Array,
-            value: [extensionObject1, extensionObject2],
+            value: [makeArgument("Arg1", "i=6", "first argument"), makeArgument("Arg2", "i=11", "second argument")],
         }),
         wotType: "array",
+    },
+    {
+        // a structure of a companion specification (namespace != 0): only the session's
+        // DataTypeDefinitions decode it, so octet-stream needs the `uaconn` tag
+        key: "RfidScanResult",
+        id: "s=Shape_RfidScanResult",
+        // replaced in before() by the DataType NodeId, once the namespace index is known
+        uaDataType: "RfidScanResult",
+        valueRank: -1,
+        variant: () => ({ dataType: DataType.ExtensionObject, value: rfidScanResult }),
+        wotType: "object",
     },
     // ---- remaining numeric scalars -------------------------------------
     {
@@ -398,6 +415,8 @@ interface Cell {
     jsType?: string;
     /** what the binding actually put on the wire, from arrayBuffer() */
     wire?: string;
+    raw?: Buffer;
+    value?: unknown;
     error?: string;
 }
 
@@ -418,8 +437,7 @@ function jsTypeOf(v: unknown): string {
  * has decoded and validated it, which is not the same thing - a read can fail validation
  * while the bytes were perfectly good.
  */
-function renderWire(buf: ArrayBuffer, contentType: string | undefined): string {
-    const b = Buffer.from(buf);
+function renderWire(b: Buffer, contentType: string | undefined): string {
     const isBinary = contentType === "application/octet-stream" || contentType === "application/opcua+octet-stream";
     if (!isBinary) {
         return `${b.toString("utf-8")} (${b.length}B)`;
@@ -478,25 +496,32 @@ describe("contentType x data shape matrix (issue #1400)", function () {
     const cells: Cell[] = [];
 
     before(async function () {
-        opcuaServer = await startServer();
+        opcuaServer = await startServer([nodesets.autoId]);
 
         const addressSpace = opcuaServer.engine.addressSpace;
         if (!addressSpace) {
             throw new Error("no address space");
         }
 
-        extensionObject1 = addressSpace.constructExtensionObject(coerceNodeId(DataTypeIds.Argument), {
-            name: "Arg1",
-            dataType: coerceNodeId("i=6"),
-            valueRank: -1,
-            description: { text: "first argument" },
+        const rfidScanResultType = `ns=${addressSpace.getNamespaceIndex(AUTOID_NS)};i=3007`;
+        rfidScanResult = addressSpace.constructExtensionObject(coerceNodeId(rfidScanResultType), {
+            codeType: "EPC",
+            // a union: the server cannot encode it with no field selected
+            scanData: { switchField: 2, string: "MAX7Y6wfNoHsiARo" },
+            timestamp: new Date(Date.UTC(2026, 9, 19, 10)),
         });
-        extensionObject2 = addressSpace.constructExtensionObject(coerceNodeId(DataTypeIds.Argument), {
-            name: "Arg2",
-            dataType: coerceNodeId("i=11"),
-            valueRank: -1,
-            description: { text: "second argument" },
-        });
+        const rfidShape = SHAPES.find((s) => s.key === "RfidScanResult");
+        if (rfidShape !== undefined) {
+            rfidShape.uaDataType = rfidScanResultType;
+        }
+
+        makeArgument = (name, dataType, text) =>
+            addressSpace.constructExtensionObject(coerceNodeId(DataTypeIds.Argument), {
+                name,
+                dataType: coerceNodeId(dataType),
+                valueRank: -1,
+                description: { text },
+            });
 
         const ns = addressSpace.registerNamespace(NS);
         const folder = ns.addObject({
@@ -575,7 +600,8 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                 // raw bytes first, on their own read: this is what actually crossed the wire
                 try {
                     const rawRead = await thing.readProperty("v");
-                    cell.wire = renderWire(await rawRead.arrayBuffer(), ct.contentType);
+                    cell.raw = Buffer.from(await rawRead.arrayBuffer());
+                    cell.wire = renderWire(cell.raw, ct.contentType);
                 } catch {
                     cell.wire = "n/a";
                 }
@@ -584,6 +610,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                     const read = await thing.readProperty("v");
                     const value = await read.value();
                     cell.ok = true;
+                    cell.value = value;
                     cell.rendered = render(value);
                     cell.jsType = jsTypeOf(value);
                 } catch (err) {
@@ -594,4 +621,40 @@ describe("contentType x data shape matrix (issue #1400)", function () {
             });
         }
     }
+
+    const cellOf = (shape: Shape, ct: string): Cell => {
+        const cell = cells.find((x) => x.shape === shape.key && x.ct === ct);
+        if (cell === undefined) {
+            throw new Error(`no result for ${shape.key} as ${ct}`);
+        }
+        return cell;
+    };
+
+    // OPC 10101 §6.5.3: application/octet-stream carries OPC UA Binary, and value() is what
+    // application/json gives (doc/octet-stream-ua-binary-plan.md)
+    it("octet-stream: value() is what application/json gives, for every shape", function () {
+        for (const shape of SHAPES) {
+            const json = cellOf(shape, "(omitted)");
+            const octet = cellOf(shape, "octet-stream");
+            expect(octet.ok, `${shape.key}: ${octet.error ?? json.error}`).to.equal(json.ok);
+            if (json.ok) {
+                expect(octet.value, shape.key).to.deep.equal(json.value);
+            }
+        }
+    });
+
+    it("octet-stream: arrayBuffer() is the UA Binary DataValue that holds the value", function () {
+        for (const shape of SHAPES) {
+            const raw = cellOf(shape, "octet-stream").raw;
+            expect(raw, shape.key).to.not.equal(undefined);
+            const dataValue = decodeUABinaryDataValue(raw as Buffer);
+            const dataType = shape.variant().dataType;
+            // the mask says a value follows (none for a Null value), and the timestamps
+            // the server sent are kept
+            const valueBit = dataType === DataType.Null ? 0 : 0x01;
+            expect(raw?.[0], shape.key).to.satisfy((mask: number) => (mask & 0x01) === valueBit);
+            expect(dataValue.value.dataType, shape.key).to.equal(dataType);
+            expect(dataValue.sourceTimestamp, shape.key).to.be.an.instanceOf(Date);
+        }
+    });
 });

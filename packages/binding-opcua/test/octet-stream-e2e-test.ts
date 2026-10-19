@@ -194,26 +194,27 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
             }
             outcomes.push(outcome);
 
-            // Assert the CURRENT behaviour of eclipse/master, so this test turns red
-            // the moment #1400 is actually fixed. Each expectation below is a bug
-            // except scenario A, which is merely non-conformant.
             switch (s.key) {
                 case "A":
-                    // works, but OPC-10101 6.5.3 says the default should be octet-stream
-                    expect(outcome.ok, "A should currently succeed").to.equal(true);
+                    // no contentType: application/json, the W3C WoT TD 1.1 default
+                    expect(outcome.ok, "A should succeed").to.equal(true);
                     expect(outcome.value).to.equal(EXPECTED);
                     break;
                 case "B":
-                case "C":
                 case "D":
+                    // On master these failed inside core's OctetstreamCodec with
+                    // "dataType.toLowerCase is not a function". application/octet-stream
+                    // now carries OPC UA Binary (OPC 10101 §6.5.3), and value() gives what
+                    // application/json gives.
+                    expect(outcome.ok, `${s.key} should succeed: ${outcome.error}`).to.equal(true);
+                    expect(outcome.value).to.equal(EXPECTED);
+                    break;
+                case "C":
                 case "E":
-                    // Before the content-negotiation fix these failed inside core's
-                    // OctetstreamCodec with "dataType.toLowerCase is not a function".
-                    // Now the binding rejects them itself, naming the form and the
-                    // actual OPC UA dataType, and pointing at a usable alternative.
-                    expect(outcome.ok, `${s.key} should fail: the value is not a ByteString`).to.equal(false);
-                    expect(outcome.error).to.match(/only supported when the value is a ByteString/);
-                    expect(outcome.error, "the error should name the offending form").to.match(/SpecialVariable/);
+                    // core refuses before decoding, as for G: a `type` on the form is not
+                    // the schema of the affordance
+                    expect(outcome.ok).to.equal(false);
+                    expect(outcome.error).to.match(/No schema type defined/);
                     break;
                 case "F":
                     expect(outcome.ok).to.equal(false);
