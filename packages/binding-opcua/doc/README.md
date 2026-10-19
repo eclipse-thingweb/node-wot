@@ -4,11 +4,12 @@ Background for reviewers and for whoever maintains this binding next. The user-f
 documentation is in [../README.md](../README.md); these pages explain _why_ the binding behaves
 as it does, and where it knowingly differs from the specifications.
 
-| page                                             | what it answers                                                                                                                                               |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [content-negotiation.md](content-negotiation.md) | Which `contentType` a form may use, what each one produces, and how a value travels between the OPC UA server and a WoT application                           |
-| [opcua-json-encoding.md](opcua-json-encoding.md) | The essence of OPC UA JSON: Compact and Verbose, the deprecated Reversible/NonReversible pair we currently emit, and what each OPC UA type looks like in both |
-| [decisions.md](decisions.md)                     | The choices made, with their reasons and their known costs                                                                                                    |
+| page                                                             | what it answers                                                                                                                                               |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [content-negotiation.md](content-negotiation.md)                 | Which `contentType` a form may use, what each one produces, and how a value travels between the OPC UA server and a WoT application                           |
+| [opcua-json-encoding.md](opcua-json-encoding.md)                 | The essence of OPC UA JSON: Compact and Verbose, the deprecated Reversible/NonReversible pair we currently emit, and what each OPC UA type looks like in both |
+| [decisions.md](decisions.md)                                     | The choices made, with their reasons and their known costs                                                                                                    |
+| [octet-stream-ua-binary-plan.md](octet-stream-ua-binary-plan.md) | `application/octet-stream` as OPC UA Binary: which part of each OPC UA message is the payload, per WoT operation, with the open questions                     |
 
 ## The one thing to know first
 
