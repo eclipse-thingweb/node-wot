@@ -73,7 +73,7 @@ const builder: ExtensionObjectBuilder = {
 function is105(parsed: unknown): boolean {
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
         const keys = Object.keys(parsed as Record<string, unknown>);
-        return keys.includes("UaType") || keys.includes("UaDimensions") || keys.includes("UaStatus");
+        return keys.includes("UaType") || keys.includes("UaDimensions");
     }
     return false;
 }
