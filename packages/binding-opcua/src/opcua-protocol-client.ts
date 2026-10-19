@@ -43,6 +43,8 @@ import {
     Variant,
     VariantOptions,
     SecurityPolicy,
+    ExtraDataTypeManager,
+    getExtraDataTypeManager,
 } from "node-opcua-client";
 import {
     AnonymousIdentity,
@@ -70,8 +72,20 @@ import {
     resolveContentFormat,
     encodeDataValue,
     decodeToDataValue,
+    convertVariant,
+    refuseStructure,
     DEFAULT_CONTENT_TYPE,
 } from "./opcua-content-negotiation";
+import {
+    argumentsToVariant,
+    decodeUABinaryDataValue,
+    encodeUABinaryDataValue,
+    holdsStructure,
+    isUABinaryDataValue,
+    registerDataTypeManager,
+    unregisterDataTypeManager,
+    variantToArguments,
+} from "./ua-binary";
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
 export type Command = "Read" | "Write" | "Subscribe";
@@ -353,7 +367,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 nodeId,
                 attributeId: AttributeIds.Value,
             });
-            return this._dataValueToContent(form, dataValue);
+            return this._dataValueToContent(form, dataValue, session);
         });
         debug(`readResource: contentType ${content.type}`);
         return content;
@@ -397,7 +411,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const output = await this._resolveOutputArguments(
                 form,
                 argumentDefinition,
-                callResult.outputArguments ?? []
+                callResult.outputArguments ?? [],
+                session
             );
             return output;
         });
@@ -452,7 +467,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
             this._monitoredItems.set(key, m);
             monitoredItem.on("changed", async (dataValue: DataValue) => {
                 try {
-                    const content = await this._dataValueToContent(form, dataValue);
+                    const content = await this._dataValueToContent(form, dataValue, session);
                     m.handlers.forEach((n) => n(content));
                 } catch (err) {
                     debug(`${nodeId}: ${dataValue}`);
@@ -517,6 +532,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
             }
         }
         this._connections.clear();
+        this._dataTypeManagers.forEach((manager) => unregisterDataTypeManager(manager));
+        this._dataTypeManagers.clear();
         await CertificateManagerSingleton.releaseCertificateManager();
     }
 
@@ -598,12 +615,43 @@ export class OPCUAProtocolClient implements ProtocolClient {
     > = new Map();
 
     ///
-    private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue): Promise<Content> {
+    private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue, session: ClientSession): Promise<Content> {
         // Binding-scoped negotiation: OPC UA payloads never go through the global
         // ContentSerdes registry, where application/octet-stream belongs to Modbus.
         const format = resolveContentFormat(form.contentType);
         const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`);
-        return new Content(form.contentType ?? DEFAULT_CONTENT_TYPE, Readable.from(body));
+        const contentType =
+            format.flavour === "uaBinary"
+                ? await this._uaBinaryContentType(form, session, [dataValue.value])
+                : (form.contentType ?? DEFAULT_CONTENT_TYPE);
+        return new Content(contentType, Readable.from(body));
+    }
+
+    private _dataTypeManagers = new Set<ExtraDataTypeManager>();
+
+    /**
+     * The Content type of an `application/octet-stream` payload. When it holds a structure, it
+     * names the session whose definitions decode it (`;uaconn=`, plan section 8): the codec
+     * runs in core and has no session of its own. These parameters never reach the form.
+     */
+    private async _uaBinaryContentType(
+        form: OPCUAForm,
+        session: ClientSession,
+        variants: Variant[],
+        parameters: string[] = []
+    ): Promise<string> {
+        const contentType = [form.contentType ?? "application/octet-stream", ...parameters];
+        if (variants.some((v) => holdsStructure(v))) {
+            try {
+                const manager = await getExtraDataTypeManager(session);
+                this._dataTypeManagers.add(manager);
+                contentType.push(`uaconn=${registerDataTypeManager(manager)}`);
+            } catch (err) {
+                // the structure stays opaque, as it would for application/json
+                debug(`_uaBinaryContentType: no structure definitions: ${(err as Error).message}`);
+            }
+        }
+        return contentType.join(";");
     }
 
     private async _contentToDataValue(form: OPCUAForm, content: Content): Promise<DataValue> {
@@ -643,9 +691,12 @@ export class OPCUAProtocolClient implements ProtocolClient {
             return [];
         }
         const content2 = { ...content, body: await content.toBuffer() };
-        const bodyInput = JSON.parse(content2.body.toString());
-
         const inputArguments = (argumentDefinition.inputArguments ?? []) as unknown as Argument[];
+
+        if (resolveContentFormat(content2.type ?? form.contentType).flavour === "uaBinary") {
+            return this._resolveUABinaryInputArguments(session, form, content2.body, inputArguments);
+        }
+        const bodyInput = JSON.parse(content2.body.toString());
 
         const variants: VariantLike[] = [];
         for (let index = 0; index < inputArguments.length; index++) {
@@ -681,12 +732,86 @@ export class OPCUAProtocolClient implements ProtocolClient {
         return variants;
     }
 
+    /**
+     * `application/octet-stream` action input. Given by value, the codec hands the input
+     * object over as JSON, read as application/json is. Given as bytes, it is a DataValue
+     * holding `KeyValuePair[]` (plan A1). Either way each argument is converted to its
+     * DataType, in the method's order; a structure argument is refused for now (plan A3).
+     */
+    private async _resolveUABinaryInputArguments(
+        session: IBasicSession,
+        form: OPCUAForm,
+        body: Buffer,
+        inputArguments: Argument[]
+    ): Promise<VariantOptions[]> {
+        const valueFormat = resolveContentFormat("application/json");
+        let given: (name: string, dataType: DataType, hint: string) => Variant | undefined;
+        if (isUABinaryDataValue(body)) {
+            const args = variantToArguments(decodeUABinaryDataValue(body).value);
+            if (args === undefined) {
+                throw new Error(
+                    `binding-opcua: the input of '${form.href}' with contentType 'application/octet-stream' must be ` +
+                        `a DataValue holding KeyValuePair[], one per argument.`
+                );
+            }
+            given = (name, dataType, hint) => {
+                const variant = args.get(name);
+                return variant === undefined ? undefined : convertVariant(variant, dataType, hint);
+            };
+        } else {
+            const bodyInput = JSON.parse(body.toString("utf-8"));
+            given = (name, dataType, hint) =>
+                bodyInput?.[name] === undefined
+                    ? undefined
+                    : decodeToDataValue(valueFormat, Buffer.from(JSON.stringify(bodyInput[name])), dataType, hint)
+                          .value;
+        }
+
+        const variants: VariantOptions[] = [];
+        for (const { name, dataType, arrayDimensions, valueRank } of inputArguments) {
+            const basicDataType = await this._findBasicDataType(session, dataType);
+            if (basicDataType === undefined) {
+                throw new Error(`basicDataType is undefined for dataType ${dataType}`);
+            }
+            const hint = `argument '${name}' of '${form.href}'`;
+            refuseStructure(basicDataType, hint);
+            const variant = given(name ?? "null", basicDataType, hint);
+            if (variant === undefined) {
+                throw new Error(`missing value in bodyInput for argument ${name}`);
+            }
+            const arrayType =
+                valueRank === -1
+                    ? VariantArrayType.Scalar
+                    : valueRank === 1
+                      ? VariantArrayType.Array
+                      : VariantArrayType.Matrix;
+            variants.push({
+                dataType: basicDataType,
+                arrayType,
+                dimensions: arrayType === VariantArrayType.Matrix ? arrayDimensions : undefined,
+                value: variant.value,
+            });
+        }
+        return variants;
+    }
+
     private async _resolveOutputArguments(
         form: OPCUAForm,
         argumentDefinition: ArgumentDefinition,
-        outputVariants: Variant[]
+        outputVariants: Variant[],
+        session: ClientSession
     ): Promise<Content> {
         const outputArguments = (argumentDefinition.outputArguments ?? []) as unknown as Argument[];
+
+        if (resolveContentFormat(form.contentType).flavour === "uaBinary") {
+            // a DataValue holding KeyValuePair[], so that every octet-stream payload is a
+            // DataValue and the argument names are kept (plan A1)
+            const value = argumentsToVariant(
+                outputArguments.map((argument, index) => [argument.name ?? "null", outputVariants[index]])
+            );
+            const contentType = await this._uaBinaryContentType(form, session, outputVariants, ["uapart=arguments"]);
+            return new Content(contentType, Readable.from(encodeUABinaryDataValue(new DataValue({ value }))));
+        }
 
         const contentType = form.contentType ?? "application/json";
 

@@ -19,10 +19,12 @@ import { expect } from "chai";
 import { Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
-import { OPCUAServer } from "node-opcua";
+import { OPCUAServer, DataValue, Variant } from "node-opcua";
+import { ReadableStream } from "web-streams-polyfill";
 
 import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
+import { argumentsToVariant, encodeUABinaryDataValue } from "../src/ua-binary";
 const endpoint = "opc.tcp://localhost:7890";
 
 const { debug, info } = createLoggers("binding-opcua", "full-opcua-thing-test");
@@ -319,6 +321,16 @@ const thingDescription: WoT.ThingDescription = {
         },
     },
 };
+
+// the same actions with application/octet-stream (OPC UA Binary): value() of the output must
+// be what application/json gives (doc/octet-stream-ua-binary-plan.md, A1)
+const actions = thingDescription.actions as Record<string, { forms: Record<string, unknown>[] }>;
+for (const name of ["setTemperatureSetPoint", "GetSongLyrics"]) {
+    actions[`$OctetStream$${name}`] = {
+        ...actions[name],
+        forms: actions[name].forms.map((form) => ({ ...form, contentType: "application/octet-stream" })),
+    };
+}
 
 describe("Full OPCUA Thing Test", () => {
     let opcuaServer: OPCUAServer;
@@ -648,5 +660,44 @@ describe("Full OPCUA Thing Test", () => {
         } finally {
             await servient.shutdown();
         }
+    });
+
+    async function invokeAndRead(name: string, input: unknown): Promise<unknown> {
+        const { thing, servient } = await makeThing();
+        try {
+            await thing.writeProperty("temperatureSetPoint", 27);
+            const output = await thing.invokeAction(name, input as WoT.InteractionInput);
+            return await output?.value();
+        } finally {
+            await servient.shutdown();
+        }
+    }
+
+    it("Z12 - InvokeAction with application/octet-stream gives what application/json gives", async () => {
+        const temperature = { TargetTemperature: 26 };
+        expect(await invokeAndRead("$OctetStream$setTemperatureSetPoint", temperature)).to.eql(
+            await invokeAndRead("setTemperatureSetPoint", temperature)
+        );
+
+        // structures of namespace 0 in the output: KeyValuePair[]
+        const songs = { SongList: ["Jingle Bell", "Mary has a little lamb"], Volume: 100 };
+        const octet = await invokeAndRead("$OctetStream$GetSongLyrics", songs);
+        expect(octet).to.eql(await invokeAndRead("GetSongLyrics", songs));
+        expect(octet).to.have.property("SoundAndLyrics").with.length(2);
+    });
+
+    it("Z13 - InvokeAction with application/octet-stream accepts the input as a DataValue of KeyValuePair[]", async () => {
+        const input = encodeUABinaryDataValue(
+            new DataValue({
+                value: argumentsToVariant([["TargetTemperature", new Variant({ dataType: "Double", value: 25 })]]),
+            })
+        );
+        const stream = new ReadableStream({
+            start: (controller) => {
+                controller.enqueue(new Uint8Array(input));
+                controller.close();
+            },
+        });
+        expect(await invokeAndRead("$OctetStream$setTemperatureSetPoint", stream)).to.eql({ PreviousSetPoint: 27 });
     });
 });

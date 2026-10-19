@@ -27,9 +27,20 @@ import { expect, use } from "chai";
 
 use(chaiAsPromised);
 import { Servient, createLoggers } from "@node-wot/core";
-import { OPCUAServer, DataType, VariantArrayType, UAVariable, VariantLike, makeAccessLevelFlag } from "node-opcua";
+import {
+    OPCUAServer,
+    DataType,
+    DataValue,
+    Range,
+    VariantArrayType,
+    UAVariable,
+    VariantLike,
+    makeAccessLevelFlag,
+} from "node-opcua";
+import { ReadableStream } from "web-streams-polyfill";
 
 import { OPCUAClientFactory } from "../src";
+import { decodeUABinaryDataValue, encodeUABinaryDataValue } from "../src/ua-binary";
 import { startServer } from "./fixture/basic-opcua-server";
 
 const { info } = createLoggers("binding-opcua", "contenttype-write-test");
@@ -130,6 +141,34 @@ function makeTD(c: WriteCase, contentType?: string): WoT.ThingDescription {
     } as unknown as WoT.ThingDescription;
 }
 
+const RANGE_ID = "s=W_Range";
+
+/** a structure of namespace 0, to check that structures are refused for now (plan A3) */
+function makeRangeTD(contentType: string): WoT.ThingDescription {
+    return {
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "@type": ["Thing"],
+        securityDefinitions: { nosec_sc: { scheme: "nosec" } },
+        security: "nosec_sc",
+        title: "write Range",
+        base: endpoint,
+        properties: {
+            v: { type: "object", forms: [{ href: `/?id=nsu=${NS};${RANGE_ID}`, op: ["writeproperty"], contentType }] },
+        },
+    } as unknown as WoT.ThingDescription;
+}
+
+/** bytes given to writeProperty as they are: core skips the codec for a stream */
+function asStream(bytes: Buffer): WoT.DataSchemaValue {
+    // core recognises this polyfill's ReadableStream, not Node's built-in one
+    return new ReadableStream({
+        start: (controller) => {
+            controller.enqueue(new Uint8Array(bytes));
+            controller.close();
+        },
+    }) as unknown as WoT.DataSchemaValue;
+}
+
 describe("contentType write round-trip", function () {
     this.timeout(120000);
 
@@ -159,6 +198,15 @@ describe("contentType write round-trip", function () {
             }) as UAVariable & { setValueFromSource(v: VariantLike): void };
             v.setValueFromSource(c.initial);
         }
+        const range = ns.addVariable({
+            browseName: "Range",
+            nodeId: RANGE_ID,
+            dataType: "Range",
+            componentOf: folder,
+            accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
+            userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
+        }) as UAVariable & { setValueFromSource(v: VariantLike): void };
+        range.setValueFromSource({ dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 1 }) });
         servient = new Servient();
         servient.addClientFactory(new OPCUAClientFactory());
         wot = await servient.start();
@@ -193,12 +241,21 @@ describe("contentType write round-trip", function () {
         }
     });
 
-    describe("application/octet-stream", function () {
-        // The binding registers OpcuaByteStringCodec for the opc.tcp scheme (core #1409,
-        // PR #1572), so OPC UA content no longer reaches the generic OctetstreamCodec,
-        // which packs Modbus registers. Before that, core serialized the write before the
-        // binding was called and this test could only record the failure.
-        it("round-trips a ByteString as raw bytes", async function () {
+    describe("application/octet-stream (OPC UA Binary)", function () {
+        // The binding registers its own codec for the opc.tcp scheme (core #1409, PR #1572),
+        // so OPC UA content never reaches the generic OctetstreamCodec, which packs Modbus
+        // registers. The payload is a UA Binary DataValue; value() is what application/json
+        // gives. See doc/octet-stream-ua-binary-plan.md.
+        for (const c of CASES) {
+            it(`${c.key} survives a write/read round-trip, written as a value-only DataValue`, async function () {
+                const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+                await thing.writeProperty("v", c.write as WoT.DataSchemaValue);
+                const read = await thing.readProperty("v");
+                expect(await read.value()).to.deep.equal(c.expect);
+            });
+        }
+
+        it("round-trips a ByteString, and arrayBuffer() is the DataValue that holds it", async function () {
             const c = CASES.find((x) => x.key === "ByteString");
             if (c === undefined) {
                 throw new Error("missing ByteString case");
@@ -211,9 +268,26 @@ describe("contentType write round-trip", function () {
             const read = await thing.readProperty("v");
             expect(await read.value()).to.equal("3q2+7w==");
 
-            // and the bytes themselves are untouched
+            // the bytes are the UA Binary DataValue, the ByteString inside it
             const raw = await thing.readProperty("v");
-            expect(Buffer.from(await raw.arrayBuffer())).to.deep.equal(Buffer.from([0xde, 0xad, 0xbe, 0xef]));
+            const dataValue = decodeUABinaryDataValue(Buffer.from(await raw.arrayBuffer()));
+            expect(dataValue.value.dataType).to.equal(DataType.ByteString);
+            expect(dataValue.value.value).to.deep.equal(Buffer.from([0xde, 0xad, 0xbe, 0xef]));
+        });
+
+        it("writes the bytes of a DataValue as they are when the type already matches", async function () {
+            const c = CASES.find((x) => x.key === "Int32");
+            if (c === undefined) {
+                throw new Error("missing Int32 case");
+            }
+            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const bytes = encodeUABinaryDataValue(new DataValue({ value: { dataType: DataType.Int32, value: -7 } }));
+            // mask 01 (value only), type 06 (Int32), then -7
+            expect(bytes.toString("hex")).to.equal("0106f9ffffff");
+
+            await thing.writeProperty("v", asStream(bytes));
+
+            expect(await (await thing.readProperty("v")).value()).to.equal(-7);
         });
 
         it("accepts a base64 string as well as a Buffer", async function () {
@@ -242,7 +316,7 @@ describe("contentType write round-trip", function () {
             expect(await read.value()).to.equal("AQID");
         });
 
-        it("is refused for a non-ByteString target, naming the form and the OPC UA type", async function () {
+        it("refuses a value that cannot be converted to the node's DataType, naming both", async function () {
             const c = CASES.find((x) => x.key === "Double");
             if (c === undefined) {
                 throw new Error("missing Double case");
@@ -250,29 +324,36 @@ describe("contentType write round-trip", function () {
             const thing = await wot.consume(makeTD(c, "application/octet-stream"));
             let message = "";
             try {
-                // valid octet-stream payload, so the codec is happy and the refusal can only
-                // come from the binding noticing that the target is not a ByteString
+                // a valid payload, a String: the refusal can only come from the conversion
                 await thing.writeProperty("v", "AQID" as WoT.DataSchemaValue);
             } catch (err) {
                 message = (err as Error).message;
             }
-            expect(message).to.match(/only supported when the target is a ByteString/);
-            expect(message).to.match(/Double/);
+            expect(message).to.match(/cannot convert the String/);
+            expect(message).to.match(/to Double/);
         });
 
-        it("refuses a value that is not bytes at all, naming what it got", async function () {
+        it("refuses a number for a ByteString node", async function () {
             const c = CASES.find((x) => x.key === "ByteString");
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
             const thing = await wot.consume(makeTD(c, "application/octet-stream"));
-            let message = "";
-            try {
-                await thing.writeProperty("v", 1.5 as WoT.DataSchemaValue);
-            } catch (err) {
-                message = (err as Error).message;
-            }
-            expect(message).to.match(/must be a Buffer, a Uint8Array or a base64 string/);
+            await expect(thing.writeProperty("v", 1.5 as WoT.DataSchemaValue)).to.be.rejectedWith(
+                /cannot convert the Double .* to ByteString/
+            );
+        });
+
+        it("refuses a structure, by value and as bytes, pointing at plan question A3", async function () {
+            const thing = await wot.consume(makeRangeTD("application/octet-stream"));
+            await expect(
+                thing.writeProperty("v", { Low: 0, High: 10 } as unknown as WoT.DataSchemaValue)
+            ).to.be.rejectedWith(/writing a structure .* is not supported yet[\s\S]*A3/);
+
+            const bytes = encodeUABinaryDataValue(
+                new DataValue({ value: { dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 10 }) } })
+            );
+            await expect(thing.writeProperty("v", asStream(bytes))).to.be.rejectedWith(/not supported yet/);
         });
     });
 

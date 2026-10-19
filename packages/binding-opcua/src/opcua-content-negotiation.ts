@@ -28,7 +28,7 @@
 //
 
 import { DataValue } from "node-opcua-data-value";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, isValidVariant } from "node-opcua-variant";
 import {
     ExtensionObjectBuilder,
     ExtensionObjectConstructorFuncWithSchema,
@@ -49,6 +49,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { coerceInt64, coerceUInt64 } from "node-opcua-basic-types";
 
 import { theOpcuaBinaryCodec } from "./codecs/opcua-binary-codec";
+import { decodeUABinaryDataValue, encodeUABinaryDataValue, isUABinaryDataValue } from "./ua-binary";
 
 // Same stance as OpcuaJSONCodec: structures with a custom dataType are not decoded here.
 const builder: ExtensionObjectBuilder = {
@@ -65,10 +66,10 @@ export type OPCUAFlavour =
     | "variant"
     /** the whole envelope: value, StatusCode, timestamps */
     | "dataValue"
-    /** OPC UA Binary, for consumers that are themselves OPC UA clients */
+    /** OPC UA Binary, value() gives the whole DataValue as JSON (application/opcua+octet-stream) */
     | "binary"
-    /** raw bytes, legal only when the Variant holds a ByteString */
-    | "byteString";
+    /** OPC UA Binary, value() gives the bare value (application/octet-stream, OPC 10101 §6.5.3) */
+    | "uaBinary";
 
 /**
  * Which edition of the OPC UA JSON encoding is produced. 1.04 is the deprecated
@@ -176,41 +177,31 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
             return { mediaType, flavour: "binary", edition, mode, parameters };
 
         case "application/octet-stream":
-            // Legal only for a ByteString Variant; decided at encode time when the
-            // actual dataType is known. See assertByteStringOnly below.
-            return { mediaType, flavour: "byteString", edition, mode, parameters };
+            // OPC 10101 §6.5.3 and OPC 10000-6 Table 80: OPC UA Binary. The payload is the
+            // DataValue; value() gives what application/json gives.
+            return { mediaType, flavour: "uaBinary", edition, mode, parameters };
 
         default:
             throw new Error(
                 `binding-opcua: unsupported contentType '${raw}'. ` +
                     `Supported: application/json, application/opcua+json;type=Value|Variant|DataValue ` +
                     `(optionally ;version=1.05[;mode=compact|verbose]), ` +
-                    `application/opcua+octet-stream, and application/octet-stream for ByteString values only.`
+                    `application/opcua+octet-stream, and application/octet-stream (OPC UA Binary).`
             );
     }
 }
 
 /**
- * `application/octet-stream` is only meaningful for OPC UA when the value really is
- * a byte sequence. For anything else the bytes would be produced by a codec that
- * knows nothing about OPC UA, so we refuse rather than emit a lossy encoding.
+ * Writing a structure needs its DataTypeDefinition and the server's namespace index, which
+ * only the binding's session has. The plan gives it as OPC UA JSON 1.05, encoded by the
+ * binding (question A3); until that lands it is refused rather than half-done.
  */
-function assertByteStringOnly(variant: Variant, hint: string): void {
-    if (variant.dataType === DataType.ByteString && variant.arrayType !== VariantArrayType.Scalar) {
+export function refuseStructure(dataType: DataType, hint: string): void {
+    if (dataType === DataType.ExtensionObject) {
         throw new Error(
-            `binding-opcua: contentType 'application/octet-stream' carries one ByteString, and ${hint} holds ` +
-                `${VariantArrayType[variant.arrayType]} of ByteString, which a raw octet stream cannot frame. ` +
-                `Use application/json to get the byte strings as base64, or ` +
-                `application/opcua+json;type=DataValue to keep StatusCode and timestamps.`
-        );
-    }
-    if (variant.dataType !== DataType.ByteString) {
-        throw new Error(
-            `binding-opcua: contentType 'application/octet-stream' is only supported when the value is a ByteString, ` +
-                `but ${hint} is ${DataType[variant.dataType]}. ` +
-                `Use application/json for the bare value, or application/opcua+json;type=DataValue to keep ` +
-                `StatusCode and timestamps. (OPC-10101 section 6.5.3 is conditional on pass-through serialization; ` +
-                `see W3C WoT TD 1.1 section 5.3.4.2 for the contentType default.)`
+            `binding-opcua: writing a structure with contentType 'application/octet-stream' is not supported yet, ` +
+                `and ${hint} is a structure (ExtensionObject). ` +
+                `See question A3 of doc/octet-stream-ua-binary-plan.md.`
         );
     }
 }
@@ -258,10 +249,9 @@ export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hin
         case "binary": {
             return { body: theOpcuaBinaryCodec.valueToBytes(dataValue, { type: "object", properties: {} }) };
         }
-        case "byteString": {
-            assertByteStringOnly(dataValue.value, hint);
-            const body = dataValue.value.value as Buffer;
-            return { body: Buffer.isBuffer(body) ? body : Buffer.from(body ?? []) };
+        case "uaBinary": {
+            // every field the server sent, unlike application/opcua+octet-stream
+            return { body: encodeUABinaryDataValue(dataValue) };
         }
         default:
             throw new Error(`binding-opcua: internal error, unhandled flavour ${format.flavour}`);
@@ -286,6 +276,60 @@ function coerceForDataType(value: unknown, dataType: DataType): unknown {
         default:
             return value;
     }
+}
+
+function fitsDataType(value: unknown, dataType: DataType): boolean {
+    switch (dataType) {
+        case DataType.Float:
+        case DataType.Double:
+            return typeof value === "number";
+        case DataType.DateTime:
+            return value === null || value instanceof Date;
+        default:
+            return true;
+    }
+}
+
+function toPlainValue(value: unknown): unknown {
+    // node-opcua decodes numeric arrays as typed arrays
+    return ArrayBuffer.isView(value) && !Buffer.isBuffer(value) ? Array.from(value as unknown as number[]) : value;
+}
+
+/**
+ * Convert a decoded Variant to the DataType of the node or argument it is written to. The
+ * codec only sees the JavaScript value, so 42 arrives as a Double for an Int32 node, and an
+ * Int64 or a ByteString arrives as the string application/json uses for it.
+ */
+export function convertVariant(variant: Variant, dataType: DataType, hint: string): Variant {
+    if (variant.dataType === dataType || variant.dataType === DataType.Null) {
+        return variant;
+    }
+    refuseStructure(variant.dataType, hint);
+    const plain = toPlainValue(variant.value);
+    const value =
+        variant.arrayType === VariantArrayType.Scalar
+            ? coerceForDataType(plain, dataType)
+            : (plain as unknown[]).map((v) => coerceForDataType(v, dataType));
+    const refusal = new Error(
+        `binding-opcua: cannot convert the ${DataType[variant.dataType]} given for ${hint} ` +
+            `to ${DataType[dataType]}, the DataType of the target.`
+    );
+    let result: Variant;
+    try {
+        result = new Variant({ dataType, arrayType: variant.arrayType, dimensions: variant.dimensions, value });
+    } catch {
+        throw refusal;
+    }
+    // node-opcua accepts a Variant of the wrong type and writes garbage, "AQID" as a Double:
+    // isValidVariant does not check floats or dates, so they are checked here
+    const elements = result.arrayType === VariantArrayType.Scalar ? [result.value] : Array.from(result.value ?? []);
+    if (
+        !isValidVariant(result.arrayType, dataType, result.value, result.dimensions) ||
+        !elements.every((v) => fitsDataType(v, dataType))
+    ) {
+        throw refusal;
+    }
+    return result;
 }
 
 /**
@@ -341,15 +385,16 @@ export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType:
             const decoded = theOpcuaBinaryCodec.bytesToValue(body, { type: "object", properties: {} });
             return opcuaJsonDecodeDataValue(decoded, builder, []);
         }
-        case "byteString": {
-            if (dataType !== DataType.ByteString) {
-                throw new Error(
-                    `binding-opcua: contentType 'application/octet-stream' is only supported when the target is a ` +
-                        `ByteString, but ${hint} expects ${DataType[dataType]}. ` +
-                        `Use application/json for the bare value, or application/opcua+json;type=DataValue.`
-                );
+        case "uaBinary": {
+            refuseStructure(dataType, hint);
+            if (!isUABinaryDataValue(body)) {
+                // the codec hands over as JSON what it cannot encode (plan section 6.7)
+                return decodeToDataValue({ ...format, flavour: "value", edition: "1.04" }, body, dataType, hint);
             }
-            return new DataValue({ value: { dataType: DataType.ByteString, value: body } });
+            // keep the fields the consumer sent: StatusCode, timestamps (plan W1)
+            const dataValue = decodeUABinaryDataValue(body);
+            dataValue.value = convertVariant(dataValue.value, dataType, hint);
+            return dataValue;
         }
         default:
             throw new Error(`binding-opcua: internal error, unhandled flavour ${format.flavour}`);
