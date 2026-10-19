@@ -346,7 +346,7 @@ export function convertVariant(variant: Variant, dataType: DataType, hint: strin
 export function detectEdition(parsed: unknown): JsonEdition {
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
         const keys = Object.keys(parsed as Record<string, unknown>);
-        if (keys.includes("UaType") || keys.includes("UaDimensions") || keys.includes("UaStatus")) {
+        if (keys.includes("UaType") || keys.includes("UaDimensions")) {
             return "1.05";
         }
     }

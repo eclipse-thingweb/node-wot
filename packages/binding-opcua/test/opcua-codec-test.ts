@@ -119,3 +119,58 @@ describe("OPCUA JSON Serdes ", () => {
         });
     });
 });
+
+describe("OPCUA JSON Serdes, field names of OPC 10000-6 (Dimensions, Status)", () => {
+    // node-opcua used UaDimensions/UaStatus (1.05) and StatusCode (1.04) before aligning on
+    // Part 6, which names them Dimensions and Status in both editions. The schemas that
+    // guard the DataValue body must accept the old and the new spelling.
+    const schema: ObjectSchema = { type: "object", properties: {} };
+    const decode = (body: unknown, parameters: { [key: string]: string }) =>
+        theOpcuaJSONCodec.bytesToValue(Buffer.from(JSON.stringify(body)), schema, parameters) as Record<
+            string,
+            unknown
+        >;
+
+    const params105 = { type: "DataValue", version: "1.05" };
+    const params104 = { type: "DataValue" };
+
+    it("accepts Dimensions on a 1.05 matrix", () => {
+        const result = decode({ UaType: 11, Value: [1, 2, 3, 4, 5, 6], Dimensions: [2, 3] }, params105);
+        expect(result).to.have.property("UaType", 11);
+    });
+
+    it("still accepts UaDimensions on a 1.05 matrix", () => {
+        const result = decode({ UaType: 11, Value: [1, 2, 3, 4, 5, 6], UaDimensions: [2, 3] }, params105);
+        expect(result).to.have.property("UaType", 11);
+    });
+
+    it("accepts Status on a 1.05 DataValue", () => {
+        const result = decode({ UaType: 11, Value: 1.5, Status: 0x40000000 }, params105);
+        expect(result).to.have.property("UaType", 11);
+    });
+
+    it("refuses a negative Status on a 1.05 DataValue", () => {
+        expect(() => decode({ UaType: 11, Value: 1.5, Status: -1 }, params105)).to.throw(/Invalid JSON dataValue/);
+    });
+
+    it("accepts Status on a 1.04 DataValue, and keeps reading it as 1.04", () => {
+        const result = decode({ Value: { Type: 11, Body: 1.5 }, Status: 0 }, params104);
+        // Status is shared by both editions, so it must not flip the edition to 1.05
+        expect(result.Value).to.have.property("Type", 11);
+        expect(result).to.not.have.property("UaType");
+    });
+
+    it("still accepts StatusCode on a 1.04 DataValue", () => {
+        const result = decode({ Value: { Type: 11, Body: 1.5 }, StatusCode: 0 }, params104);
+        expect(result.Value).to.have.property("Type", 11);
+    });
+
+    it("still accepts UaStatus on a 1.05 DataValue", () => {
+        const result = decode({ UaType: 11, Value: 1.5, UaStatus: 0 }, params105);
+        expect(result).to.have.property("UaType", 11);
+    });
+
+    it("refuses an unknown field", () => {
+        expect(() => decode({ UaType: 11, Value: 1.5, Bogus: 1 }, params105)).to.throw(/Invalid JSON dataValue/);
+    });
+});

@@ -67,6 +67,12 @@ export const schemaDataValueJSON1 = {
             type: "integer",
             minimum: 0,
         },
+        // Part 6 1.04 Table 31 names the field Status; StatusCode is what node-opcua
+        // wrote until it aligned, so both are accepted.
+        Status: {
+            type: "integer",
+            minimum: 0,
+        },
 
         Value: schemaVariantJSON,
         Value1: { type: "number", nullable: true },
@@ -104,6 +110,12 @@ export const schemaVariantJSON105 = {
             type: ["number", "integer", "string", "boolean", "array", "null", "object"],
             nullable: true,
         },
+        // Part 6 1.05 names the field Dimensions; UaDimensions is kept for payloads
+        // written by older node-opcua releases.
+        Dimensions: {
+            type: "array",
+            items: { type: "integer" },
+        },
         UaDimensions: {
             type: "array",
             items: { type: "integer" },
@@ -121,7 +133,11 @@ export const schemaDataValueJSON105 = {
             type: ["number", "integer", "string", "boolean", "array", "null", "object"],
             nullable: true,
         },
+        Dimensions: { type: "array", items: { type: "integer" } },
         UaDimensions: { type: "array", items: { type: "integer" } },
+        // 1.05 Table 42 names the field Status. UaStatus is defined by no Part 6 edition,
+        // but older node-opcua releases wrote it, so it is still read.
+        Status: { type: "integer", minimum: 0 },
         UaStatus: { type: "integer", minimum: 0 },
         SourceTimestamp: { type: "string" },
         ServerTimestamp: { type: "string" },
