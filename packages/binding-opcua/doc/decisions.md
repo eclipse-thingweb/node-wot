@@ -2,6 +2,22 @@
 
 Each entry: what was decided, why, and what it costs. Newest first.
 
+## D7 — `application/octet-stream` carries OPC UA Binary (replaces D4)
+
+Asked for on PR #1574: on `opc.tcp` forms, `application/octet-stream` is OPC UA Binary, as OPC
+10101 §6.5.3 and OPC 10000-6 Table 80 say, and `value()` returns what `application/json` returns.
+A TD written to OPC 10101 now works.
+
+The payload is the part of the service message that carries the value: the **DataValue** for read,
+observe and write, and a DataValue holding **`KeyValuePair[]`** for action arguments, so the
+argument names are kept. Each choice is a question in
+[octet-stream-ua-binary-plan.md](octet-stream-ua-binary-plan.md), section 2, and the implementation
+is a short series of commits that can be reverted as one range.
+
+Cost: `arrayBuffer()` is no longer a raw file for a ByteString, and a structure from a companion
+specification can only be read from it with the server's DataTypeDefinition. Writing a structure
+is refused until question A3 is settled.
+
 ## D6 — The JSON edition is selected by a `version` parameter
 
 `application/opcua+json;type=Variant;version=1.05`, with `version` defaulting to `1.04`, and
@@ -29,7 +45,10 @@ does in `src/factory.ts`.
 Cost: the binding depends on a core version that supports the third argument of `addCodec`.
 Bindings that register nothing keep the behaviour they always had.
 
-## D4 — `application/octet-stream` carries one ByteString, not OPC UA Binary
+## D4 — `application/octet-stream` carries one ByteString, not OPC UA Binary (withdrawn)
+
+Withdrawn by D7 at the reviewers' request: it contradicted OPC 10101 §6.5.3 and OPC 10000-6
+Table 80. Kept for the record.
 
 OPC 10000-6 Table 80 maps `application/octet-stream` to OPC UA Binary, and OPC 10101 §6.5.3
 inherits that. This binding deliberately differs: OPC UA Binary cannot be decoded without the
@@ -50,8 +69,11 @@ to use instead. Raised on #1400.
 The name OPC 10000-6 Table 80 gives is `application/opcua+uabinary`; this binding uses
 `application/opcua+octet-stream`, which predates that finding.
 
-Open: the spec's name should be accepted, at least as an alias, and preferred in the
-documentation.
+Since D7, `application/octet-stream` carries OPC UA Binary too. The two differ in `value()`: the
+bare value for `application/octet-stream`, the whole DataValue as JSON for
+`application/opcua+octet-stream`, which is kept for backward compatibility and can be deprecated.
+Table 80 keeps `application/opcua+uabinary` "only for backward compatibility" and prefers
+`application/octet-stream`, so it is not added.
 
 ## D2 — The default contentType stays `application/json`
 

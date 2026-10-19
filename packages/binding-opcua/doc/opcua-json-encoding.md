@@ -19,9 +19,10 @@ compatibility.
 Two consequences for this binding:
 
 -   Writing `application/json` on an OPC UA form is citing Part 6, not inventing a convention.
--   The binding uses `application/opcua+octet-stream` for OPC UA Binary, while Part 6's own name is
-    `application/opcua+uabinary`, and it deliberately gives `application/octet-stream` a different
-    meaning from Table 80. Both are recorded in [decisions.md](decisions.md).
+-   `application/octet-stream` carries OPC UA Binary, as in Table 80. The binding also keeps
+    `application/opcua+octet-stream` from before, for backward compatibility; Part 6's own
+    alternative name, `application/opcua+uabinary`, is kept by Table 80 only for backward
+    compatibility and is not added. See [decisions.md](decisions.md), D3 and D7.
 
 ## Compact and Verbose replaced Reversible and NonReversible
 

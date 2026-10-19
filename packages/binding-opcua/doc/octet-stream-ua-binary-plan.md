@@ -409,10 +409,11 @@ the server's index (section 7). The plan does not change that.
     method's order (`session.getArgumentDefinition`), and converts it to the argument's DataType. A
     structure argument (for example `Settings`, a `ScanSettings`, of the AutoID `Scan` method)
     follows A3.
--   Proposal, input given as bytes, and output: a Variant holding an array of **`KeyValuePair`** (a
-    standard structure of namespace 0: a name and a Variant). The output Content is tagged like a
-    read (section 8), so that `value()` can decode a structure output, such as the `Results` of
-    `Scan`.
+-   Proposal, input given as bytes, and output: a DataValue (value only) holding an array of
+    **`KeyValuePair`** (a standard structure of namespace 0: a name and a Variant). Every
+    `octet-stream` payload is then a DataValue, whatever the operation. The output Content is
+    tagged like a read (section 8), so that `value()` can decode a structure output, such as the
+    `Results` of `Scan`.
 
     ```text
     input as bytes  KeyValuePair[ { Key: "CalibrationFactor", Value: Int32 3 } ]
@@ -550,7 +551,9 @@ the value. To pass it to the codec:
 -   the codec decodes with the definitions of connection `<id>`.
 
 The binding tags the output of an action the same way, so that `value()` can decode a structure
-output, such as the `Results` of the AutoID `Scan` method.
+output, such as the `Results` of the AutoID `Scan` method. It also adds `;uapart=arguments`, so
+that the codec returns the `KeyValuePair[]` as an object keyed by argument name, as
+`application/json` does.
 
 This is internal to the binding. The form's `contentType` stays `application/octet-stream`.
 
@@ -581,35 +584,42 @@ This is internal to the binding. The form's `contentType` stays `application/oct
       arrays of them), build a DataValue holding only the value. For a value that holds a plain
       object (a structure, or an action input), write it as JSON (section 6.7).
 2. `src/opcua-content-negotiation.ts`: the `byteString` flavour becomes `uaBinary` (encode the
-   DataValue; on write, a payload starting with `{` takes the JSON path, as `application/json`
-   does; otherwise decode the DataValue, convert the value to the node's DataType, and keep the
-   other fields that are present).
-3. `src/opcua-protocol-client.ts`: read, observe and the action output tag the Content (section 8);
+   DataValue; on write, a payload whose first byte is not a DataValue mask takes the JSON path, as
+   `application/json` does; otherwise decode the DataValue, convert the value to the node's
+   DataType, and keep the other fields that are present). A value that does not fit the DataType
+   is refused, naming both types.
+3. `src/ua-binary.ts`: what the codec and the binding share: UA Binary encoding and decoding, the
+   per-session structure definitions behind `uaconn`, and `KeyValuePair[]` arguments.
+4. `src/opcua-protocol-client.ts`: read, observe and the action output tag the Content (section 8);
    write converts to the node's DataType; the action input is JSON by value (as today) or
    `KeyValuePair[]` as bytes, and the output is `KeyValuePair[]`. A structure in a write or an
    action input is refused with a message that names the follow-up (A3).
-4. `src/factory.ts`, `src/codec.ts`: register the new codec, remove the ByteString one.
-5. `doc/decisions.md` (D4 withdrawn, D3 updated) and `doc/content-negotiation.md` (tables).
+5. `src/factory.ts`, `src/codec.ts`: register the new codec, remove the ByteString one.
+6. `doc/decisions.md` (D7 added, D4 withdrawn, D3 updated) and `doc/content-negotiation.md`.
 
 ## 11. Tests
 
 1. `octet-stream-e2e-test.ts` runs scenarios A to G from #1400 on a Double holding `42`. A has no
    `contentType`. B, C and D use `octet-stream` with the schema `type` on the affordance (B, the
-   issue's TD), on the form (C), or on both (D). B, C and D return `42`, like A. E (`octet-stream`,
-   no `type` anywhere) still fails with "No schema type defined", like G (`opcua+json`, no `type`).
-2. `octet-stream-shapes-test.ts`: a new assertion: for each of the 32 shapes, `value()` with
-   `octet-stream` equals `value()` with `application/json`. Plus `RfidScanResult` from the AutoID
-   nodeset (namespace ≠ 0). `arrayBuffer()` is a DataValue whose Variant has the expected type.
+   issue's TD), on the form (C), or on both (D). B and D return `42`, like A. C and E (no `type`
+   anywhere) fail with "No schema type defined", like G (`opcua+json`, no `type`): core refuses
+   before decoding, as a `type` on the form is not the schema of the affordance.
+2. `octet-stream-shapes-test.ts`: a new assertion: for each shape, `value()` with `octet-stream`
+   equals `value()` with `application/json`, including `RfidScanResult` from the AutoID nodeset
+   (namespace ≠ 0). `arrayBuffer()` is a DataValue whose Variant has the expected type, with the
+   server's SourceTimestamp.
 3. `contenttype-write-test.ts`: writes round-trip for Int32, Int64 (2^53 + 1), Double, ByteString,
    String and arrays, with a value-only DataValue. A structure write is refused with a clear
    message, by value and as bytes.
-4. An action called with `octet-stream` returns the same output as with `application/json`,
-   including a structure output.
-5. The codec writes a plain object as JSON and a value of built-in types as a DataValue, and the
-   binding routes each to the right path. No DataValue encoding mask starts with `{`.
+4. `full-opcua-thing-test.ts`: an action called with `octet-stream` returns the same output as
+   with `application/json`, including an output of `KeyValuePair[]` structures; the input can also
+   be given as bytes, a DataValue holding `KeyValuePair[]`.
+5. `opcua-ua-binary-codec-test.ts`: the codec writes a plain object as JSON and a value of
+   built-in types as a value-only DataValue; no DataValue encoding mask can be taken for the first
+   byte of that JSON.
 
-To see the tests fail without the change: run them on the current head of this PR. B, C and D are
-refused, and the new assertion fails for every shape except ByteString.
+To see the tests fail without the change: run them on the commit before it (the plan commit). B
+and D are refused, and the new assertion fails for every shape except ByteString.
 
 ## Appendix A. JSON encoding: what node-opcua#1835 fixes, and what is left
 
