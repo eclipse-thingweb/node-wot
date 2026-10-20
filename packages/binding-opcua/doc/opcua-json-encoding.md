@@ -42,19 +42,22 @@ that the 2.184 upgrade changed no payload (PR #1565).
 
 ## The same values in both encodings
 
-Measured with node-opcua 2.184.4:
+Measured with node-opcua 2.184.4, except the matrix row, which is node-opcua 2.187.10 (it
+contains node-opcua#1835). With 2.187.10 and the session's namespace table, which the binding now
+passes, 1.05 also names a namespace of index 1 or more by its URI: `"nsu=<uri>;s=Some"`.
 
-| value         | 1.04 NonReversible                             | 1.04 Reversible (what `opcua+json` emits today)         | 1.05 Compact / Verbose                                 |
-| ------------- | ---------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| Double 42.5   | `42.5`                                         | `{"Type":11,"Body":42.5}`                               | `{"UaType":11,"Value":42.5}`                           |
-| Int64         | `"9007199254740993"`                           | `{"Type":8,"Body":"9007199254740993"}`                  | `{"UaType":8,"Value":"9007199254740993"}`              |
-| ByteString    | `"3q2+7w=="`                                   | `{"Type":15,"Body":"3q2+7w=="}`                         | `{"UaType":15,"Value":"3q2+7w=="}`                     |
-| NodeId        | `{"Id":"Some","IdType":1,"Namespace":1}`       | the same, wrapped                                       | `"ns=1;s=Some"` — a plain string                       |
-| LocalizedText | `"Hello"`, locale lost                         | `{"Type":21,"Body":{"Text":"Hello","Locale":"en"}}`     | `{"UaType":21,"Value":{"Text":"Hello","Locale":"en"}}` |
-| Double[2][3]  | `{"Type":11,"Body":[1..6],"Dimensions":[2,3]}` | the same                                                | `{"UaType":11,"Value":[1..6],"UaDimensions":[2,3]}`    |
-| DataValue     | —                                              | `{"Value":{"Type":11,"Body":42.5},"SourceTimestamp":…}` | flat: `{"UaType":11,"Value":42.5,"SourceTimestamp":…}` |
+| value         | 1.04 NonReversible                       | 1.04 Reversible (what `opcua+json` emits today)         | 1.05 Compact / Verbose                                 |
+| ------------- | ---------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| Double 42.5   | `42.5`                                   | `{"Type":11,"Body":42.5}`                               | `{"UaType":11,"Value":42.5}`                           |
+| Int64         | `"9007199254740993"`                     | `{"Type":8,"Body":"9007199254740993"}`                  | `{"UaType":8,"Value":"9007199254740993"}`              |
+| ByteString    | `"3q2+7w=="`                             | `{"Type":15,"Body":"3q2+7w=="}`                         | `{"UaType":15,"Value":"3q2+7w=="}`                     |
+| NodeId        | `{"Id":"Some","IdType":1,"Namespace":1}` | the same, wrapped                                       | `"ns=1;s=Some"` — a plain string                       |
+| LocalizedText | `"Hello"`, locale lost                   | `{"Type":21,"Body":{"Text":"Hello","Locale":"en"}}`     | `{"UaType":21,"Value":{"Text":"Hello","Locale":"en"}}` |
+| Double[2][3]  | `[[1,2,3],[4,5,6]]`                      | `{"Type":11,"Body":[1..6],"Dimensions":[2,3]}`          | `{"UaType":11,"Value":[1..6],"Dimensions":[2,3]}`      |
+| DataValue     | —                                        | `{"Value":{"Type":11,"Body":42.5},"SourceTimestamp":…}` | flat: `{"UaType":11,"Value":42.5,"SourceTimestamp":…}` |
 
-So 1.05 renames the fields (`UaType`/`Value`/`UaTypeId`/`UaDimensions`), flattens DataValue, and
+So 1.05 renames the fields (`UaType`/`Value`/`UaTypeId`), puts a structure's fields beside
+`UaTypeId`, flattens DataValue, and
 turns NodeId and QualifiedName into strings.
 
 ## What 1.05 fixes for a WoT consumer
@@ -66,7 +69,7 @@ Several limitations that look like OPC UA's are artefacts of the deprecated enco
 | a LocalizedText arrives as `"Hello"`, locale lost                     | `{Locale, Text}` in both Compact and Verbose (§5.4.2.15)                                                       |
 | an enumeration arrives as a bare number, the symbolic name nowhere    | Verbose encodes `"Suspended_3"` (§5.4.4); Compact keeps the number                                             |
 | a NodeId is an object, so a TD cannot honestly say `"type": "string"` | a JSON string (§5.4.2.10); `"type": "string"` matches                                                          |
-| a matrix arrives as a flat array plus `Dimensions`                    | still an object with dimensions: JSON Schema still cannot describe it, a deliberate trade by the working group |
+| a matrix arrives as nested arrays, with no type                       | still an object with dimensions: JSON Schema still cannot describe it, a deliberate trade by the working group |
 
 Decoders can tell the two apart without being told, because the shapes differ: for LocalizedText,
 NodeId, QualifiedName and matrices, Annex H gives the rule ("a JSON string is the current encoding,
