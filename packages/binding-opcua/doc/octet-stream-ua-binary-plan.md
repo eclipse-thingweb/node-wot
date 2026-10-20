@@ -45,7 +45,7 @@ Each question has a proposal, so the work can start now and change later. Detail
 | W2  | `writeproperty`   | Write a structure with `octet-stream`? | yes, by value as JSON (A3); refused until then |
 | A1  | `invokeaction`    | How are the arguments encoded?         | `KeyValuePair[]` (not what is on the wire)     |
 | A2  | `invokeaction`    | StatusCode of the call in the output?  | no                                             |
-| A3  | write and input   | How does a consumer pass a structure?  | OPC UA JSON 1.05, `nsu=`; the binding encodes  |
+| A3  | write and input   | How does a consumer pass a structure?  | OPC UA JSON 1.05, `nsu=`; issue #1583          |
 
 ## 3. What each contentType means today
 
@@ -501,7 +501,7 @@ the hand-off from core to the binding, inside the process, is JSON.
     -   Why open: OPC 10101 does not say, and UA Binary cannot be produced without the server.
     -   Proposal: the OPC UA JSON 1.05 form above. In this PR, the codec hands the JSON over and the
         binding refuses a structure with a clear message. The encoding comes in a follow-up PR,
-        with a node-opcua release that contains #1835.
+        tracked by [#1583](https://github.com/eclipse-thingweb/node-wot/issues/1583).
 
     | Option                                                     | Change in core | Hand-off in UA Binary | Shape defined by a spec    |
     | ---------------------------------------------------------- | -------------- | --------------------- | -------------------------- |

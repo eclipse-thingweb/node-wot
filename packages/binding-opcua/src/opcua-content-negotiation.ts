@@ -194,14 +194,15 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
 /**
  * Writing a structure needs its DataTypeDefinition and the server's namespace index, which
  * only the binding's session has. The plan gives it as OPC UA JSON 1.05, encoded by the
- * binding (question A3); until that lands it is refused rather than half-done.
+ * binding (question A3, issue #1583); until that lands it is refused rather than half-done.
  */
 export function refuseStructure(dataType: DataType, hint: string): void {
     if (dataType === DataType.ExtensionObject) {
         throw new Error(
             `binding-opcua: writing a structure with contentType 'application/octet-stream' is not supported yet, ` +
                 `and ${hint} is a structure (ExtensionObject). ` +
-                `See question A3 of doc/octet-stream-ua-binary-plan.md.`
+                `See question A3 of doc/octet-stream-ua-binary-plan.md and ` +
+                `https://github.com/eclipse-thingweb/node-wot/issues/1583.`
         );
     }
 }
