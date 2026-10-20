@@ -43,7 +43,6 @@ import {
     Variant,
     VariantOptions,
     SecurityPolicy,
-    ExtraDataTypeManager,
     getExtraDataTypeManager,
 } from "node-opcua-client";
 import {
@@ -82,8 +81,9 @@ import {
     encodeUABinaryDataValue,
     holdsStructure,
     isUABinaryDataValue,
-    registerDataTypeManager,
-    unregisterDataTypeManager,
+    registerConnectionContext,
+    unregisterConnectionContext,
+    ConnectionContext,
     variantToArguments,
 } from "./ua-binary";
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
@@ -113,15 +113,15 @@ interface OPCUAConnection {
     namespaceArray?: string[];
 }
 
-function _variantToJSON(variant: Variant, contentType: string) {
+function _variantToJSON(variant: Variant, contentType: string, namespaceArray: string[]) {
     contentType = contentType.split(";")[0];
 
     switch (contentType) {
         case "application/opcua+json": {
-            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, []);
+            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, namespaceArray);
         }
         case "application/json": {
-            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.NonReversible, []);
+            return opcuaJsonEncodeVariant(variant, JsonEncoderMode.NonReversible, namespaceArray);
         }
         default: {
             throw new Error(`Unsupported content type here : ${contentType}`);
@@ -532,8 +532,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
             }
         }
         this._connections.clear();
-        this._dataTypeManagers.forEach((manager) => unregisterDataTypeManager(manager));
-        this._dataTypeManagers.clear();
+        this._contextKeys.forEach((session) => unregisterConnectionContext(session));
+        this._contextKeys.clear();
         await CertificateManagerSingleton.releaseCertificateManager();
     }
 
@@ -619,38 +619,43 @@ export class OPCUAProtocolClient implements ProtocolClient {
         // Binding-scoped negotiation: OPC UA payloads never go through the global
         // ContentSerdes registry, where application/octet-stream belongs to Modbus.
         const format = resolveContentFormat(form.contentType);
-        const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`);
-        const contentType =
-            format.flavour === "uaBinary"
-                ? await this._uaBinaryContentType(form, session, [dataValue.value])
-                : (form.contentType ?? DEFAULT_CONTENT_TYPE);
+        const namespaceArray = await this._getNamespaceArray(form);
+        const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`, namespaceArray);
+        const contentType = await this._contentType(form, session, format.mediaType, [dataValue.value]);
         return new Content(contentType, Readable.from(body));
     }
 
-    private _dataTypeManagers = new Set<ExtraDataTypeManager>();
+    /** the sessions whose context the codecs can look up, released on stop() */
+    private _contextKeys = new Set<ClientSession>();
 
     /**
-     * The Content type of an `application/octet-stream` payload. When it holds a structure, it
-     * names the session whose definitions decode it (`;uaconn=`, plan section 8): the codec
-     * runs in core and has no session of its own. These parameters never reach the form.
+     * The Content type of a payload. For the media types whose codec decodes OPC UA in core,
+     * where there is no session, it names the session's context (`;uaconn=`, plan section 8):
+     * its namespace table, and its structure definitions when the payload holds a structure.
+     * These parameters never reach the form.
      */
-    private async _uaBinaryContentType(
+    private async _contentType(
         form: OPCUAForm,
         session: ClientSession,
+        mediaType: string,
         variants: Variant[],
         parameters: string[] = []
     ): Promise<string> {
-        const contentType = [form.contentType ?? "application/octet-stream", ...parameters];
+        const contentType = [form.contentType ?? DEFAULT_CONTENT_TYPE, ...parameters];
+        if (mediaType !== "application/octet-stream" && mediaType !== "application/opcua+json") {
+            return contentType.join(";");
+        }
+        const context: ConnectionContext = { namespaceArray: await this._getNamespaceArray(form) };
         if (variants.some((v) => holdsStructure(v))) {
             try {
-                const manager = await getExtraDataTypeManager(session);
-                this._dataTypeManagers.add(manager);
-                contentType.push(`uaconn=${registerDataTypeManager(manager)}`);
+                context.dataTypeManager = await getExtraDataTypeManager(session);
             } catch (err) {
                 // the structure stays opaque, as it would for application/json
-                debug(`_uaBinaryContentType: no structure definitions: ${(err as Error).message}`);
+                debug(`_contentType: no structure definitions: ${(err as Error).message}`);
             }
         }
+        this._contextKeys.add(session);
+        contentType.push(`uaconn=${registerConnectionContext(session, context)}`);
         return contentType.join(";");
     }
 
@@ -660,16 +665,18 @@ export class OPCUAProtocolClient implements ProtocolClient {
         // on what a given contentType means.
         const format = resolveContentFormat(content.type ?? form.contentType);
         const dataType = await this._predictDataType(form);
-        return decodeToDataValue(format, body, dataType, `form '${form.href}'`);
+        const namespaceArray = await this._getNamespaceArray(form);
+        return decodeToDataValue(format, body, dataType, `form '${form.href}'`, namespaceArray);
     }
 
     private async _contentToVariant(
         contentType: undefined | string,
         body: Buffer,
-        dataType: DataType
+        dataType: DataType,
+        namespaceArray: string[]
     ): Promise<Variant> {
         const format = resolveContentFormat(contentType);
-        const dataValue = decodeToDataValue(format, body, dataType, `an OPC UA write/invoke argument`);
+        const dataValue = decodeToDataValue(format, body, dataType, `an OPC UA write/invoke argument`, namespaceArray);
         const variant = dataValue.value;
         if (variant.dataType !== dataType) {
             debug(`_contentToVariant: expected ${DataType[dataType]}, got ${DataType[variant.dataType]}`);
@@ -720,7 +727,12 @@ export class OPCUAProtocolClient implements ProtocolClient {
                       : VariantArrayType.Matrix;
 
             const n = (a: unknown) => Buffer.from(JSON.stringify(a));
-            const v = await this._contentToVariant(content2.type, n(bodyInput[name ?? "null"]), basicDataType);
+            const v = await this._contentToVariant(
+                content2.type,
+                n(bodyInput[name ?? "null"]),
+                basicDataType,
+                await this._getNamespaceArray(form)
+            );
 
             variants.push({
                 dataType: basicDataType,
@@ -745,6 +757,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         inputArguments: Argument[]
     ): Promise<VariantOptions[]> {
         const valueFormat = resolveContentFormat("application/json");
+        const namespaceArray = await this._getNamespaceArray(form);
         let given: (name: string, dataType: DataType, hint: string) => Variant | undefined;
         if (isUABinaryDataValue(body)) {
             const args = variantToArguments(decodeUABinaryDataValue(body).value);
@@ -763,8 +776,13 @@ export class OPCUAProtocolClient implements ProtocolClient {
             given = (name, dataType, hint) =>
                 bodyInput?.[name] === undefined
                     ? undefined
-                    : decodeToDataValue(valueFormat, Buffer.from(JSON.stringify(bodyInput[name])), dataType, hint)
-                          .value;
+                    : decodeToDataValue(
+                          valueFormat,
+                          Buffer.from(JSON.stringify(bodyInput[name])),
+                          dataType,
+                          hint,
+                          namespaceArray
+                      ).value;
         }
 
         const variants: VariantOptions[] = [];
@@ -809,17 +827,20 @@ export class OPCUAProtocolClient implements ProtocolClient {
             const value = argumentsToVariant(
                 outputArguments.map((argument, index) => [argument.name ?? "null", outputVariants[index]])
             );
-            const contentType = await this._uaBinaryContentType(form, session, outputVariants, ["uapart=arguments"]);
+            const contentType = await this._contentType(form, session, "application/octet-stream", outputVariants, [
+                "uapart=arguments",
+            ]);
             return new Content(contentType, Readable.from(encodeUABinaryDataValue(new DataValue({ value }))));
         }
 
         const contentType = form.contentType ?? "application/json";
+        const namespaceArray = await this._getNamespaceArray(form);
 
         const body: Record<string, unknown> = {};
         for (let index = 0; index < outputArguments.length; index++) {
             const argument = outputArguments[index];
             const { name } = argument;
-            const element = _variantToJSON(outputVariants[index], contentType);
+            const element = _variantToJSON(outputVariants[index], contentType, namespaceArray);
             body[name ?? "null"] = element;
         }
 

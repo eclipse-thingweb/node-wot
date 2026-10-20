@@ -216,7 +216,12 @@ function mode105(format: ContentFormat): JsonEncoderMode105 {
     return format.mode === "verbose" ? JsonEncoderMode105.Verbose : JsonEncoderMode105.Compact;
 }
 
-export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hint: string): { body: Buffer } {
+export function encodeDataValue(
+    format: ContentFormat,
+    dataValue: DataValue,
+    hint: string,
+    namespaceArray: string[] = []
+): { body: Buffer } {
     switch (format.flavour) {
         case "value": {
             // the bare value, no OPC UA decoration. 1.05 has no such encoding: both Compact
@@ -224,26 +229,26 @@ export function encodeDataValue(format: ContentFormat, dataValue: DataValue, hin
             // That follows OPC 10000-14 section 7.2.5.4: drop the type where the node's
             // DataType already pins it. See doc/opcua-json-encoding.md.
             if (format.edition === "1.05") {
-                const envelope = opcuaJsonEncodeVariant105(dataValue.value, mode105(format), []) as {
+                const envelope = opcuaJsonEncodeVariant105(dataValue.value, mode105(format), namespaceArray) as {
                     Value?: unknown;
                 } | null;
                 return { body: Buffer.from(JSON.stringify(envelope?.Value ?? null), "utf-8") };
             }
-            const value = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, []);
+            const value = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "variant": {
             const value =
                 format.edition === "1.05"
-                    ? opcuaJsonEncodeVariant105(dataValue.value, mode105(format), [])
-                    : opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.Reversible, []);
+                    ? opcuaJsonEncodeVariant105(dataValue.value, mode105(format), namespaceArray)
+                    : opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.Reversible, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "dataValue": {
             const value =
                 format.edition === "1.05"
-                    ? opcuaJsonEncodeDataValue105(dataValue, mode105(format), [])
-                    : opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []);
+                    ? opcuaJsonEncodeDataValue105(dataValue, mode105(format), namespaceArray)
+                    : opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "binary": {
@@ -353,7 +358,13 @@ export function detectEdition(parsed: unknown): JsonEdition {
     return "1.04";
 }
 
-export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType: DataType, hint: string): DataValue {
+export function decodeToDataValue(
+    format: ContentFormat,
+    body: Buffer,
+    dataType: DataType,
+    hint: string,
+    namespaceArray: string[] = []
+): DataValue {
     switch (format.flavour) {
         case "value": {
             const parsed = JSON.parse(body.toString("utf-8"));
@@ -371,25 +382,31 @@ export function decodeToDataValue(format: ContentFormat, body: Buffer, dataType:
             const parsed = JSON.parse(body.toString("utf-8"));
             const variant =
                 detectEdition(parsed) === "1.05"
-                    ? opcuaJsonDecodeVariant105(parsed, builder, [])
-                    : opcuaJsonDecodeVariant(parsed, builder, []);
+                    ? opcuaJsonDecodeVariant105(parsed, builder, namespaceArray)
+                    : opcuaJsonDecodeVariant(parsed, builder, namespaceArray);
             return new DataValue({ value: variant });
         }
         case "dataValue": {
             const parsed = JSON.parse(body.toString("utf-8"));
             return detectEdition(parsed) === "1.05"
-                ? opcuaJsonDecodeDataValue105(parsed, builder, [])
-                : opcuaJsonDecodeDataValue(parsed, builder, []);
+                ? opcuaJsonDecodeDataValue105(parsed, builder, namespaceArray)
+                : opcuaJsonDecodeDataValue(parsed, builder, namespaceArray);
         }
         case "binary": {
             const decoded = theOpcuaBinaryCodec.bytesToValue(body, { type: "object", properties: {} });
-            return opcuaJsonDecodeDataValue(decoded, builder, []);
+            return opcuaJsonDecodeDataValue(decoded, builder, namespaceArray);
         }
         case "uaBinary": {
             refuseStructure(dataType, hint);
             if (!isUABinaryDataValue(body)) {
                 // the codec hands over as JSON what it cannot encode (plan section 6.7)
-                return decodeToDataValue({ ...format, flavour: "value", edition: "1.04" }, body, dataType, hint);
+                return decodeToDataValue(
+                    { ...format, flavour: "value", edition: "1.04" },
+                    body,
+                    dataType,
+                    hint,
+                    namespaceArray
+                );
             }
             // keep the fields the consumer sent: StatusCode, timestamps (plan W1)
             const dataValue = decodeUABinaryDataValue(body);

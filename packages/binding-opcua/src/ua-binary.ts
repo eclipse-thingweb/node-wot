@@ -43,33 +43,40 @@ export function isUABinaryDataValue(bytes: Buffer): boolean {
 }
 
 /**
- * The structure definitions of each session that produced an `octet-stream` payload, so
- * that the codec, which runs in core and has no session, can decode a structure from a
- * companion specification. The binding names the entry in the Content type, `;uaconn=<id>`.
+ * What the codecs need from the session that produced a payload, since they run in core
+ * and have no session: the namespace table, so that OPC UA JSON names namespaces by URI
+ * (`nsu=`), and the structure definitions, to decode a structure from a companion
+ * specification. The binding names the entry in the Content type, `;uaconn=<id>`.
  */
-const dataTypeManagers = new Map<string, ExtraDataTypeManager>();
-const dataTypeManagerIds = new WeakMap<ExtraDataTypeManager, string>();
-let nextDataTypeManagerId = 1;
+export interface ConnectionContext {
+    namespaceArray: string[];
+    dataTypeManager?: ExtraDataTypeManager;
+}
 
-export function registerDataTypeManager(manager: ExtraDataTypeManager): string {
-    let id = dataTypeManagerIds.get(manager);
+const contexts = new Map<string, ConnectionContext>();
+const contextIds = new WeakMap<object, string>();
+let nextContextId = 1;
+
+/** @param key one key per connection, for example its session */
+export function registerConnectionContext(key: object, context: ConnectionContext): string {
+    let id = contextIds.get(key);
     if (id === undefined) {
-        id = `${nextDataTypeManagerId++}`;
-        dataTypeManagerIds.set(manager, id);
+        id = `${nextContextId++}`;
+        contextIds.set(key, id);
     }
-    dataTypeManagers.set(id, manager);
+    contexts.set(id, context);
     return id;
 }
 
-export function unregisterDataTypeManager(manager: ExtraDataTypeManager): void {
-    const id = dataTypeManagerIds.get(manager);
+export function unregisterConnectionContext(key: object): void {
+    const id = contextIds.get(key);
     if (id !== undefined) {
-        dataTypeManagers.delete(id);
+        contexts.delete(id);
     }
 }
 
-export function findDataTypeManager(id: string | undefined): ExtraDataTypeManager | undefined {
-    return id === undefined ? undefined : dataTypeManagers.get(id);
+export function findConnectionContext(id: string | undefined): ConnectionContext | undefined {
+    return id === undefined ? undefined : contexts.get(id);
 }
 
 /** Decode in place the structures of `variant` that the standard types left opaque. */

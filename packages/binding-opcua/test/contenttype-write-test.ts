@@ -36,6 +36,7 @@ import {
     UAVariable,
     VariantLike,
     makeAccessLevelFlag,
+    coerceNodeId,
 } from "node-opcua";
 import { ReadableStream } from "web-streams-polyfill";
 
@@ -142,6 +143,25 @@ function makeTD(c: WriteCase, contentType?: string): WoT.ThingDescription {
 }
 
 const RANGE_ID = "s=W_Range";
+const NODEID_ID = "s=W_NodeId";
+
+/** a NodeId value, which OPC UA JSON 1.05 writes with the namespace URI (`nsu=`) */
+function makeNodeIdTD(contentType: string, type: string): WoT.ThingDescription {
+    return {
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        "@type": ["Thing"],
+        securityDefinitions: { nosec_sc: { scheme: "nosec" } },
+        security: "nosec_sc",
+        title: "write NodeId",
+        base: endpoint,
+        properties: {
+            v: {
+                type,
+                forms: [{ href: `/?id=nsu=${NS};${NODEID_ID}`, op: ["readproperty", "writeproperty"], contentType }],
+            },
+        },
+    } as unknown as WoT.ThingDescription;
+}
 
 /** a structure of namespace 0, to check that structures are refused for now (plan A3) */
 function makeRangeTD(contentType: string): WoT.ThingDescription {
@@ -207,6 +227,19 @@ describe("contentType write round-trip", function () {
             userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
         }) as UAVariable & { setValueFromSource(v: VariantLike): void };
         range.setValueFromSource({ dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 1 }) });
+        const nodeIdVariable = ns.addVariable({
+            browseName: "NodeIdValue",
+            nodeId: NODEID_ID,
+            dataType: "NodeId",
+            componentOf: folder,
+            accessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
+            userAccessLevel: makeAccessLevelFlag("CurrentRead | CurrentWrite"),
+        }) as UAVariable & { setValueFromSource(v: VariantLike): void };
+        // a namespace index of 2 or more: its value depends on the server, its URI does not
+        nodeIdVariable.setValueFromSource({
+            dataType: DataType.NodeId,
+            value: coerceNodeId(`ns=${ns.index};s=W_Double`),
+        });
         servient = new Servient();
         servient.addClientFactory(new OPCUAClientFactory());
         wot = await servient.start();
@@ -420,6 +453,33 @@ describe("contentType write round-trip", function () {
 
             const modeOn104 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;mode=verbose"));
             await expect(modeOn104.readProperty("v")).to.be.rejectedWith(/'mode' parameter belongs to/);
+        });
+    });
+
+    describe("namespaces: OPC UA JSON 1.05 names them by URI (nsu=)", function () {
+        // the binding passes the session's namespace table to the JSON encoders and decoders;
+        // without it a NodeId of the server's namespace 2+ would be written ns=<index>, and an
+        // nsu= NodeId would decode as a String NodeId of namespace 0
+        const variant105 = "application/opcua+json;type=Variant;version=1.05";
+
+        it("reads a NodeId as nsu=<uri>, and writes it back to the same node", async function () {
+            const thing = await wot.consume(makeNodeIdTD(variant105, "object"));
+            const read = await (await thing.readProperty("v")).value();
+            expect(read).to.deep.equal({ UaType: DataType.NodeId, Value: `nsu=${NS};s=W_Double` });
+
+            await thing.writeProperty("v", { UaType: DataType.NodeId, Value: `nsu=${NS};s=W_Int32` });
+            const back = await (await thing.readProperty("v")).value();
+            expect(back).to.deep.equal({ UaType: DataType.NodeId, Value: `nsu=${NS};s=W_Int32` });
+        });
+
+        it("gives the same NodeId with application/octet-stream as with application/json", async function () {
+            const json = await (
+                await (await wot.consume(makeNodeIdTD("application/json", "object"))).readProperty("v")
+            ).value();
+            const octet = await (
+                await (await wot.consume(makeNodeIdTD("application/octet-stream", "object"))).readProperty("v")
+            ).value();
+            expect(octet).to.deep.equal(json);
         });
     });
 
