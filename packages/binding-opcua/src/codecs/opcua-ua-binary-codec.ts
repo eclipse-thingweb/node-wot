@@ -22,15 +22,20 @@ import { encodeDataValue, resolveContentFormat } from "../opcua-content-negotiat
 import {
     decodeUABinaryDataValue,
     encodeUABinaryDataValue,
-    findDataTypeManager,
+    findConnectionContext,
     variantToArguments,
 } from "../ua-binary";
 
 const bareValueFormat = resolveContentFormat("application/json");
 
 /** the value application/json gives for this Variant: the same function, so the same result */
-function bareValue(variant: Variant): DataSchemaValue {
-    const { body } = encodeDataValue(bareValueFormat, new DataValue({ value: variant }), "an octet-stream payload");
+function bareValue(variant: Variant, namespaceArray: string[] = []): DataSchemaValue {
+    const { body } = encodeDataValue(
+        bareValueFormat,
+        new DataValue({ value: variant }),
+        "an octet-stream payload",
+        namespaceArray
+    );
     return JSON.parse(body.toString("utf-8"));
 }
 
@@ -71,8 +76,8 @@ function toBuiltInVariant(value: unknown): Variant | undefined {
  * OctetstreamCodec, which packs Modbus registers, stays in place for every other binding.
  *
  * Parameters the binding adds to the Content type, never to the form:
- * - `uaconn=<id>`: the session whose structure definitions decode a structure from a
- *   companion specification;
+ * - `uaconn=<id>`: the session whose namespace table and structure definitions decode the
+ *   payload, as the binding would;
  * - `uapart=arguments`: the payload holds action arguments as `KeyValuePair[]`.
  *
  * See doc/octet-stream-ua-binary-plan.md.
@@ -83,9 +88,10 @@ export class OpcuaUABinaryCodec implements ContentCodec {
     }
 
     bytesToValue(bytes: Buffer, _schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
-        const dataValue = decodeUABinaryDataValue(bytes, findDataTypeManager(parameters?.uaconn));
+        const context = findConnectionContext(parameters?.uaconn);
+        const dataValue = decodeUABinaryDataValue(bytes, context?.dataTypeManager);
         if (parameters?.uapart !== "arguments") {
-            return bareValue(dataValue.value);
+            return bareValue(dataValue.value, context?.namespaceArray);
         }
         const args = variantToArguments(dataValue.value);
         if (args === undefined) {
@@ -96,7 +102,7 @@ export class OpcuaUABinaryCodec implements ContentCodec {
         }
         const output: Record<string, DataSchemaValue> = {};
         for (const [name, variant] of args) {
-            output[name] = bareValue(variant);
+            output[name] = bareValue(variant, context?.namespaceArray);
         }
         return output;
     }

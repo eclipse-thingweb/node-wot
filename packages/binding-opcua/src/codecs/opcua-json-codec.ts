@@ -37,6 +37,7 @@ import {
 } from "node-opcua-json/105";
 import { DataSchemaValue } from "wot-typescript-definitions";
 import { schemaDataValueJSONAnyEditionValidate } from "./opcua-data-schemas";
+import { findConnectionContext } from "../ua-binary";
 import { NodeId } from "node-opcua";
 
 const { debug } = createLoggers("binding-opcua", "codec");
@@ -96,6 +97,9 @@ export class OpcuaJSONCodec implements ContentCodec {
     bytesToValue(bytes: Buffer, schema: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         const type = parameters?.type ?? "DataValue";
         let parsed = JSON.parse(bytes.toString());
+        // the namespace table of the session that produced the payload (`;uaconn=`, set by the
+        // binding): without it, an `nsu=` NodeId decodes as a String NodeId of namespace 0
+        const namespaceArray = findConnectionContext(parameters?.uaconn)?.namespaceArray ?? [];
 
         const wantDataValue = parameters?.to === "DataValue" || false;
 
@@ -110,28 +114,34 @@ export class OpcuaJSONCodec implements ContentCodec {
 
                 const payloadIs105 = is105(parsed);
                 const dataValue = payloadIs105
-                    ? opcuaJsonDecodeDataValue105(parsed, builder, [])
-                    : opcuaJsonDecodeDataValue(parsed, builder, []);
+                    ? opcuaJsonDecodeDataValue105(parsed, builder, namespaceArray)
+                    : opcuaJsonDecodeDataValue(parsed, builder, namespaceArray);
                 if (wantDataValue) {
                     return dataValue;
                 }
                 if (payloadIs105 || wants105(parameters)) {
-                    return opcuaJsonEncodeDataValue105(dataValue, mode105(parameters), []) as DataSchemaValue;
+                    return opcuaJsonEncodeDataValue105(
+                        dataValue,
+                        mode105(parameters),
+                        namespaceArray
+                    ) as DataSchemaValue;
                 }
-                return formatForNodeWoT(opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, []));
+                return formatForNodeWoT(
+                    opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, namespaceArray)
+                );
             }
             case "Variant": {
                 const payloadIs105 = is105(parsed);
                 const variant = payloadIs105
-                    ? opcuaJsonDecodeVariant105(parsed, builder, [])
-                    : opcuaJsonDecodeVariant(parsed, builder, []);
+                    ? opcuaJsonDecodeVariant105(parsed, builder, namespaceArray)
+                    : opcuaJsonDecodeVariant(parsed, builder, namespaceArray);
                 if (wantDataValue) {
                     return new DataValue({ value: variant });
                 }
                 const v =
                     payloadIs105 || wants105(parameters)
-                        ? opcuaJsonEncodeVariant105(variant, mode105(parameters), [])
-                        : opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, []);
+                        ? opcuaJsonEncodeVariant105(variant, mode105(parameters), namespaceArray)
+                        : opcuaJsonEncodeVariant(variant, JsonEncoderMode.Reversible, namespaceArray);
                 debug(`${v}`);
                 return v as DataSchemaValue;
             }
@@ -162,24 +172,26 @@ export class OpcuaJSONCodec implements ContentCodec {
 
     valueToBytes(value: unknown, _schema: DataSchema, parameters?: { [key: string]: string }): Buffer {
         const type = parameters?.type ?? "DataValue";
+        // a DataValue or Variant given programmatically: no session here, so no namespace table
         const namespaceArray: string[] = [];
         // an already-encoded payload keeps its own edition; otherwise the form decides
         const emit105 = is105(value) || wants105(parameters);
         switch (type) {
             case "DataValue": {
-                let dataValue: DataValue | undefined;
+                let dataValue: DataValue;
                 if (value instanceof DataValue) {
                     dataValue = value;
                 } else if (value instanceof Variant) {
                     dataValue = new DataValue({ value });
-                } else if (typeof value !== "string") {
-                    dataValue = is105(value)
-                        ? opcuaJsonDecodeDataValue105(value as never, builder, namespaceArray)
-                        : opcuaJsonDecodeDataValue(value as DataValueJSON, builder, namespaceArray);
-                }
-                if (dataValue === undefined) {
+                } else if (typeof value === "string") {
                     // a string is passed through as the JSON it already is
-                    return Buffer.from(JSON.stringify(JSON.parse(value as string)), "utf-8");
+                    return Buffer.from(JSON.stringify(JSON.parse(value)), "utf-8");
+                } else {
+                    // OPC UA JSON already: passed through, as the binding decodes either edition
+                    // with the session's namespace table. Decoding it here, with no table,
+                    // would turn an `nsu=` NodeId into a String NodeId of namespace 0.
+                    const json = is105(value) ? value : formatForNodeWoT({ ...(value as DataValueJSON) });
+                    return Buffer.from(JSON.stringify(json), "utf-8");
                 }
                 if (emit105) {
                     const encoded = opcuaJsonEncodeDataValue105(dataValue, mode105(parameters), namespaceArray);
