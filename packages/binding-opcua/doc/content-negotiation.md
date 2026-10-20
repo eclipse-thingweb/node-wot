@@ -51,7 +51,7 @@ the bare value, where the binding takes the type from the server.
 | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `application/json`                                 | `{"Name":"Arg1","DataType":{"Id":6},"ValueRank":-1,…}` — the fields only, with no type identity                               |
 | `application/opcua+json;type=Variant`              | `{"Type":22,"Body":{"TypeId":{"Id":296},"Body":{"Name":"Arg1",…}}}`                                                           |
-| `application/opcua+json;type=Variant;version=1.05` | `{"UaType":22,"Value":{"UaTypeId":"i=296","UaBody":{"Name":"Arg1",…}}}`                                                       |
+| `application/opcua+json;type=Variant;version=1.05` | `{"UaType":22,"Value":{"UaTypeId":"i=296","Name":"Arg1",…}}`                                                                  |
 | `application/octet-stream`                         | the DataValue holding the ExtensionObject in UA Binary; `value()` as `application/json`; writing is refused for now (plan A3) |
 
 Note what the structure's identity costs: the bare value has no `TypeId`, so the server cannot tell
@@ -202,7 +202,7 @@ String, Boolean and ByteString; a structure is refused for now (plan question A3
 | ByteString[]                                                | array of base64                    | ✘ the base64 text is stored, not the bytes | ✔                                  |
 | LocalizedText                                               | the text only                      | ✘ the locale is lost                       | ✔                                  |
 | NodeId, QualifiedName                                       | an object                          | ✘ not converted back                       | ✔                                  |
-| matrices (`Double[2][3]`)                                   | an envelope with `Dimensions`      | ✘                                          | ✔                                  |
+| matrices (`Double[2][3]`)                                   | nested arrays, `[[1,2,3],[4,5,6]]` | ✘                                          | ✔                                  |
 | ExtensionObject, arrays and matrices of them                | the structure's fields             | ✘ a plain object is not an ExtensionObject | ✘ under investigation               |
 
 These tests also print the whole matrix as a table, the quickest way to see what a change does to

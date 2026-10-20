@@ -2,8 +2,7 @@
 
 Status: proposal, being implemented on this PR. Follows the request in
 [#1574 (comment)](https://github.com/eclipse-thingweb/node-wot/pull/1574#issuecomment-6191632180).
-The implementation stays on node-opcua 2.184; a later commit on this PR moves to the node-opcua
-release that contains node-opcua#1835 (appendix A).
+The binding uses node-opcua 2.187.10, which contains node-opcua#1835 (appendix A).
 
 ## 1. The request
 
@@ -72,10 +71,9 @@ A form without `contentType` means `application/json`: that default comes from W
 ## 4. Examples: what is produced today, and what `octet-stream` would carry
 
 Produced by the binding's own `encodeDataValue()` on this PR, for a value read with a
-SourceTimestamp. The JSON lines assume node-opcua with
-[node-opcua/node-opcua#1835](https://github.com/node-opcua/node-opcua/pull/1835), planned for the next
-node-opcua release, which aligns the JSON encodings on Part 6 1.04 and 1.05; examples c and d say
-what node-opcua 2.184 gives instead. The last
+SourceTimestamp. The JSON lines are those of node-opcua 2.187.10, which contains
+[node-opcua/node-opcua#1835](https://github.com/node-opcua/node-opcua/pull/1835) and aligns the JSON
+encodings on Part 6 1.04 and 1.05; examples c and d say what node-opcua 2.184 gave instead. The last
 line of each example is the **proposed** `application/octet-stream` payload: the UA Binary encoding
 of the **DataValue** (section 6).
 
@@ -494,7 +492,7 @@ the hand-off from core to the binding, inside the process, is JSON.
 1. A binding function that decodes this JSON into an ExtensionObject, with node-opcua-json and the
    session's DataTypeDefinitions. The same function fixes `application/json` structure writes,
    which fail today.
-2. node-opcua#1835, planned for the next node-opcua release: its decoder reads the 1.05 union and
+2. node-opcua#1835, released in 2.187.10: its decoder reads the 1.05 union and
    optional-field forms and maps `nsu=`. For `UaTypeId`, the binding must also pass the session's
    namespace table to the decoder (appendix A).
 
@@ -625,8 +623,8 @@ and D are refused, and the new assertion fails for every shape except ByteString
 
 `value()` with `octet-stream` is the same as `application/json`, so it has the same JSON issues.
 
-**Fixed in node-opcua by [#1835](https://github.com/node-opcua/node-opcua/pull/1835)**, planned for
-the next node-opcua release. The decoders still read what node-opcua wrote before; the encoders
+**Fixed in node-opcua by [#1835](https://github.com/node-opcua/node-opcua/pull/1835)**, released in
+2.187.10. The decoders still read what node-opcua wrote before; the encoders
 change, and node-opcua's release notes mark these changes as breaking:
 
 -   Matrix, `application/json` (1.04 NonReversible): the nested array `[[1,2,3],[4,5,6]]`
@@ -645,23 +643,20 @@ change, and node-opcua's release notes mark these changes as breaking:
 -   1.04 Reversible: the `TypeId` of a namespace-0 structure is its Default JSON encoding node
     (`Range`: `i=15375`, not `i=884`).
 
-**To do in the binding, with that upgrade:**
+**Done in the binding, on node-opcua 2.187.10:**
 
--   Pass the session's namespace table to the JSON encoders and decoders. Every call passes `[]`
-    today (`opcua-content-negotiation.ts`, `codecs/opcua-json-codec.ts`, `opcua-protocol-client.ts`),
-    so without it the 1.05 forms keep writing `ns=2`.
--   Update the JSON schemas of `src/codecs/opcua-data-schemas.ts`. They set
-    `additionalProperties: false`, so a payload written by the new encoders is refused with "Invalid
-    JSON dataValue":
-    -   1.05 Variant and DataValue: accept `Dimensions`, and keep `UaDimensions` for older payloads;
-    -   1.05 DataValue: accept `Status`. The schema lists `UaStatus`, which no edition defines;
-    -   1.04 DataValue: accept `Status`, and keep `StatusCode` for older payloads.
--   Edition detection (`detectEdition()`, `is105()`) still works: `UaType` identifies 1.05.
-    `Dimensions` and `Status` must not become 1.05 markers, because 1.04 uses the same keys. The
-    `UaStatus` marker can go.
--   Update what shows the old shapes: the matrix rows of `doc/opcua-json-encoding.md` and
-    `doc/content-negotiation.md`, the `UaBody` example of `doc/content-negotiation.md`, and the
-    expected values in the shape tests.
+-   Every JSON encoder and decoder gets the session's namespace table, so the 1.05 forms write
+    `nsu=<uri>`. The codecs that decode in core, `opcua+json` and `octet-stream`, find it through
+    `;uaconn=` (section 8). On write, `opcua+json` passes the consumer's JSON to the binding
+    unchanged.
+-   The JSON schemas of `src/codecs/opcua-data-schemas.ts` accept `Dimensions` beside
+    `UaDimensions`, and `Status` beside `StatusCode`. A 1.05 status is an object, `{"Code":…}`
+    (plus `"Symbol"` in Verbose), which the schema accepted only as an integer before.
+-   Edition detection (`detectEdition()`, `is105()`) keeps `UaType` as the 1.05 marker.
+-   The action tests call the methods of `MethodSet` on `MethodSet`: node-opcua 2.187 answers
+    `BadMethodInvalid` for a method that is not a component of the object (OPC 10000-4 §5.12.2).
+
+The matrix rows of `doc/opcua-json-encoding.md` and `doc/content-negotiation.md` show the new shapes.
 
 **Not fixed by node-opcua#1835:**
 
