@@ -199,7 +199,7 @@ describe("OPCUA Client", function () {
 
         const form: OPCUAForm = {
             href: endpoint,
-            "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor" },
+            "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
             "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
         };
         const contentType = "application/json";
