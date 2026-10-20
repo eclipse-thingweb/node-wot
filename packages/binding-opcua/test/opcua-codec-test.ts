@@ -22,6 +22,10 @@ import { DataValue } from "node-opcua-data-value";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { DataValueJSON, JsonEncoderMode, opcuaJsonEncodeDataValue } from "node-opcua-json/104";
+import {
+    JsonEncoderMode as JsonEncoderMode105,
+    opcuaJsonEncodeDataValue as opcuaJsonEncodeDataValue105,
+} from "node-opcua-json/105";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { OpcuaBinaryCodec, OpcuaJSONCodec, theOpcuaBinaryCodec, theOpcuaJSONCodec } from "../src/codec";
@@ -121,9 +125,9 @@ describe("OPCUA JSON Serdes ", () => {
 });
 
 describe("OPCUA JSON Serdes, field names of OPC 10000-6 (Dimensions, Status)", () => {
-    // node-opcua used UaDimensions/UaStatus (1.05) and StatusCode (1.04) before aligning on
-    // Part 6, which names them Dimensions and Status in both editions. The schemas that
-    // guard the DataValue body must accept the old and the new spelling.
+    // node-opcua wrote UaDimensions (1.05) and StatusCode (both editions) before aligning on
+    // Part 6, which names them Dimensions and Status. The schemas that guard the DataValue
+    // body must accept the old and the new spelling.
     const schema: ObjectSchema = { type: "object", properties: {} };
     const decode = (body: unknown, parameters: { [key: string]: string }) =>
         theOpcuaJSONCodec.bytesToValue(Buffer.from(JSON.stringify(body)), schema, parameters) as Record<
@@ -165,9 +169,27 @@ describe("OPCUA JSON Serdes, field names of OPC 10000-6 (Dimensions, Status)", (
         expect(result.Value).to.have.property("Type", 11);
     });
 
-    it("still accepts UaStatus on a 1.05 DataValue", () => {
-        const result = decode({ UaType: 11, Value: 1.5, UaStatus: 0 }, params105);
+    it("accepts Status as an object on a 1.05 DataValue, as node-opcua 2.187 writes it", () => {
+        // Compact, then Verbose (Part 6 1.05 section 5.4.2.12)
+        for (const status of [{ Code: 2151415808 }, { Code: 2151415808, Symbol: "BadOutOfRange" }]) {
+            const result = decode({ UaType: 11, Value: 1.5, Status: status }, params105);
+            expect(result).to.have.property("UaType", 11);
+        }
+    });
+
+    it("still accepts StatusCode on a 1.05 DataValue, as node-opcua 2.186 and earlier wrote it", () => {
+        const result = decode({ UaType: 11, Value: 1.5, StatusCode: { Code: 2151415808 } }, params105);
         expect(result).to.have.property("UaType", 11);
+    });
+
+    it("decodes a 1.05 DataValue with a bad status written by node-opcua itself", () => {
+        const dataValue = new DataValue({
+            value: { dataType: DataType.Double, value: 1.5 },
+            statusCode: StatusCodes.BadOutOfRange,
+        });
+        const body = opcuaJsonEncodeDataValue105(dataValue, JsonEncoderMode105.Verbose, []);
+        const result = decode(body, params105);
+        expect(result).to.have.property("Status");
     });
 
     it("refuses an unknown field", () => {

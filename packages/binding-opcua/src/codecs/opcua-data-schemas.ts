@@ -125,6 +125,22 @@ export const schemaVariantJSON105 = {
     required: ["UaType"],
 };
 
+/**
+ * A 1.05 StatusCode (Part 6 section 5.4.2.12) is an object: `{"Code":2151415808}`, plus
+ * `"Symbol"` in Verbose. A bare number is accepted too, as earlier versions wrote it.
+ */
+const schemaStatusCodeJSON105 = {
+    anyOf: [
+        { type: "integer", minimum: 0 },
+        {
+            type: "object",
+            properties: { Code: { type: "integer", minimum: 0 }, Symbol: { type: "string" } },
+            required: ["Code"],
+            additionalProperties: false,
+        },
+    ],
+};
+
 export const schemaDataValueJSON105 = {
     type: "object",
     properties: {
@@ -135,10 +151,9 @@ export const schemaDataValueJSON105 = {
         },
         Dimensions: { type: "array", items: { type: "integer" } },
         UaDimensions: { type: "array", items: { type: "integer" } },
-        // 1.05 Table 42 names the field Status. UaStatus is defined by no Part 6 edition,
-        // but older node-opcua releases wrote it, so it is still read.
-        Status: { type: "integer", minimum: 0 },
-        UaStatus: { type: "integer", minimum: 0 },
+        // 1.05 Table 42 names the field Status; node-opcua 2.186 and earlier wrote StatusCode
+        Status: schemaStatusCodeJSON105,
+        StatusCode: schemaStatusCodeJSON105,
         SourceTimestamp: { type: "string" },
         ServerTimestamp: { type: "string" },
         SourcePicoseconds: { type: "integer" },
