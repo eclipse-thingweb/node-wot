@@ -18,7 +18,7 @@ import { ContentCodec, ContentCodingContext, ContentSerdes } from "../src/conten
 import { Content } from "../src/content";
 import { InteractionOutput } from "../src/interaction-output";
 import { Readable } from "stream";
-import { csvBindingOptionsFromForm } from "../src/csv-binding";
+import { csvCodecOptionsFromForm } from "../src/codecs/csv-options";
 
 describe("CSV codec", () => {
     it("should decode a TOA5-style payload into object rows", () => {
@@ -97,13 +97,15 @@ describe("CSV codec", () => {
         const output = new InteractionOutput(
             new Content(
                 "text/csv",
-                Readable.from([
-                    '"TOA5","CR1000","CR1000","12345","CR1000.Std.32.07","CPU:weather.CR1X","1234","Weather"',
-                    '"TIMESTAMP","RECORD","AirTemp_C","RH","WindSpeed_ms"',
-                    '"TS","RN","Deg C","%","m/s"',
-                    '"","","Avg","Avg","Avg"',
-                    '"2026-06-25 10:00:00",1,23.4,56.2,4.8',
-                ].join("\n"))
+                Readable.from(
+                    [
+                        '"TOA5","CR1000","CR1000","12345","CR1000.Std.32.07","CPU:weather.CR1X","1234","Weather"',
+                        '"TIMESTAMP","RECORD","AirTemp_C","RH","WindSpeed_ms"',
+                        '"TS","RN","Deg C","%","m/s"',
+                        '"","","Avg","Avg","Avg"',
+                        '"2026-06-25 10:00:00",1,23.4,56.2,4.8',
+                    ].join("\n")
+                )
             ),
             {
                 href: "file:///tmp/toa5-weather.csv",
@@ -127,7 +129,7 @@ describe("CSV codec", () => {
     });
 
     it("should apply CSV defaults and validate form terms", () => {
-        const options = csvBindingOptionsFromForm({
+        const options = csvCodecOptionsFromForm({
             "csvv:rowRepresentation": "object",
         });
 
@@ -139,7 +141,7 @@ describe("CSV codec", () => {
         expect(options.metadataRows).to.deep.equal([]);
 
         expect(() =>
-            csvBindingOptionsFromForm({
+            csvCodecOptionsFromForm({
                 "csvv:rowRepresentation": "object",
                 "csvv:delimiter": "||",
             })

@@ -92,7 +92,9 @@ function coerceValue(value: unknown, step: DataMappingStep): unknown {
     if (decimalSeparator !== "." && decimalSeparator !== ",") {
         throw new Error("map:decimalSeparator must be '.' or ','");
     }
-    const text = String(value).trim().replace(decimalSeparator === "," ? "," : /$^/, ".");
+    const text = String(value)
+        .trim()
+        .replace(decimalSeparator === "," ? "," : /$^/, ".");
     const number = Number(text);
     if (!Number.isFinite(number)) {
         throw new Error(`Cannot coerce '${String(value)}' to ${targetType}`);

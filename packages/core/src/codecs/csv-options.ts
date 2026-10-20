@@ -15,7 +15,7 @@
 
 export type CsvRowRepresentation = "array" | "object";
 
-export interface CsvBindingOptions {
+export interface CsvCodecOptions {
     delimiter: string;
     quoteChar: string;
     escapeChar: string;
@@ -31,10 +31,7 @@ export interface CsvBindingOptions {
     tableDiscriminator?: string;
 }
 
-export const DEFAULT_CSV_BINDING_OPTIONS: Omit<
-    CsvBindingOptions,
-    "rowRepresentation"
-> = {
+export const DEFAULT_CSV_CODEC_OPTIONS: Omit<CsvCodecOptions, "rowRepresentation"> = {
     delimiter: ",",
     quoteChar: '"',
     escapeChar: '"',
@@ -73,18 +70,18 @@ function readColumns(value: unknown): string[] | undefined {
     return value as string[];
 }
 
-export function csvBindingOptionsFromForm(form: Record<string, unknown>): CsvBindingOptions {
+export function csvCodecOptionsFromForm(form: Record<string, unknown>): CsvCodecOptions {
     const rowRepresentation = form["csvv:rowRepresentation"];
     if (rowRepresentation !== "array" && rowRepresentation !== "object") {
         throw new Error("csvv:rowRepresentation must be 'array' or 'object'");
     }
 
-    const encoding = form["csvv:encoding"] ?? DEFAULT_CSV_BINDING_OPTIONS.encoding;
+    const encoding = form["csvv:encoding"] ?? DEFAULT_CSV_CODEC_OPTIONS.encoding;
     if (typeof encoding !== "string" || !Buffer.isEncoding(encoding)) {
         throw new Error("csvv:encoding must be a supported character encoding");
     }
 
-    const decimalSeparator = form["csvv:decimalSeparator"] ?? DEFAULT_CSV_BINDING_OPTIONS.decimalSeparator;
+    const decimalSeparator = form["csvv:decimalSeparator"] ?? DEFAULT_CSV_CODEC_OPTIONS.decimalSeparator;
     if (decimalSeparator !== "." && decimalSeparator !== ",") {
         throw new Error("csvv:decimalSeparator must be '.' or ','");
     }
@@ -100,9 +97,13 @@ export function csvBindingOptionsFromForm(form: Record<string, unknown>): CsvBin
     }
 
     return {
-        delimiter: readSingleCharacter(form["csvv:delimiter"], "csvv:delimiter", DEFAULT_CSV_BINDING_OPTIONS.delimiter),
-        quoteChar: readSingleCharacter(form["csvv:quoteChar"], "csvv:quoteChar", DEFAULT_CSV_BINDING_OPTIONS.quoteChar),
-        escapeChar: readSingleCharacter(form["csvv:escapeChar"], "csvv:escapeChar", DEFAULT_CSV_BINDING_OPTIONS.escapeChar),
+        delimiter: readSingleCharacter(form["csvv:delimiter"], "csvv:delimiter", DEFAULT_CSV_CODEC_OPTIONS.delimiter),
+        quoteChar: readSingleCharacter(form["csvv:quoteChar"], "csvv:quoteChar", DEFAULT_CSV_CODEC_OPTIONS.quoteChar),
+        escapeChar: readSingleCharacter(
+            form["csvv:escapeChar"],
+            "csvv:escapeChar",
+            DEFAULT_CSV_CODEC_OPTIONS.escapeChar
+        ),
         recordDelimiter: recordDelimiter as string | undefined,
         encoding: encoding as BufferEncoding,
         decimalSeparator,
@@ -116,8 +117,8 @@ export function csvBindingOptionsFromForm(form: Record<string, unknown>): CsvBin
     };
 }
 
-export function normalizeCsvBindingOptions(options: Partial<CsvBindingOptions>): CsvBindingOptions {
-    return csvBindingOptionsFromForm({
+export function normalizeCsvCodecOptions(options: Partial<CsvCodecOptions>): CsvCodecOptions {
+    return csvCodecOptionsFromForm({
         "csvv:delimiter": options.delimiter,
         "csvv:quoteChar": options.quoteChar,
         "csvv:escapeChar": options.escapeChar,

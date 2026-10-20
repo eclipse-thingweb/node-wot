@@ -2,9 +2,9 @@
     "@context": [
         "https://www.w3.org/2019/wot/td/v1",
         {
-            "csvv": "https://www.w3.org/wot/payload-binding/csv/v1#",
-            "map": "https://www.w3.org/wot/data-mapping/v1#",
-            "jsonv": "https://www.w3.org/wot/payload-binding/json/v1#"
+            "csvv": "https://example.org/wot/payload-binding/csv/v1#",
+            "map": "https://example.org/wot/data-mapping/v1#",
+            "jsonv": "https://example.org/wot/payload-binding/json/v1#"
         }
     ],
     "id": "urn:example:thing:toa5-weather",

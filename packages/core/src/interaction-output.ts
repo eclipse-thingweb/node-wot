@@ -142,7 +142,9 @@ export class InteractionOutput implements WoT.InteractionOutput {
             decodingContext
         );
 
-        json = applyFromWireMapping(json, this.form as unknown as Record<string, unknown>) as WoT.DataSchemaValue | undefined;
+        json = applyFromWireMapping(json, this.form as unknown as Record<string, unknown>) as
+            | WoT.DataSchemaValue
+            | undefined;
 
         if (this.mapping !== undefined) {
             json = Helpers.extractDataFromPath(json, this.mapping["nw:valuePath"]);

@@ -20,7 +20,13 @@ servient
             thingDescription.base = dataDirectory;
             const thing = await WoT.consume(thingDescription);
 
-            for (const propertyName of ["timestamp", "airTemperature", "relativeHumidity", "windSpeed", "windSpeedSeries"]) {
+            for (const propertyName of [
+                "timestamp",
+                "airTemperature",
+                "relativeHumidity",
+                "windSpeed",
+                "windSpeedSeries",
+            ]) {
                 const output = await thing.readProperty(propertyName);
                 const value = await output.value();
                 console.log(`${propertyName}: ${JSON.stringify(value)}`);
