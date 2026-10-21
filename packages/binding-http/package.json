@@ -1,6 +1,6 @@
 {
     "name": "@node-wot/binding-http",
-    "version": "1.0.0",
+    "version": "1.0.0-SNAPSHOT.0",
     "description": "HTTP client & server protocol binding for node-wot",
     "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
     "license": "EPL-2.0 OR W3C-20150513",
@@ -29,7 +29,7 @@
         "timekeeper": "^2.2.0"
     },
     "dependencies": {
-        "@node-wot/core": "1.0.0",
+        "@node-wot/core": "1.0.0-SNAPSHOT.0",
         "@types/node-fetch": "^2.6.12",
         "accept-language-parser": "1.5.0",
         "basic-auth": "2.0.1",
