@@ -155,8 +155,12 @@ export default class MqttClient implements ProtocolClient {
 
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
         const requestUri = new url.URL(form.href);
-        const topic = requestUri.pathname.slice(1);
+        const topic = requestUri.pathname.slice(1) || form["mqv:topic"];
         const brokerUri = `${this.scheme}://${requestUri.host}`;
+
+        if (topic == null) {
+            throw new Error("MqttClient: no topic found in form href or mqv:topic");
+        }
 
         let pool = this.pools.get(brokerUri);
 
