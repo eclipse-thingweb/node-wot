@@ -112,6 +112,53 @@ describe("MQTT client implementation - unit", () => {
                 })
                 .catch((err) => done(err));
         }).timeout(10000);
+
+        it("should subscribe using mqv:filter when href has no path", (done: Mocha.Done) => {
+            const mqttClient = new MqttClient();
+            const topic = "test-filter";
+            const subscribeForm: MqttForm = {
+                href: brokerUri,
+                "mqv:filter": topic,
+                "mqv:qos": "2",
+                "mqv:retain": false,
+            };
+            const publishForm: MqttForm = {
+                href: brokerUri + "/" + topic,
+                "mqv:qos": "2",
+                "mqv:retain": false,
+            };
+
+            mqttClient
+                .subscribeResource(subscribeForm, async (value: Content) => {
+                    try {
+                        const data = await value.toBuffer();
+                        expect(data.toString()).to.be.equal("test");
+                        done();
+                    } catch (err) {
+                        done(err);
+                    } finally {
+                        await mqttClient.stop();
+                    }
+                })
+                .then(async () => {
+                    await mqttClient.invokeResource(publishForm, new Content("", Readable.from(Buffer.from("test"))));
+                })
+                .catch((err) => done(err));
+        }).timeout(10000);
+
+        it("should throw an error when href has no path and no mqv:filter", async () => {
+            const mqttClient = new MqttClient();
+            const form: MqttForm = {
+                href: brokerUri,
+                "mqv:qos": "2",
+                "mqv:retain": false,
+            };
+
+            await mqttClient
+                .subscribeResource(form, () => {})
+                .should.eventually.be.rejectedWith(Error, "MqttClient: no filter found in form href or mqv:filter");
+            await mqttClient.stop();
+        });
     });
 
     describe("tests with authorization", () => {
