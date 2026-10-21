@@ -65,7 +65,10 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
-        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
+        const filter = requestUri.pathname.slice(1) || form["mqv:filter"];
+        if (filter == null) {
+            throw new Error("MqttClient: no filter found in form href or mqv:filter");
+        }
 
         let pool = this.pools.get(brokerUri);
 
@@ -95,7 +98,10 @@ export default class MqttClient implements ProtocolClient {
         const brokerUri: string = `${this.scheme}://` + requestUri.host;
         // Keeping the path as the topic for compatibility reasons.
         // Current specification allows only form["mqv:filter"]
-        const filter = requestUri.pathname.slice(1) ?? form["mqv:filter"];
+        const filter = requestUri.pathname.slice(1) || form["mqv:filter"];
+        if (filter == null) {
+            throw new Error("MqttClient: no filter found in form href or mqv:filter");
+        }
 
         let pool = this.pools.get(brokerUri);
 
@@ -125,7 +131,10 @@ export default class MqttClient implements ProtocolClient {
     public async writeResource(form: MqttForm, content: Content): Promise<void> {
         const requestUri = new url.URL(form.href);
         const brokerUri = `${this.scheme}://${requestUri.host}`;
-        const topic = requestUri.pathname.slice(1) ?? form["mqv:topic"];
+        const topic = requestUri.pathname.slice(1) || form["mqv:topic"];
+        if (topic == null) {
+            throw new Error("MqttClient: no topic found in form href or mqv:topic");
+        }
 
         let pool = this.pools.get(brokerUri);
 
@@ -146,8 +155,12 @@ export default class MqttClient implements ProtocolClient {
 
     public async invokeResource(form: MqttForm, content: Content): Promise<Content> {
         const requestUri = new url.URL(form.href);
-        const topic = requestUri.pathname.slice(1);
+        const topic = requestUri.pathname.slice(1) || form["mqv:topic"];
         const brokerUri = `${this.scheme}://${requestUri.host}`;
+
+        if (topic == null) {
+            throw new Error("MqttClient: no topic found in form href or mqv:topic");
+        }
 
         let pool = this.pools.get(brokerUri);
 
