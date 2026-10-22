@@ -15,7 +15,7 @@
 
 import { parse } from "csv-parse/sync";
 import { ContentCodec, ContentCodingContext } from "../content-serdes";
-import { csvCodecOptionsFromForm, CsvCodecOptions, normalizeCsvCodecOptions } from "./csv-options";
+import { csvCodecOptionsFromForm, CsvCodecOptions, normalizeCsvCodecOptions } from "./csv-codec-options";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { createLoggers } from "../logger";
 

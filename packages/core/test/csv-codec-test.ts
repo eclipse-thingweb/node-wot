@@ -18,7 +18,7 @@ import { ContentCodec, ContentCodingContext, ContentSerdes } from "../src/conten
 import { Content } from "../src/content";
 import { InteractionOutput } from "../src/interaction-output";
 import { Readable } from "stream";
-import { csvCodecOptionsFromForm } from "../src/codecs/csv-options";
+import { csvCodecOptionsFromForm } from "../src/codecs/csv-codec-options";
 
 describe("CSV codec", () => {
     it("should decode a TOA5-style payload into object rows", () => {
