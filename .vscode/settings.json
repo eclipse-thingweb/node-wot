@@ -1,4 +1,7 @@
 {
+    "js/ts.tsdk.path": "./node_modules/typescript/lib",
+    // typescript.tsdk and typescript.referencesCodeLens.enabled are deprecated.
+    // We keep both for backwards compatibility.
     "typescript.tsdk": "./node_modules/typescript/lib",
     "typescript.referencesCodeLens.enabled": true,
     "files.exclude": {
