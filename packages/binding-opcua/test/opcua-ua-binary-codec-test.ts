@@ -14,16 +14,18 @@
  ********************************************************************************/
 
 //
-// application/octet-stream on opc.tcp forms: an OPC UA Binary DataValue.
-// See doc/octet-stream-ua-binary-plan.md.
+// application/opcua+uabinary on opc.tcp forms: an OPC UA Binary DataValue, whose
+// type parameter picks what value() returns. See doc/decisions.md (D8).
 //
 
 import { expect } from "chai";
 
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { StatusCodes } from "node-opcua-status-code";
 
 import { theOpcuaUABinaryCodec } from "../src/codec";
+import { resolveContentFormat } from "../src/opcua-content-negotiation";
 import {
     argumentsToVariant,
     decodeUABinaryDataValue,
@@ -31,7 +33,11 @@ import {
     isUABinaryDataValue,
 } from "../src/ua-binary";
 
-describe("OPC UA Binary codec (application/octet-stream)", () => {
+describe("OPC UA Binary codec (application/opcua+uabinary)", () => {
+    it("is the codec of application/opcua+uabinary", () => {
+        expect(theOpcuaUABinaryCodec.getMediaType()).to.equal("application/opcua+uabinary");
+    });
+
     describe("valueToBytes", () => {
         it("writes a value of built-in type as a DataValue holding only the value (plan W1)", () => {
             // mask 01, type 0b (Double), then 42 as an IEEE double, little-endian
@@ -69,6 +75,16 @@ describe("OPC UA Binary codec (application/octet-stream)", () => {
                 expect(JSON.parse(bytes.toString("utf-8"))).to.deep.equal(value);
             });
         }
+
+        // NodeIds in a Variant or DataValue view need the session's namespace table
+        for (const type of ["Variant", "DataValue"]) {
+            it(`hands a ${type} view over as JSON, even of a built-in type`, () => {
+                const value = { UaType: 11, Value: 42 };
+                const bytes = theOpcuaUABinaryCodec.valueToBytes(value, undefined, { type });
+                expect(isUABinaryDataValue(bytes)).to.equal(false);
+                expect(JSON.parse(bytes.toString("utf-8"))).to.deep.equal(value);
+            });
+        }
     });
 
     describe("isUABinaryDataValue", () => {
@@ -87,7 +103,44 @@ describe("OPC UA Binary codec (application/octet-stream)", () => {
     });
 
     describe("bytesToValue", () => {
-        it("gives the value as application/json does, and ignores StatusCode and timestamps", () => {
+        const sourceTimestamp = new Date(Date.UTC(2026, 9, 19));
+        const doubleWithStatus = () =>
+            encodeUABinaryDataValue(
+                new DataValue({
+                    value: { dataType: DataType.Double, value: 299.26 },
+                    statusCode: StatusCodes.UncertainLastUsableValue,
+                    sourceTimestamp,
+                })
+            );
+
+        it("type=Value, the default: the value alone", () => {
+            expect(theOpcuaUABinaryCodec.bytesToValue(doubleWithStatus())).to.equal(299.26);
+            expect(theOpcuaUABinaryCodec.bytesToValue(doubleWithStatus(), undefined, { type: "Value" })).to.equal(
+                299.26
+            );
+        });
+
+        it("type=Variant: the value and its OPC UA type, as OPC UA JSON 1.05 Compact", () => {
+            expect(
+                theOpcuaUABinaryCodec.bytesToValue(doubleWithStatus(), undefined, { type: "Variant" })
+            ).to.deep.equal({
+                UaType: 11,
+                Value: 299.26,
+            });
+        });
+
+        it("type=DataValue: the value with its Status and timestamps", () => {
+            expect(
+                theOpcuaUABinaryCodec.bytesToValue(doubleWithStatus(), undefined, { type: "DataValue" })
+            ).to.deep.equal({
+                UaType: 11,
+                Value: 299.26,
+                Status: { Code: StatusCodes.UncertainLastUsableValue.value },
+                SourceTimestamp: sourceTimestamp.toISOString(),
+            });
+        });
+
+        it("gives the value of the Value view, and ignores StatusCode and timestamps", () => {
             const bytes = encodeUABinaryDataValue(
                 new DataValue({
                     value: { dataType: DataType.Int64, arrayType: VariantArrayType.Scalar, value: [0x200000, 1] },
@@ -120,4 +173,34 @@ describe("OPC UA Binary codec (application/octet-stream)", () => {
             );
         });
     });
+});
+
+describe("contentType of an opc.tcp form", () => {
+    it("takes application/opcua+uabinary, with type=Value, Variant or DataValue", () => {
+        expect(resolveContentFormat("application/opcua+uabinary").view).to.equal("value");
+        expect(resolveContentFormat("application/opcua+uabinary;type=Variant").view).to.equal("variant");
+        expect(resolveContentFormat("application/opcua+uabinary;type=datavalue").view).to.equal("dataValue");
+    });
+
+    it("refuses an unknown type", () => {
+        expect(() => resolveContentFormat("application/opcua+uabinary;type=Body")).to.throw(
+            /Expected one of: Value, Variant, DataValue/
+        );
+    });
+
+    it("refuses a form without contentType, which TD 1.1 makes application/json", () => {
+        expect(() => resolveContentFormat(undefined)).to.throw(/needs contentType 'application\/opcua\+uabinary'/);
+    });
+
+    for (const [contentType, replacement] of [
+        ["application/json", "application/opcua+uabinary"],
+        ["application/octet-stream", "application/opcua+uabinary"],
+        ["application/opcua+octet-stream", "application/opcua+uabinary;type=DataValue"],
+        ["application/opcua+json", "application/opcua+uabinary;type=DataValue"],
+        ["application/opcua+json;type=Variant", "application/opcua+uabinary;type=Variant"],
+    ]) {
+        it(`refuses ${contentType}, naming ${replacement}`, () => {
+            expect(() => resolveContentFormat(contentType)).to.throw(`Use '${replacement}'.`);
+        });
+    }
 });

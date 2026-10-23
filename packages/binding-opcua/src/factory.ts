@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } from "@node-wot/core";
-import { OpcuaJSONCodec, OpcuaBinaryCodec, OpcuaUABinaryCodec } from "./codec";
+import { OpcuaUABinaryCodec } from "./codec";
 import { OPCUAProtocolClient } from "./opcua-protocol-client";
 
 const { debug, error } = createLoggers("binding-opcua", "factory");
@@ -27,12 +27,9 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
     public contentSerdes: ContentSerdes = ContentSerdes.get();
 
     constructor() {
-        this.contentSerdes.addCodec(new OpcuaJSONCodec());
-        this.contentSerdes.addCodec(new OpcuaBinaryCodec());
-        // application/octet-stream is a generic media type: the codec registered without a
-        // scheme packs Modbus registers and would mangle OPC UA Binary. Scoping ours to
-        // opc.tcp leaves every other binding untouched (core #1409 / PR #1572).
-        this.contentSerdes.addCodec(new OpcuaUABinaryCodec(), false, this.scheme);
+        // application/opcua+uabinary is the only media type of an opc.tcp form. It belongs to
+        // OPC UA alone, so the codec is registered like any other, without a URI scheme.
+        this.contentSerdes.addCodec(new OpcuaUABinaryCodec());
     }
 
     getClient(): ProtocolClient {

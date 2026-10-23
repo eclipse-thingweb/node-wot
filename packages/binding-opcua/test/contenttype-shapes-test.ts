@@ -16,9 +16,9 @@
 //
 // contentType x OPC UA data shape matrix.
 //
-// Companion to octet-stream-e2e-test.ts, which varies where `type` is declared.
+// Companion to contenttype-e2e-test.ts, which varies where `type` is declared.
 // This one fixes the TD shape and varies the OPC UA data type instead, to show
-// which shapes each contentType can actually carry.
+// what each view of application/opcua+uabinary gives for each shape.
 //
 // Self-contained on purpose: it registers its own namespace and variables on the
 // running fixture server, so the same untracked file can be dropped into any
@@ -45,7 +45,7 @@ import { decodeUABinaryDataValue } from "../src/ua-binary";
 import { startServer } from "./fixture/basic-opcua-server";
 import { printTable, shortVerdict, truncate } from "./report-table";
 
-const { info } = createLoggers("binding-opcua", "octet-stream-shapes-test");
+const { info } = createLoggers("binding-opcua", "contenttype-shapes-test");
 
 const endpoint = "opc.tcp://localhost:7890";
 const NS = "http://example.org/ShapeTest/";
@@ -108,7 +108,7 @@ const SHAPES: Shape[] = [
         wotType: "string",
     },
     {
-        // the one shape for which application/octet-stream is legitimate
+        // raw bytes: base64 in OPC UA JSON, the bytes themselves inside the UA Binary DataValue
         key: "ByteString",
         id: "s=Shape_ByteString",
         uaDataType: "ByteString",
@@ -162,7 +162,8 @@ const SHAPES: Shape[] = [
         uaDataType: "LocalizedText",
         valueRank: -1,
         variant: () => ({ dataType: DataType.LocalizedText, value: { locale: "en", text: "Hello" } }),
-        wotType: "object",
+        // the Value view gives its text, a JSON string (OPC 10000-6 Annex H.6)
+        wotType: "string",
     },
     {
         key: "Variant(any)",
@@ -194,7 +195,7 @@ const SHAPES: Shape[] = [
     },
     {
         // a structure of a companion specification (namespace != 0): only the session's
-        // DataTypeDefinitions decode it, so octet-stream needs the `uaconn` tag
+        // DataTypeDefinitions decode it, so the codec needs the `uaconn` tag
         key: "RfidScanResult",
         id: "s=Shape_RfidScanResult",
         // replaced in before() by the DataType NodeId, once the namespace index is known
@@ -282,7 +283,8 @@ const SHAPES: Shape[] = [
         uaDataType: "NodeId",
         valueRank: -1,
         variant: () => ({ dataType: DataType.NodeId, value: coerceNodeId("ns=1;s=SomeNode") }),
-        wotType: "string",
+        // the Value view gives a JSON object { IdType, Id, Namespace } (OPC 10000-6 Annex H.2)
+        wotType: "object",
     },
     {
         key: "QualifiedName",
@@ -394,16 +396,15 @@ const SHAPES: Shape[] = [
     },
 ];
 
+const UABINARY = "application/opcua+uabinary";
+
+// one payload, the UA Binary DataValue; the type parameter picks what value() returns
 const CONTENT_TYPES: { key: string; contentType?: string; overrideType?: string }[] = [
-    { key: "(omitted)", contentType: undefined },
-    { key: "octet-stream", contentType: "application/octet-stream" },
-    { key: "opcua+json", contentType: "application/opcua+json" },
-    // used correctly: ask for the bare value, so the TD schema still matches
-    { key: "opcua+json;Value", contentType: "application/opcua+json;type=Value" },
-    // ask for the full DataValue, and declare an object schema to match
-    { key: "opcua+json;DataValue", contentType: "application/opcua+json;type=DataValue", overrideType: "object" },
-    // true OPC UA Binary, under the vendor-prefixed media type
-    { key: "opcua+octet-stream", contentType: "application/opcua+octet-stream", overrideType: "object" },
+    // the Value view: the bare value, so the TD schema of each shape matches
+    { key: "Value", contentType: UABINARY },
+    // the Variant and DataValue views return an object, and declare an object schema to match
+    { key: "Variant", contentType: `${UABINARY};type=Variant`, overrideType: "object" },
+    { key: "DataValue", contentType: `${UABINARY};type=DataValue`, overrideType: "object" },
 ];
 
 interface Cell {
@@ -437,11 +438,7 @@ function jsTypeOf(v: unknown): string {
  * has decoded and validated it, which is not the same thing - a read can fail validation
  * while the bytes were perfectly good.
  */
-function renderWire(b: Buffer, contentType: string | undefined): string {
-    const isBinary = contentType === "application/octet-stream" || contentType === "application/opcua+octet-stream";
-    if (!isBinary) {
-        return `${b.toString("utf-8")} (${b.length}B)`;
-    }
+function renderWire(b: Buffer): string {
     const head = b.subarray(0, 12);
     const hex = head.toString("hex").replace(/(..)/g, "$1 ").trim();
     return b.length > 12 ? `${hex} ... (${b.length}B)` : `${hex} (${b.length}B)`;
@@ -452,7 +449,7 @@ function makeTD(shape: Shape, contentType?: string, overrideType?: string): WoT.
     const form: Record<string, unknown> = {
         href: `/?id=nsu=${NS};${shape.id}`,
         op: ["readproperty"],
-        // declare type on the form too: the e2e matrix showed octet-stream needs both
+        // declare type on the form too, as the e2e matrix does
         type: wotType,
     };
     if (contentType !== undefined) {
@@ -575,7 +572,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
         for (const c of CONTENT_TYPES) {
             printTable({
                 title: `${c.key}: what the binding sends, and what value() gives back`,
-                subtitle: "the payload is shown as text, or as hex when the contentType is binary",
+                subtitle: "the payload is the UA Binary DataValue, shown as hex",
                 headers: ["shape", "js type", "value() returns", "payload on the wire"],
                 rows: SHAPES.map((shape) => {
                     const cell = cells.find((x) => x.shape === shape.key && x.ct === c.key);
@@ -601,7 +598,7 @@ describe("contentType x data shape matrix (issue #1400)", function () {
                 try {
                     const rawRead = await thing.readProperty("v");
                     cell.raw = Buffer.from(await rawRead.arrayBuffer());
-                    cell.wire = renderWire(cell.raw, ct.contentType);
+                    cell.wire = renderWire(cell.raw);
                 } catch {
                     cell.wire = "n/a";
                 }
@@ -630,31 +627,45 @@ describe("contentType x data shape matrix (issue #1400)", function () {
         return cell;
     };
 
-    // OPC 10101 §6.5.3: application/octet-stream carries OPC UA Binary, and value() is what
-    // application/json gives (doc/octet-stream-ua-binary-plan.md)
-    it("octet-stream: value() is what application/json gives, for every shape", function () {
+    it("Value view: value() gives every shape", function () {
+        const refused = SHAPES.map((shape) => cellOf(shape, "Value"))
+            .filter((cell) => !cell.ok)
+            .map((cell) => `${cell.shape}: ${cell.error} (value ${cell.wire})`);
+        expect(refused).to.deep.equal([]);
+    });
+
+    it("Variant view: value() gives the OPC UA built-in type of every shape", function () {
         for (const shape of SHAPES) {
-            const json = cellOf(shape, "(omitted)");
-            const octet = cellOf(shape, "octet-stream");
-            expect(octet.ok, `${shape.key}: ${octet.error ?? json.error}`).to.equal(json.ok);
-            if (json.ok) {
-                expect(octet.value, shape.key).to.deep.equal(json.value);
-            }
+            const cell = cellOf(shape, "Variant");
+            expect(cell.ok, `${shape.key}: ${cell.error}`).to.equal(true);
+            expect((cell.value as Record<string, unknown>).UaType, shape.key).to.equal(shape.variant().dataType);
         }
     });
 
-    it("octet-stream: arrayBuffer() is the UA Binary DataValue that holds the value", function () {
+    it("DataValue view: value() adds the SourceTimestamp the server sent, for every shape", function () {
         for (const shape of SHAPES) {
-            const raw = cellOf(shape, "octet-stream").raw;
-            expect(raw, shape.key).to.not.equal(undefined);
-            const dataValue = decodeUABinaryDataValue(raw as Buffer);
+            const cell = cellOf(shape, "DataValue");
+            expect(cell.ok, `${shape.key}: ${cell.error}`).to.equal(true);
+            const value = cell.value as Record<string, unknown>;
+            expect(value.UaType, shape.key).to.equal(shape.variant().dataType);
+            expect(new Date(value.SourceTimestamp as string).getTime(), shape.key).to.be.greaterThan(0);
+        }
+    });
+
+    it("arrayBuffer() is the UA Binary DataValue that holds the value, whatever the view", function () {
+        for (const shape of SHAPES) {
             const dataType = shape.variant().dataType;
-            // the mask says a value follows (none for a Null value), and the timestamps
-            // the server sent are kept
-            const valueBit = dataType === DataType.Null ? 0 : 0x01;
-            expect(raw?.[0], shape.key).to.satisfy((mask: number) => (mask & 0x01) === valueBit);
-            expect(dataValue.value.dataType, shape.key).to.equal(dataType);
-            expect(dataValue.sourceTimestamp, shape.key).to.be.an.instanceOf(Date);
+            for (const ct of CONTENT_TYPES) {
+                const raw = cellOf(shape, ct.key).raw;
+                expect(raw, `${shape.key} as ${ct.key}`).to.not.equal(undefined);
+                const dataValue = decodeUABinaryDataValue(raw as Buffer);
+                // the mask says a value follows (none for a Null value), and the timestamps
+                // the server sent are kept
+                const valueBit = dataType === DataType.Null ? 0 : 0x01;
+                expect(raw?.[0], shape.key).to.satisfy((mask: number) => (mask & 0x01) === valueBit);
+                expect(dataValue.value.dataType, `${shape.key} as ${ct.key}`).to.equal(dataType);
+                expect(dataValue.sourceTimestamp, shape.key).to.be.an.instanceOf(Date);
+            }
         }
     });
 });

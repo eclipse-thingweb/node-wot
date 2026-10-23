@@ -18,7 +18,7 @@ import { DataSchemaValue } from "wot-typescript-definitions";
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
-import { encodeDataValue, resolveContentFormat } from "../opcua-content-negotiation";
+import { OPCUA_UABINARY, OPCUAView, encodeDataValue, viewFormat } from "../opcua-content-negotiation";
 import {
     decodeUABinaryDataValue,
     encodeUABinaryDataValue,
@@ -26,16 +26,17 @@ import {
     variantToArguments,
 } from "../ua-binary";
 
-const bareValueFormat = resolveContentFormat("application/json");
+const VIEWS: Record<string, OPCUAView> = { value: "value", variant: "variant", datavalue: "dataValue" };
 
-/** the value application/json gives for this Variant: the same function, so the same result */
-function bareValue(variant: Variant, namespaceArray: string[] = []): DataSchemaValue {
-    const { body } = encodeDataValue(
-        bareValueFormat,
-        new DataValue({ value: variant }),
-        "an octet-stream payload",
-        namespaceArray
-    );
+/** The view a `type` parameter asks for; the negotiation has already refused any other value. */
+function viewOf(parameters?: { [key: string]: string }): OPCUAView {
+    return VIEWS[(parameters?.type ?? "Value").toLowerCase()] ?? "value";
+}
+
+/** The OPC UA JSON rendering of a DataValue for a view: the value, the Variant or the DataValue. */
+function render(dataValue: DataValue, view: OPCUAView, namespaceArray: string[] = []): DataSchemaValue {
+    const shown = view === "dataValue" ? dataValue : new DataValue({ value: dataValue.value });
+    const { body } = encodeDataValue(viewFormat(view), shown, `an ${OPCUA_UABINARY} payload`, namespaceArray);
     return JSON.parse(body.toString("utf-8"));
 }
 
@@ -69,51 +70,56 @@ function toBuiltInVariant(value: unknown): Variant | undefined {
 }
 
 /**
- * `application/octet-stream` for OPC UA forms: the payload is an OPC UA Binary DataValue
- * (OPC 10101 §6.5.3, OPC 10000-6 Table 80), and `value()` is what `application/json` gives.
- *
- * Registered for the `opc.tcp` scheme only (see OPCUAClientFactory), so the generic
- * OctetstreamCodec, which packs Modbus registers, stays in place for every other binding.
+ * `application/opcua+uabinary`, the media type of OPC UA forms (OPC 10000-6 Table 80, planned for
+ * WoT OPC UA Binding 1.1): the payload is an OPC UA Binary DataValue. Its `type` parameter picks
+ * what `value()` returns, as OPC UA JSON:
+ * - `Value` (the default): the decoded value, `299.26`;
+ * - `Variant`: the value and its OPC UA type, `{"UaType":11,"Value":299.26}`;
+ * - `DataValue`: the Variant plus Status, SourceTimestamp and ServerTimestamp.
  *
  * Parameters the binding adds to the Content type, never to the form:
  * - `uaconn=<id>`: the session whose namespace table and structure definitions decode the
  *   payload, as the binding would;
  * - `uapart=arguments`: the payload holds action arguments as `KeyValuePair[]`.
  *
- * See doc/octet-stream-ua-binary-plan.md.
+ * See doc/decisions.md (D8).
  */
 export class OpcuaUABinaryCodec implements ContentCodec {
     getMediaType(): string {
-        return "application/octet-stream";
+        return OPCUA_UABINARY;
     }
 
     bytesToValue(bytes: Buffer, _schema?: DataSchema, parameters?: { [key: string]: string }): DataSchemaValue {
         const context = findConnectionContext(parameters?.uaconn);
         const dataValue = decodeUABinaryDataValue(bytes, context?.dataTypeManager);
         if (parameters?.uapart !== "arguments") {
-            return bareValue(dataValue.value, context?.namespaceArray);
+            return render(dataValue, viewOf(parameters), context?.namespaceArray);
         }
         const args = variantToArguments(dataValue.value);
         if (args === undefined) {
             throw new Error(
-                `binding-opcua: an action output with contentType 'application/octet-stream' must hold KeyValuePair[], ` +
+                `binding-opcua: an action output with contentType '${OPCUA_UABINARY}' must hold KeyValuePair[], ` +
                     `but it holds ${DataType[dataValue.value.dataType]}.`
             );
         }
+        // an argument is a Variant: no status, no timestamps, so the DataValue view shows it as
+        // the Variant view does
+        const argumentView: OPCUAView = viewOf(parameters) === "value" ? "value" : "variant";
         const output: Record<string, DataSchemaValue> = {};
         for (const [name, variant] of args) {
-            output[name] = bareValue(variant, context?.namespaceArray);
+            output[name] = render(new DataValue({ value: variant }), argumentView, context?.namespaceArray);
         }
         return output;
     }
 
     /**
      * A value of built-in types becomes a DataValue holding only the value (plan W1). Anything
-     * else, a structure or an action input, needs the server to be encoded, so it is handed
-     * over to the binding as JSON (plan section 6.7).
+     * else needs the server to be encoded, so it is handed over to the binding as JSON: a
+     * structure or an action input (plan section 6.7), and a Variant or DataValue view, whose
+     * NodeIds only the session's namespace table can map.
      */
-    valueToBytes(value: unknown, _schema?: DataSchema, _parameters?: { [key: string]: string }): Buffer {
-        const variant = toBuiltInVariant(value);
+    valueToBytes(value: unknown, _schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
+        const variant = viewOf(parameters) === "value" ? toBuiltInVariant(value) : undefined;
         if (variant !== undefined) {
             return encodeUABinaryDataValue(new DataValue({ value: variant }));
         }

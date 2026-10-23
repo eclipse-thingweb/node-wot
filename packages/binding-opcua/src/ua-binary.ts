@@ -14,9 +14,9 @@
  ********************************************************************************/
 
 //
-// `application/octet-stream` on opc.tcp forms: the payload is an OPC UA Binary DataValue
+// `application/opcua+uabinary` on opc.tcp forms: the payload is an OPC UA Binary DataValue
 // (OPC 10000-6 §5.2). Shared by the codec, which runs in core, and by the binding.
-// See doc/octet-stream-ua-binary-plan.md.
+// See doc/decisions.md (D8).
 //
 
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -100,7 +100,7 @@ function promoteVariant(variant: Variant | undefined, manager: ExtraDataTypeMana
             object.decode(new BinaryStream(value.buffer));
             return object;
         } catch {
-            // not loaded: keep it opaque, as the application/json path would
+            // not loaded: keep it opaque
             return value;
         }
     };

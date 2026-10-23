@@ -16,7 +16,7 @@
 // node-wot implementation of W3C WoT Servient
 
 import { expect } from "chai";
-import { Servient, createLoggers } from "@node-wot/core";
+import { ContentSerdes, Servient, createLoggers } from "@node-wot/core";
 import { InteractionOptions } from "wot-typescript-definitions";
 
 import { OPCUAServer, DataValue, Variant } from "node-opcua";
@@ -26,6 +26,7 @@ import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
 import { argumentsToVariant, encodeUABinaryDataValue } from "../src/ua-binary";
 const endpoint = "opc.tcp://localhost:7890";
+const UABINARY = "application/opcua+uabinary";
 
 const { debug, info } = createLoggers("binding-opcua", "full-opcua-thing-test");
 
@@ -55,30 +56,30 @@ const thingDescription: WoT.ThingDescription = {
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
             // Don't specify type here as it could be multi form: type: [ "object", "number" ],
             forms: [
-                // 0 -> standard Node WoT form => Raw value
+                // 0 -> the Value view, the default: the bare value
                 {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/json",
+                    contentType: UABINARY,
                 },
                 {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/opcua+json;type=Value;dataType=Double",
+                    contentType: `${UABINARY};type=Value`,
                 },
                 {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/opcua+json;type=Variant",
+                    contentType: `${UABINARY};type=Variant`,
                 },
                 {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/opcua+json;type=DataValue",
+                    contentType: `${UABINARY};type=DataValue`,
                 },
             ],
         },
@@ -89,13 +90,13 @@ const thingDescription: WoT.ThingDescription = {
             readOnly: true,
             unit: "°C",
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-            contentType: "application/json",
+            contentType: UABINARY,
             type: "object",
             properties: {
-                Type: {
+                UaType: {
                     type: "number",
                 },
-                Body: {
+                Value: {
                     // could be any ! type: [ "object" , "number", "boolean" ],
                 },
             },
@@ -105,7 +106,7 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/opcua+json;type=Variant",
+                    contentType: `${UABINARY};type=Variant`,
                 },
             ],
         },
@@ -121,25 +122,25 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
-                    contentType: "application/json",
+                    contentType: UABINARY,
                 },
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
-                    contentType: "application/opcua+json;type=Value;dataType=Double",
+                    contentType: `${UABINARY};type=Value`,
                 },
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
-                    contentType: "application/opcua+json;type=Variant",
+                    contentType: `${UABINARY};type=Variant`,
                 },
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty", "writeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:TemperatureSetPoint" },
-                    contentType: "application/opcua+json;type=DataValue",
+                    contentType: `${UABINARY};type=DataValue`,
                 },
             ],
         },
@@ -156,7 +157,7 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/", // endpoint,
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": "nsu=http://example.org/SpecialNamespace/;s=SpecialVariable",
-                    contentType: "application/json",
+                    contentType: UABINARY,
                 },
             ],
         },
@@ -170,6 +171,7 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
                     "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
+                    contentType: UABINARY,
                 },
             ],
             description: "set the temperature set point",
@@ -207,7 +209,7 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
                     "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
-                    contentType: "application/opcua+json;type=Variant",
+                    contentType: `${UABINARY};type=Variant`,
                 },
             ],
             description: "set the temperature set point",
@@ -228,7 +230,7 @@ const thingDescription: WoT.ThingDescription = {
                 type: "object",
                 properties: {
                     PreviousSetPoint: {
-                        type: "object", // << Note here this is an object representing a JSON OPCUA Variant
+                        type: "object", // << Note here this is an object representing an OPC UA JSON Variant
                         title: "the previous temperature set point",
                         // minimum: 0,
                         // maximum: 100,
@@ -246,6 +248,7 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
                     "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:GetSongLyrics" },
+                    contentType: UABINARY,
                 },
             ],
             input: {
@@ -286,7 +289,7 @@ const thingDescription: WoT.ThingDescription = {
                     op: ["invokeaction"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
                     "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:GetSongLyrics" },
-                    contentType: "application/opcua+json;type=Variant",
+                    contentType: `${UABINARY};type=Variant`,
                 },
             ],
             input: {
@@ -321,16 +324,6 @@ const thingDescription: WoT.ThingDescription = {
         },
     },
 };
-
-// the same actions with application/octet-stream (OPC UA Binary): value() of the output must
-// be what application/json gives (doc/octet-stream-ua-binary-plan.md, A1)
-const actions = thingDescription.actions as Record<string, { forms: Record<string, unknown>[] }>;
-for (const name of ["setTemperatureSetPoint", "GetSongLyrics"]) {
-    actions[`$OctetStream$${name}`] = {
-        ...actions[name],
-        forms: actions[name].forms.map((form) => ({ ...form, contentType: "application/octet-stream" })),
-    };
-}
 
 describe("Full OPCUA Thing Test", () => {
     let opcuaServer: OPCUAServer;
@@ -401,12 +394,12 @@ describe("Full OPCUA Thing Test", () => {
         try {
             const content = await thing.readProperty(propertyName, localOptions);
             if (forceParsing) {
-                // In opcua binding it is possible to return a special response that contains
-                // richer details than the bare value. However this makes the returned value
-                // not complaint with its data schema. Therefore we have to fallback to
-                // custom parsing.
+                // The Variant and DataValue views return an object, which the number schema of
+                // this property does not describe: decode with the codec, as value() does, but
+                // without validating against the schema.
                 const raw = await content.arrayBuffer();
-                const json = JSON.parse(Buffer.from(raw).toString("utf-8"));
+                const type = content.form?.contentType;
+                const json = ContentSerdes.get().contentToValue({ type, body: Buffer.from(raw) }, {});
                 debug(json?.toString());
                 return json;
             }
@@ -424,8 +417,8 @@ describe("Full OPCUA Thing Test", () => {
             const propertyName = "$Variant$temperature";
             const json0 = await doTest(thing, propertyName, {});
             expect(json0).to.eql({
-                Type: 11,
-                Body: 25,
+                UaType: 11,
+                Value: 25,
             });
         } finally {
             await servient.shutdown();
@@ -444,14 +437,12 @@ describe("Full OPCUA Thing Test", () => {
             expect(json1).to.eql(25);
 
             const json2 = await doTest(thing, propertyName, { formIndex: 2 }, true);
-            expect(json2).to.eql({ Type: 11, Body: 25 });
+            expect(json2).to.eql({ UaType: 11, Value: 25 });
 
-            expect(thingDescription.properties?.temperature.forms[3].contentType).eql(
-                "application/opcua+json;type=DataValue"
-            );
+            expect(thingDescription.properties?.temperature.forms[3].contentType).eql(`${UABINARY};type=DataValue`);
             const json3 = await doTest(thing, propertyName, { formIndex: 3 }, true);
             debug(json3?.toString());
-            expect((json3 as Record<string, unknown>).Value).to.eql({ Type: 11, Body: 25 });
+            expect(json3).to.include({ UaType: 11, Value: 25 });
         } finally {
             await servient.shutdown();
         }
@@ -464,7 +455,7 @@ describe("Full OPCUA Thing Test", () => {
         return value as number;
     };
 
-    it("Z4- should create a servient (consume) with OPCUA client factory - writeProperty - application/json ", async () => {
+    it("Z4- should create a servient (consume) with OPCUA client factory - writeProperty - the Value view", async () => {
         const { thing, servient } = await makeThing();
 
         try {
@@ -472,8 +463,8 @@ describe("Full OPCUA Thing Test", () => {
             const temperatureBefore = await readTemperature(thing);
             expect(temperatureBefore).to.eql(27);
 
-            // ---------------------------------------------- application/json
-            expect(thingDescription.properties?.temperatureSetPoint.forms[0].contentType).eql("application/json");
+            // ---------------------------------------------- the Value view
+            expect(thingDescription.properties?.temperatureSetPoint.forms[0].contentType).eql(UABINARY);
             await thing.writeProperty("temperatureSetPoint", 110);
             const temperatureAfter = await readTemperature(thing);
             expect(temperatureAfter).to.eql(110);
@@ -482,16 +473,16 @@ describe("Full OPCUA Thing Test", () => {
         }
     });
 
-    it("Z5- should create a servient (consume) with OPCUA client factory - writeProperty - application/opcua+json;type=DataValue", async () => {
+    it("Z5- should create a servient (consume) with OPCUA client factory - writeProperty - the DataValue view", async () => {
         const { thing, servient } = await makeThing();
         try {
-            // ---------------------------------------------- application/opcua+json;type=DataValue
+            // ---------------------------------------------- the DataValue view
             expect(thingDescription.properties?.temperatureSetPoint.forms[3].contentType).eql(
-                "application/opcua+json;type=DataValue"
+                `${UABINARY};type=DataValue`
             );
             await thing.writeProperty(
                 "temperatureSetPoint",
-                { Value: { Type: 11, Body: 100 }, StatusCode: 1, SourceTimestamp: new Date() },
+                { UaType: 11, Value: 100, SourceTimestamp: new Date().toISOString() },
                 { formIndex: 3 }
             );
             const temperatureAfter2 = await readTemperature(thing);
@@ -501,14 +492,14 @@ describe("Full OPCUA Thing Test", () => {
         }
     });
 
-    it("Z6- should create a servient (consume) with OPCUA client factory - writeProperty - application/opcua+json;type=Variant", async () => {
+    it("Z6- should create a servient (consume) with OPCUA client factory - writeProperty - the Variant view", async () => {
         const { thing, servient } = await makeThing();
         try {
-            // ---------------------------------------------- application/opcua+json;type=Variant
+            // ---------------------------------------------- the Variant view
             expect(thingDescription.properties?.temperatureSetPoint.forms[2].contentType).eql(
-                "application/opcua+json;type=Variant"
+                `${UABINARY};type=Variant`
             );
-            await thing.writeProperty("temperatureSetPoint", { Type: 11, Body: 90 }, { formIndex: 2 });
+            await thing.writeProperty("temperatureSetPoint", { UaType: 11, Value: 90 }, { formIndex: 2 });
 
             const temperatureAfter3 = await readTemperature(thing);
             expect(temperatureAfter3).to.eql(90);
@@ -541,7 +532,7 @@ describe("Full OPCUA Thing Test", () => {
         }
     });
 
-    it("Z8 - should create a servient (consume) with OPCUA client factory - InvokeAction - application/opcua+json;type=Variant", async () => {
+    it("Z8 - should create a servient (consume) with OPCUA client factory - InvokeAction - the Variant view", async () => {
         const { thing, servient } = await makeThing();
 
         await thing.writeProperty("temperatureSetPoint", 27);
@@ -549,7 +540,7 @@ describe("Full OPCUA Thing Test", () => {
         try {
             // read temperature before
             const contentA = await thing.invokeAction("$OPCUA$setTemperatureSetPoint", {
-                TargetTemperature: { Type: 11, Body: 26 },
+                TargetTemperature: { UaType: 11, Value: 26 },
             });
             if (!contentA) {
                 expect.fail("contentA null");
@@ -557,7 +548,7 @@ describe("Full OPCUA Thing Test", () => {
             const returnedValue = await contentA.value();
 
             debug(`Temperature setpoint before ${returnedValue}`);
-            expect(returnedValue).to.eql({ PreviousSetPoint: { Type: 11, Body: 27 } });
+            expect(returnedValue).to.eql({ PreviousSetPoint: { UaType: 11, Value: 27 } });
 
             const contentVerif = await (await thing.readProperty("temperatureSetPoint")).value();
             debug(`Temperature setpoint before -verified ${contentVerif}`);
@@ -600,7 +591,7 @@ describe("Full OPCUA Thing Test", () => {
         }
     });
 
-    xit("Z10 - should create a servient (consume) with OPCUA client factory - InvokeAction (GetSongLyrics) - application/opcua+json;type=Variant", async () => {
+    xit("Z10 - should create a servient (consume) with OPCUA client factory - InvokeAction (GetSongLyrics) - the Variant view", async () => {
         const { thing, servient } = await makeThing();
 
         try {
@@ -673,20 +664,7 @@ describe("Full OPCUA Thing Test", () => {
         }
     }
 
-    it("Z12 - InvokeAction with application/octet-stream gives what application/json gives", async () => {
-        const temperature = { TargetTemperature: 26 };
-        expect(await invokeAndRead("$OctetStream$setTemperatureSetPoint", temperature)).to.eql(
-            await invokeAndRead("setTemperatureSetPoint", temperature)
-        );
-
-        // structures of namespace 0 in the output: KeyValuePair[]
-        const songs = { SongList: ["Jingle Bell", "Mary has a little lamb"], Volume: 100 };
-        const octet = await invokeAndRead("$OctetStream$GetSongLyrics", songs);
-        expect(octet).to.eql(await invokeAndRead("GetSongLyrics", songs));
-        expect(octet).to.have.property("SoundAndLyrics").with.length(2);
-    });
-
-    it("Z13 - InvokeAction with application/octet-stream accepts the input as a DataValue of KeyValuePair[]", async () => {
+    it("Z13 - InvokeAction accepts the input as a DataValue of KeyValuePair[]", async () => {
         const input = encodeUABinaryDataValue(
             new DataValue({
                 value: argumentsToVariant([["TargetTemperature", new Variant({ dataType: "Double", value: 25 })]]),
@@ -698,6 +676,6 @@ describe("Full OPCUA Thing Test", () => {
                 controller.close();
             },
         });
-        expect(await invokeAndRead("$OctetStream$setTemperatureSetPoint", stream)).to.eql({ PreviousSetPoint: 27 });
+        expect(await invokeAndRead("setTemperatureSetPoint", stream)).to.eql({ PreviousSetPoint: 27 });
     });
 });

@@ -17,11 +17,12 @@
 // End-to-end matrix for `contentType` handling in binding-opcua.
 //
 // Purpose: demonstrate, against a real OPC UA server, what each combination of
-// `contentType` and schema-`type` placement actually does today. Written for
-// issue #1400 and PRs #1402 / #1449.
+// `contentType` and schema-`type` placement does. Written for issue #1400.
 //
-// OPC-10101 v1.00 6.5.3: "If the default serialization of the OPC UA server is
-// used, the contentType should be assigned with the value application/octet-stream."
+// An opc.tcp form takes application/opcua+uabinary (OPC 10000-6 Table 80, planned for
+// WoT OPC UA Binding 1.1); its `type` parameter picks what value() returns. Every other
+// contentType, and a form without one, is refused with a message naming the replacement.
+// See doc/decisions.md (D8).
 //
 // The server exposes SpecialVariable, a Double holding 42.0.
 //
@@ -34,11 +35,12 @@ import { OPCUAClientFactory } from "../src";
 import { startServer } from "./fixture/basic-opcua-server";
 import { printTable, shortVerdict } from "./report-table";
 
-const { info } = createLoggers("binding-opcua", "octet-stream-e2e-test");
+const { info } = createLoggers("binding-opcua", "contenttype-e2e-test");
 
 const endpoint = "opc.tcp://localhost:7890";
 const NODE = "nsu=http://example.org/SpecialNamespace/;s=SpecialVariable";
 const EXPECTED = 42.0;
+const UABINARY = "application/opcua+uabinary";
 
 /** One row of the matrix: how the TD is written, and what came back. */
 interface Scenario {
@@ -48,6 +50,8 @@ interface Scenario {
     contentType?: string;
     /** where the JSON-schema `type` is declared */
     typeAt: "affordance" | "form" | "both" | "nowhere";
+    /** the JSON-schema `type`, "number" unless said otherwise */
+    schemaType?: string;
 }
 
 const SCENARIOS: Scenario[] = [
@@ -65,37 +69,40 @@ const SCENARIOS: Scenario[] = [
     },
     {
         key: "C",
-        description: "octet-stream, type on form (undocumented workaround)",
-        contentType: "application/octet-stream",
-        typeAt: "form",
+        description: "opcua+uabinary, type on affordance",
+        contentType: UABINARY,
+        typeAt: "affordance",
     },
     {
         key: "D",
-        description: "octet-stream, type in both places",
-        contentType: "application/octet-stream",
-        typeAt: "both",
+        description: "opcua+uabinary, type on form only",
+        contentType: UABINARY,
+        typeAt: "form",
     },
     {
         key: "E",
-        description: "octet-stream, no type anywhere",
-        contentType: "application/octet-stream",
-        typeAt: "nowhere",
-    },
-    {
-        key: "G",
-        description: "application/opcua+json, no type declared (control for F)",
-        contentType: "application/opcua+json",
-        typeAt: "nowhere",
+        description: "opcua+uabinary, type in both places",
+        contentType: UABINARY,
+        typeAt: "both",
     },
     {
         key: "F",
-        description: "explicit application/opcua+json, type on affordance",
+        description: "opcua+uabinary;type=Variant, object type on affordance",
+        contentType: `${UABINARY};type=Variant`,
+        typeAt: "affordance",
+        schemaType: "object",
+    },
+    {
+        key: "G",
+        description: "application/opcua+json, type on affordance",
         contentType: "application/opcua+json",
         typeAt: "affordance",
+        schemaType: "object",
     },
 ];
 
 function makeTD(s: Scenario): WoT.ThingDescription {
+    const schemaType = s.schemaType ?? "number";
     const form: Record<string, unknown> = {
         href: `/?id=${NODE}`,
         op: ["readproperty"],
@@ -104,7 +111,7 @@ function makeTD(s: Scenario): WoT.ThingDescription {
         form.contentType = s.contentType;
     }
     if (s.typeAt === "form" || s.typeAt === "both") {
-        form.type = "number";
+        form.type = schemaType;
     }
 
     const property: Record<string, unknown> = {
@@ -113,7 +120,7 @@ function makeTD(s: Scenario): WoT.ThingDescription {
         forms: [form],
     };
     if (s.typeAt === "affordance" || s.typeAt === "both") {
-        property.type = "number";
+        property.type = schemaType;
     }
 
     return {
@@ -121,7 +128,7 @@ function makeTD(s: Scenario): WoT.ThingDescription {
         "@type": ["Thing"],
         securityDefinitions: { nosec_sc: { scheme: "nosec" } },
         security: "nosec_sc",
-        title: `octet-stream scenario ${s.key}`,
+        title: `contentType scenario ${s.key}`,
         base: endpoint,
         properties: { special: property },
     } as unknown as WoT.ThingDescription;
@@ -196,33 +203,36 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
 
             switch (s.key) {
                 case "A":
-                    // no contentType: application/json, the W3C WoT TD 1.1 default
-                    expect(outcome.ok, "A should succeed").to.equal(true);
-                    expect(outcome.value).to.equal(EXPECTED);
+                    // no contentType is application/json (W3C WoT TD 1.1), which an opc.tcp form
+                    // no longer takes
+                    expect(outcome.ok).to.equal(false);
+                    expect(outcome.error).to.match(/needs contentType 'application\/opcua\+uabinary'/);
                     break;
                 case "B":
-                case "D":
-                    // On master these failed inside core's OctetstreamCodec with
-                    // "dataType.toLowerCase is not a function". application/octet-stream
-                    // now carries OPC UA Binary (OPC 10101 §6.5.3), and value() gives what
-                    // application/json gives.
-                    expect(outcome.ok, `${s.key} should succeed: ${outcome.error}`).to.equal(true);
-                    expect(outcome.value).to.equal(EXPECTED);
+                    // WoT OPC UA Binding 1.0 names application/octet-stream; its 1.1 replacement
+                    // is application/opcua+uabinary, and the message says so
+                    expect(outcome.ok).to.equal(false);
+                    expect(outcome.error).to.match(/Use 'application\/opcua\+uabinary'/);
+                    expect(outcome.error, "the error should name the offending contentType").to.match(/octet-stream/);
                     break;
                 case "C":
                 case "E":
-                    // core refuses before decoding, as for G: a `type` on the form is not
-                    // the schema of the affordance
+                    expect(outcome.ok, `${s.key} should succeed: ${outcome.error}`).to.equal(true);
+                    expect(outcome.value).to.equal(EXPECTED);
+                    break;
+                case "D":
+                    // core refuses before decoding: a `type` on the form is not the schema of
+                    // the affordance
                     expect(outcome.ok).to.equal(false);
                     expect(outcome.error).to.match(/No schema type defined/);
                     break;
                 case "F":
-                    expect(outcome.ok).to.equal(false);
-                    expect(outcome.error).to.match(/Invalid value according to DataSchema/);
+                    expect(outcome.ok, `F should succeed: ${outcome.error}`).to.equal(true);
+                    expect(outcome.value).to.deep.equal({ UaType: 11, Value: EXPECTED });
                     break;
                 case "G":
                     expect(outcome.ok).to.equal(false);
-                    expect(outcome.error).to.match(/No schema type defined/);
+                    expect(outcome.error).to.match(/Use 'application\/opcua\+uabinary;type=DataValue'/);
                     break;
             }
             info(`scenario ${s.key}: ${outcome.ok ? "OK " + JSON.stringify(outcome.value) : "THROW " + outcome.error}`);

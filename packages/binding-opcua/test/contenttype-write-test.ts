@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 //
-// Write round-trip per contentType flavour.
+// Write round-trip for application/opcua+uabinary and the views of its type parameter.
 //
 // The read matrices show what comes back; this shows that a value written
 // through the binding survives, which is where a lossy codec does real damage:
@@ -26,7 +26,7 @@ import chaiAsPromised from "chai-as-promised";
 import { expect, use } from "chai";
 
 use(chaiAsPromised);
-import { Servient, createLoggers } from "@node-wot/core";
+import { Servient } from "@node-wot/core";
 import {
     OPCUAServer,
     DataType,
@@ -44,9 +44,8 @@ import { OPCUAClientFactory } from "../src";
 import { decodeUABinaryDataValue, encodeUABinaryDataValue } from "../src/ua-binary";
 import { startServer } from "./fixture/basic-opcua-server";
 
-const { info } = createLoggers("binding-opcua", "contenttype-write-test");
-
 const endpoint = "opc.tcp://localhost:7890";
+const UABINARY = "application/opcua+uabinary";
 const NS = "http://example.org/WriteTest/";
 
 interface WriteCase {
@@ -250,38 +249,27 @@ describe("contentType write round-trip", function () {
         await opcuaServer.shutdown();
     });
 
-    describe("application/json (bare value, the default)", function () {
-        for (const c of CASES) {
-            it(`${c.key} survives a write/read round-trip`, async function () {
-                const thing = await wot.consume(makeTD(c));
-                await thing.writeProperty("v", c.write as WoT.DataSchemaValue);
-                const read = await thing.readProperty("v");
-                const got = await read.value();
-                info(`${c.key}: wrote ${JSON.stringify(c.write)} read ${JSON.stringify(got)}`);
-                expect(got).to.deep.equal(c.expect);
-            });
-        }
+    describe("a form without contentType, or with one this binding no longer takes", function () {
+        it("refuses a form without contentType, which TD 1.1 makes application/json", async function () {
+            const thing = await wot.consume(makeTD(CASES[0]));
+            await expect(thing.readProperty("v")).to.be.rejectedWith(
+                /needs contentType 'application\/opcua\+uabinary'/
+            );
+        });
+
+        it("refuses application/json, naming its replacement", async function () {
+            const thing = await wot.consume(makeTD(CASES[0], "application/json"));
+            await expect(thing.writeProperty("v", 1.5 as WoT.DataSchemaValue)).to.be.rejectedWith(
+                /Use 'application\/opcua\+uabinary'/
+            );
+        });
     });
 
-    describe("application/opcua+json;type=Value", function () {
-        for (const c of CASES) {
-            it(`${c.key} survives a write/read round-trip`, async function () {
-                const thing = await wot.consume(makeTD(c, "application/opcua+json;type=Value"));
-                await thing.writeProperty("v", c.write as WoT.DataSchemaValue);
-                const read = await thing.readProperty("v");
-                expect(await read.value()).to.deep.equal(c.expect);
-            });
-        }
-    });
-
-    describe("application/octet-stream (OPC UA Binary)", function () {
-        // The binding registers its own codec for the opc.tcp scheme (core #1409, PR #1572),
-        // so OPC UA content never reaches the generic OctetstreamCodec, which packs Modbus
-        // registers. The payload is a UA Binary DataValue; value() is what application/json
-        // gives. See doc/octet-stream-ua-binary-plan.md.
+    describe("application/opcua+uabinary (the Value view, the default)", function () {
+        // The payload is a UA Binary DataValue; value() is the decoded value. See doc/decisions.md (D8).
         for (const c of CASES) {
             it(`${c.key} survives a write/read round-trip, written as a value-only DataValue`, async function () {
-                const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+                const thing = await wot.consume(makeTD(c, UABINARY));
                 await thing.writeProperty("v", c.write as WoT.DataSchemaValue);
                 const read = await thing.readProperty("v");
                 expect(await read.value()).to.deep.equal(c.expect);
@@ -293,11 +281,11 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
 
             await thing.writeProperty("v", Buffer.from([0xde, 0xad, 0xbe, 0xef]) as unknown as WoT.DataSchemaValue);
 
-            // value() reports base64, the same as the JSON flavours
+            // value() reports a ByteString as base64, as OPC UA JSON does
             const read = await thing.readProperty("v");
             expect(await read.value()).to.equal("3q2+7w==");
 
@@ -313,7 +301,7 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing Int32 case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
             const bytes = encodeUABinaryDataValue(new DataValue({ value: { dataType: DataType.Int32, value: -7 } }));
             // mask 01 (value only), type 06 (Int32), then -7
             expect(bytes.toString("hex")).to.equal("0106f9ffffff");
@@ -328,7 +316,7 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
 
             await thing.writeProperty("v", "AQID" as WoT.DataSchemaValue);
 
@@ -341,7 +329,7 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
 
             await thing.writeProperty("v", new Uint8Array([1, 2, 3]) as unknown as WoT.DataSchemaValue);
 
@@ -354,7 +342,7 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing Double case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
             let message = "";
             try {
                 // a valid payload, a String: the refusal can only come from the conversion
@@ -371,14 +359,14 @@ describe("contentType write round-trip", function () {
             if (c === undefined) {
                 throw new Error("missing ByteString case");
             }
-            const thing = await wot.consume(makeTD(c, "application/octet-stream"));
+            const thing = await wot.consume(makeTD(c, UABINARY));
             await expect(thing.writeProperty("v", 1.5 as WoT.DataSchemaValue)).to.be.rejectedWith(
                 /cannot convert the Double .* to ByteString/
             );
         });
 
         it("refuses a structure, by value and as bytes, pointing at plan question A3", async function () {
-            const thing = await wot.consume(makeRangeTD("application/octet-stream"));
+            const thing = await wot.consume(makeRangeTD(UABINARY));
             await expect(
                 thing.writeProperty("v", { Low: 0, High: 10 } as unknown as WoT.DataSchemaValue)
             ).to.be.rejectedWith(/writing a structure .* is not supported yet[\s\S]*A3/);
@@ -390,69 +378,52 @@ describe("contentType write round-trip", function () {
         });
     });
 
-    describe("OPC UA JSON edition (version parameter)", function () {
-        // 1.04 is the deprecated Reversible/NonReversible pair, 1.05 the Compact/Verbose one
-        // that replaced it (OPC 10000-6 5.4). See doc/opcua-json-encoding.md.
+    describe("type=Variant and type=DataValue: the same payload, a richer value()", function () {
+        // OPC UA JSON 1.05 Compact (OPC 10000-6 5.4). See doc/opcua-json-encoding.md.
         function doubleCase(): WriteCase {
             const c = CASES.find((x) => x.key === "Double");
             if (c === undefined) {
                 throw new Error("missing Double case");
             }
-            // the envelope flavours return an object, so the TD must say so: core
-            // validates what value() returns against the schema
+            // the views return an object, so the TD must say so: core validates what
+            // value() returns against the schema
             return { ...c, wotType: "object" };
         }
 
-        it("1.04 is the default and names the Variant fields Type and Body", async function () {
-            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=Variant"));
-            const read = await thing.readProperty("v");
-            expect(await read.value()).to.have.keys(["Type", "Body"]);
-        });
-
-        it("version=1.05 names them UaType and Value", async function () {
-            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=Variant;version=1.05"));
+        it("type=Variant gives the value and its OPC UA type", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), `${UABINARY};type=Variant`));
             const read = await thing.readProperty("v");
             expect(await read.value()).to.have.keys(["UaType", "Value"]);
         });
 
-        it("version=1.05 flattens the DataValue onto the value", async function () {
-            const thing = await wot.consume(makeTD(doubleCase(), "application/opcua+json;type=DataValue;version=1.05"));
-            const read = await thing.readProperty("v");
-            const value = (await read.value()) as Record<string, unknown>;
-            expect(value).to.have.property("UaType");
-            expect(value).to.have.property("SourceTimestamp");
-            // 1.04 nests the Variant under "Value"; 1.05 puts the value itself there
+        it("type=DataValue adds the timestamps", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), `${UABINARY};type=DataValue`));
+            const value = (await (await thing.readProperty("v")).value()) as Record<string, unknown>;
+            expect(value).to.have.property("UaType", DataType.Double);
             expect(value.Value).to.be.a("number");
+            expect(new Date(value.SourceTimestamp as string).getTime()).to.be.greaterThan(0);
         });
 
-        it("round-trips a write in 1.05", async function () {
-            const c = doubleCase();
-            const thing = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.05"));
+        it("round-trips a write through the Variant view", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), `${UABINARY};type=Variant`));
             await thing.writeProperty("v", { UaType: 11, Value: 1.25 } as unknown as WoT.DataSchemaValue);
             const read = await thing.readProperty("v");
             expect(await read.value()).to.deep.equal({ UaType: 11, Value: 1.25 });
         });
 
-        it("accepts the other edition on write, whatever the form says", async function () {
-            const c = doubleCase();
-            // form says 1.05, payload is 1.04: decoding follows the payload
-            const thing105 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.05"));
-            await thing105.writeProperty("v", { Type: 11, Body: 2.5 } as unknown as WoT.DataSchemaValue);
-            expect(await (await thing105.readProperty("v")).value()).to.deep.equal({ UaType: 11, Value: 2.5 });
-
-            // and the reverse
-            const thing104 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant"));
-            await thing104.writeProperty("v", { UaType: 11, Value: 3.5 } as unknown as WoT.DataSchemaValue);
-            expect(await (await thing104.readProperty("v")).value()).to.deep.equal({ Type: 11, Body: 3.5 });
+        it("converts a Variant view write to the node's DataType, as the Value view does", async function () {
+            const c = { ...(CASES.find((x) => x.key === "Int32") as WriteCase), wotType: "object" };
+            const thing = await wot.consume(makeTD(c, `${UABINARY};type=Variant`));
+            // a Double given for an Int32 node
+            await thing.writeProperty("v", { UaType: 11, Value: 42 } as unknown as WoT.DataSchemaValue);
+            expect(await (await thing.readProperty("v")).value()).to.deep.equal({ UaType: DataType.Int32, Value: 42 });
         });
 
-        it("refuses an unknown version, and mode without 1.05", async function () {
-            const c = doubleCase();
-            const bad = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;version=1.06"));
-            await expect(bad.readProperty("v")).to.be.rejectedWith(/unsupported 'version' parameter/);
-
-            const modeOn104 = await wot.consume(makeTD(c, "application/opcua+json;type=Variant;mode=verbose"));
-            await expect(modeOn104.readProperty("v")).to.be.rejectedWith(/'mode' parameter belongs to/);
+        it("writes the value of a DataValue view", async function () {
+            const thing = await wot.consume(makeTD(doubleCase(), `${UABINARY};type=DataValue`));
+            await thing.writeProperty("v", { UaType: 11, Value: 2.5 } as unknown as WoT.DataSchemaValue);
+            const value = (await (await thing.readProperty("v")).value()) as Record<string, unknown>;
+            expect(value.Value).to.equal(2.5);
         });
     });
 
@@ -460,7 +431,7 @@ describe("contentType write round-trip", function () {
         // the binding passes the session's namespace table to the JSON encoders and decoders;
         // without it a NodeId of the server's namespace 2+ would be written ns=<index>, and an
         // nsu= NodeId would decode as a String NodeId of namespace 0
-        const variant105 = "application/opcua+json;type=Variant;version=1.05";
+        const variant105 = `${UABINARY};type=Variant`;
 
         it("reads a NodeId as nsu=<uri>, and writes it back to the same node", async function () {
             const thing = await wot.consume(makeNodeIdTD(variant105, "object"));
@@ -472,14 +443,9 @@ describe("contentType write round-trip", function () {
             expect(back).to.deep.equal({ UaType: DataType.NodeId, Value: `nsu=${NS};s=W_Int32` });
         });
 
-        it("gives the same NodeId with application/octet-stream as with application/json", async function () {
-            const json = await (
-                await (await wot.consume(makeNodeIdTD("application/json", "object"))).readProperty("v")
-            ).value();
-            const octet = await (
-                await (await wot.consume(makeNodeIdTD("application/octet-stream", "object"))).readProperty("v")
-            ).value();
-            expect(octet).to.deep.equal(json);
+        it("names the namespace by URI in the Value view too", async function () {
+            const value = await (await (await wot.consume(makeNodeIdTD(UABINARY, "object"))).readProperty("v")).value();
+            expect(JSON.stringify(value)).to.contain(NS);
         });
     });
 
@@ -494,7 +460,7 @@ describe("contentType write round-trip", function () {
                 message = (err as Error).message;
             }
             expect(message).to.match(/unsupported contentType/);
-            expect(message).to.match(/application\/opcua\+json/);
+            expect(message).to.match(/application\/opcua\+uabinary/);
         });
     });
 });

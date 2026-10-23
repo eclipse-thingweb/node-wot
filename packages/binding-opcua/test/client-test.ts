@@ -20,12 +20,12 @@ import { ContentSerdes, createLoggers } from "@node-wot/core";
 import { VariableIds, OPCUAServer } from "node-opcua";
 
 import { OPCUAProtocolClient, OPCUAForm } from "../src/opcua-protocol-client";
-import { OpcuaJSONCodec } from "../src/codec";
+import { OpcuaUABinaryCodec } from "../src/codec";
 import { startServer } from "./fixture/basic-opcua-server";
 
 const { debug } = createLoggers("binding-opcua", "opcua-protocol-client");
 
-// the payload is an OPC UA JSON DataValue; its shape is asserted below, not by a schema
+// value() is OPC UA JSON (the value, the Variant or the DataValue); its shape is asserted below
 const anySchema = { type: "object" } as const;
 
 describe("OPCUA Client", function () {
@@ -41,7 +41,7 @@ describe("OPCUA Client", function () {
     before(() => {
         // ensure codec is loaded
         const codecSerDes = ContentSerdes.get();
-        codecSerDes.addCodec(new OpcuaJSONCodec());
+        codecSerDes.addCodec(new OpcuaUABinaryCodec());
     });
 
     let client: OPCUAProtocolClient;
@@ -56,43 +56,18 @@ describe("OPCUA Client", function () {
         await opcuaServer.shutdown();
     });
 
+    const UABINARY = "application/opcua+uabinary";
     [
-        // 0
-        { contentType: "application/json", expected: "2022-01-31T10:45:00.000Z" },
+        // 0: the Value view, the default
+        { contentType: UABINARY, expected: "2022-01-31T10:45:00.000Z" },
         // 1
+        { contentType: `${UABINARY};type=Value`, expected: "2022-01-31T10:45:00.000Z" },
+        // 2: the Variant view, 1.05 Compact
+        { contentType: `${UABINARY};type=Variant`, expected: { UaType: 13, Value: "2022-01-31T10:45:00.000Z" } },
+        // 3: the DataValue view, 1.05 Compact, with the timestamps the server sent
         {
-            contentType: "application/opcua+json",
-            expected: {
-                SourceTimestamp: "*",
-                Value: {
-                    Type: 13,
-                    Body: new Date("2022-01-31T10:45:00.000Z"),
-                },
-            },
-        },
-        // 2
-        {
-            contentType: "application/opcua+json;type=DataValue",
-            expected: {
-                SourceTimestamp: "*",
-                Value: {
-                    Type: 13,
-                    Body: new Date("2022-01-31T10:45:00.000Z"),
-                },
-            },
-        },
-        // 3
-        {
-            contentType: "application/opcua+json;type=Variant",
-            expected: {
-                Type: 13,
-                Body: new Date("2022-01-31T10:45:00.000Z"),
-            },
-        },
-        // 4
-        {
-            contentType: "application/opcua+json;type=Value;dataType=DateTime",
-            expected: new Date("2022-01-31T10:45:00.000Z"),
+            contentType: `${UABINARY};type=DataValue`,
+            expected: { UaType: 13, Value: "2022-01-31T10:45:00.000Z", SourceTimestamp: "*", ServerTimestamp: "*" },
         },
     ].forEach(({ contentType, expected }, index) => {
         it(`Y1a-${index} should read a topic with contentType= ${contentType}`, async () => {
@@ -111,10 +86,16 @@ describe("OPCUA Client", function () {
             const dataValue = codecSerDes.contentToValue(content2, anySchema) as Record<string, unknown>;
 
             // (deal with always changing date )
-            if (dataValue.SourceTimestamp != null) {
-                expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
-                dataValue.SourceTimestamp = "*";
+            for (const key of ["SourceTimestamp", "ServerTimestamp"]) {
+                if (dataValue[key] != null) {
+                    expect(new Date(dataValue[key] as string).getTime()).to.be.greaterThan(0);
+                    dataValue[key] = "*";
+                }
             }
+            // node-opcua 2.187 writes the picoseconds in its own unit, not in 10 ps (Part 6 Table 42):
+            // left out until node-opcua-json fixes it
+            delete dataValue.SourcePicoseconds;
+            delete dataValue.ServerPicoseconds;
             debug(`${dataValue}`);
             expect(dataValue).to.eql(expected);
         });
@@ -133,10 +114,16 @@ describe("OPCUA Client", function () {
             const dataValue = codecSerDes.contentToValue(content2, anySchema) as Record<string, unknown>;
 
             // (deal with always changing date )
-            if (dataValue.SourceTimestamp != null) {
-                expect(dataValue.SourceTimestamp).to.be.instanceOf(Date);
-                dataValue.SourceTimestamp = "*";
+            for (const key of ["SourceTimestamp", "ServerTimestamp"]) {
+                if (dataValue[key] != null) {
+                    expect(new Date(dataValue[key] as string).getTime()).to.be.greaterThan(0);
+                    dataValue[key] = "*";
+                }
             }
+            // node-opcua 2.187 writes the picoseconds in its own unit, not in 10 ps (Part 6 Table 42):
+            // left out until node-opcua-json fixes it
+            delete dataValue.SourcePicoseconds;
+            delete dataValue.ServerPicoseconds;
             debug(`${dataValue}`);
             expect(dataValue).to.eql(expected);
         });
@@ -146,6 +133,7 @@ describe("OPCUA Client", function () {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
+            contentType: UABINARY,
         };
 
         let counter = 0;
@@ -162,6 +150,7 @@ describe("OPCUA Client", function () {
         const form: OPCUAForm = {
             href: endpoint,
             "opcua:nodeId": VariableIds.Server_ServerStatus_CurrentTime,
+            contentType: UABINARY,
         };
 
         await new Promise<void>((resolve) => {
@@ -201,8 +190,9 @@ describe("OPCUA Client", function () {
             href: endpoint,
             "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet" },
             "opcua:method": { root: "i=84", path: "/Objects/1:MySensor/2:MethodSet/1:SetTemperatureSetPoint" },
+            contentType: UABINARY,
         };
-        const contentType = "application/json";
+        const contentType = UABINARY;
         const contentSerDes = ContentSerdes.get();
 
         const value = { TargetTemperature: 25 }; // inputSchema
@@ -221,6 +211,6 @@ describe("OPCUA Client", function () {
         if (outputArguments == null) {
             expect.fail("outputArguments is null");
         }
-        outputArguments.should.eql({ PreviousSetPoint: 27 });
+        expect(outputArguments).to.eql({ PreviousSetPoint: 27 });
     });
 });
