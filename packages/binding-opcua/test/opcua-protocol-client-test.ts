@@ -42,7 +42,7 @@ describe("OPCUA Protocol Client", function () {
         try {
             const form1: OPCUAForm = {
                 href: `${endpoint}?id=ns=1;s=Temperature`,
-                contentType: "application/json",
+                contentType: "application/opcua+uabinary",
             };
 
             await client.readResource(form1);
@@ -53,7 +53,7 @@ describe("OPCUA Protocol Client", function () {
 
             const form2: OPCUAForm = {
                 href: `${endpoint}?id=ns=1;s=Pressure`,
-                contentType: "application/json",
+                contentType: "application/opcua+uabinary",
             };
 
             await client.readResource(form2);

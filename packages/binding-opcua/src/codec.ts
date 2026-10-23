@@ -12,6 +12,4 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
-export * from "./codecs/opcua-binary-codec";
-export * from "./codecs/opcua-json-codec";
-export * from "./codecs/opcua-data-schemas";
+export * from "./codecs/opcua-ua-binary-codec";

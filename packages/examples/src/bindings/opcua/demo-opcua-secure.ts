@@ -71,7 +71,7 @@ const thingDescription: WoT.ThingDescription = {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
                     "opcua:nodeId": { root: "i=84", path: "/Objects/1:MySensor/2:ParameterSet/1:Temperature" },
-                    contentType: "application/json",
+                    contentType: "application/opcua+uabinary",
                 },
             ],
         },
