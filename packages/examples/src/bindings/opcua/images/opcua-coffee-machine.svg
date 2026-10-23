@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 640 430" width="640" height="430" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13">
+  <title>Status screen of the coffee machine example, while it makes an Americano</title>
+  <rect x="0" y="0" width="640" height="430" rx="10" fill="#0d1117"/>
+  <rect x="0" y="0" width="640" height="30" rx="10" fill="#21262d"/>
+  <rect x="0" y="20" width="640" height="10" fill="#21262d"/>
+  <circle cx="18" cy="15" r="5.5" fill="#ff5f56"/>
+  <circle cx="36" cy="15" r="5.5" fill="#ffbd2e"/>
+  <circle cx="54" cy="15" r="5.5" fill="#27c93f"/>
+  <text x="320" y="19" text-anchor="middle" font-size="12" fill="#8b949e">npm run bindings:opcua:coffee-machine</text>
+
+  <text x="18" y="58" fill="#58a6ff" font-weight="bold">======== Coffee Machine Status ======== <tspan fill="#8b949e" font-weight="normal">2026-10-23T08:37:34Z</tspan></text>
+
+  <g fill="#c9d1d9">
+    <text x="26" y="84">🔄</text><text x="60" y="84">Current State</text><text x="230" y="84">:</text><text x="246" y="84" fill="#d29922" font-weight="bold">Serving Coffee</text>
+    <text x="26" y="106">🔥</text><text x="60" y="106">Heater Status</text><text x="230" y="106">:</text><text x="246" y="106" fill="#f85149">Heating</text>
+    <text x="26" y="128">🌡️</text><text x="60" y="128">Boiler Temperature</text><text x="230" y="128">:</text><text x="246" y="128" fill="#f85149">99.84 °C</text>
+    <text x="26" y="150">🚰</text><text x="60" y="150">Pump Status</text><text x="230" y="150">:</text><text x="246" y="150" fill="#3fb950">On</text>
+    <text x="26" y="172">🚪</text><text x="60" y="172">Valve Status</text><text x="230" y="172">:</text><text x="246" y="172" fill="#3fb950">Open</text>
+    <text x="26" y="194">💧</text><text x="60" y="194">Water Tank Level</text><text x="230" y="194">:</text><text x="246" y="194">700.34 ml</text>
+    <text x="26" y="216">⚙️</text><text x="60" y="216">Grinder Status</text><text x="230" y="216">:</text><text x="246" y="216">Off</text>
+    <text x="26" y="238">⏱️</text><text x="60" y="238">Grinding Duration</text><text x="230" y="238">:</text><text x="246" y="238">18.00 s</text>
+    <text x="26" y="260">☕</text><text x="60" y="260">Coffee Bean Level</text><text x="230" y="260">:</text><text x="246" y="260">480.00 g</text>
+  </g>
+
+  <text x="18" y="286" fill="#58a6ff">========================================</text>
+  <text x="18" y="312" fill="#8b949e">---- Recorded Actions (last 5) ----</text>
+  <g fill="#c9d1d9">
+    <text x="18" y="334"><tspan fill="#8b949e">2026-10-23T08:34:40Z</tspan> - Machine is ready !</text>
+    <text x="18" y="356"><tspan fill="#8b949e">2026-10-23T08:34:50Z</tspan> - Invoking brewCoffee(Mocha) action...</text>
+    <text x="18" y="378"><tspan fill="#8b949e">2026-10-23T08:36:25Z</tspan> - Coffee is ready !</text>
+    <text x="18" y="400"><tspan fill="#8b949e">2026-10-23T08:36:35Z</tspan> - Invoking brewCoffee(Americano) action...</text>
+  </g>
+  <text x="18" y="420" fill="#8b949e">-----------------------------------</text>
+</svg>
