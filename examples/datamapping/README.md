@@ -2,7 +2,7 @@
 
 This directory contains the first CSV payload-binding fixture for node-wot.
 
-`toa5-weather.csv` is a TOA5-style CSV payload with metadata rows, a field-name row, units, aggregation qualifiers, and weather observations. `toa5-weather.td.json` describes four scalar values and one wind-speed time series. `toa5-weather.client.js` loads that TD, uses the file binding to read the CSV as `text/csv`, and loops over all five properties.
+The [toa5-weather](toa5-weather) directory contains `toa5-weather.csv`, a TOA5-style CSV payload with metadata rows, a field-name row, units, aggregation qualifiers, and weather observations. [toa5-weather.td.json](toa5-weather/toa5-weather.td.json) describes four scalar values and one wind-speed time series. [toa5-weather.client.js](toa5-weather/toa5-weather.client.js) loads that TD, uses the file binding to read the CSV as `text/csv`, and loops over all five properties.
 
 ## Run
 
@@ -11,7 +11,7 @@ Build the core and file-binding packages, then run the client from the repositor
 ```sh
 npm run build --workspace packages/core
 npm run build --workspace packages/binding-file
-node examples/datamapping/toa5-weather.client.js
+node examples/datamapping/toa5-weather/toa5-weather.client.js
 ```
 
 Expected output:
@@ -93,8 +93,9 @@ properties.
 
 ## Storm Event Example
 
-The larger `storm_data.csv` fixture contains 38 national weather service event
-columns. The separate [storm-data.td.json](storm-data.td.json) describes every
+The larger `storm_data.csv` fixture in [storm-data-file](storm-data-file)
+contains 38 national weather service event columns. The separate
+[storm-data.td.json](storm-data-file/storm-data.td.json) describes every
 column as a first-row property and adds `magnitudeSeries`, which applies
 `record` to all rows using `BEGIN_DATE` as the timestamp and `MAGNITUDE` as the
 value. Sparse event records preserve missing magnitudes as `null`.
@@ -102,8 +103,44 @@ value. Sparse event records preserve missing magnitudes as `null`.
 Run it from the repository root after building core and the file binding:
 
 ```sh
-node examples/datamapping/storm-data.client.js
+node examples/datamapping/storm-data-file/storm-data.client.js
 ```
+
+## InfluxDB Storm Event Example
+
+The [influxdb](influxdb) directory serves the same storm events from InfluxDB
+1.8 over HTTP. [docker-compose.yml](influxdb/docker-compose.yml) starts
+InfluxDB on port 8086, and the one-shot `storm-data-loader` service imports
+[storm_data.csv](storm-data-file/storm_data.csv) into the `storms` database as the `storm_event` measurement
+(`event_id`, `state`, `event_type` as tags; county, magnitude, casualties, and
+damage as fields; event begin time converted to UTC).
+
+[storm-data-influxdb.td.json](influxdb/storm-data-influxdb.td.json) points its
+forms at the InfluxDB `/query` endpoint with URL-encoded InfluxQL queries. The
+HTTP binding sends `Accept: text/csv`, InfluxDB answers with
+`name,tags,time,<columns>` CSV, and the same `csvv:*` and `map:fromWire` terms
+turn the rows into a count, a maximum, a tornado event list, and a magnitude
+time series.
+
+Run it from the repository root after building core and the HTTP binding:
+
+```sh
+docker compose -f examples/datamapping/influxdb/docker-compose.yml up -d influxdb
+docker compose -f examples/datamapping/influxdb/docker-compose.yml run --rm storm-data-loader
+node examples/datamapping/influxdb/storm-data-influxdb.client.js
+```
+
+Expected output:
+
+```text
+eventCount: 645
+maxMagnitude: 79
+tornadoes: 29 events, first: {"timestamp":1727302260,"eventId":"1217174","county":"POCAHONTAS CO.","state":"WEST VIRGINIA","injuries":0}
+magnitudeSeries: 194 points, first: {"timestamp":1727198880,"value":50}
+```
+
+Set `INFLUXDB_URL` to use another InfluxDB endpoint. Stop the stack with
+`docker compose -f examples/datamapping/influxdb/docker-compose.yml down`.
 
 ## Row Representation, Selection, and Reuse
 
