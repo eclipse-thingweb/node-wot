@@ -45,6 +45,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: "/Objects/2:DeviceSet/2:DeviceHealth",
@@ -59,6 +60,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:WaterTankLevel`,
@@ -74,6 +76,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:CoffeeBeanLevel`,
@@ -89,6 +92,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/7:BoilerTempWater`,
@@ -104,6 +108,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/7:CurrentState`,
@@ -119,6 +124,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:GrinderStatus`,
@@ -134,6 +140,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:HeaterStatus`,
@@ -149,6 +156,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:PumpStatus`,
@@ -164,6 +172,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:ValveStatus`,
@@ -179,6 +188,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "/",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": {
                         root: "i=84",
                         path: `/Objects/2:DeviceSet/${coffeeMachine}/7:Parameters/17:GrindingDuration`,
@@ -195,6 +205,7 @@ export const thingDescription: WoT.ThingDescription = {
                     type: "object",
                     href: "/",
                     op: ["invokeaction"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet` },
                     "opcua:method": {
                         root: "i=84",
@@ -219,6 +230,7 @@ export const thingDescription: WoT.ThingDescription = {
                     type: "object",
                     href: "/",
                     op: ["invokeaction"],
+                    contentType: "application/opcua+uabinary",
                     "opcua:nodeId": { root: "i=84", path: `/Objects/2:DeviceSet/${coffeeMachine}/2:MethodSet` },
                     "opcua:method": {
                         root: "i=84",

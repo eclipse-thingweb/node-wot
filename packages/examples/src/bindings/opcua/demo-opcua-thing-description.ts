@@ -37,6 +37,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "?id=ns=1;s=PumpSpeed",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                 },
             ],
         },
@@ -50,6 +51,7 @@ export const thingDescription: WoT.ThingDescription = {
                 {
                     href: "?id=ns=1;s=Temperature",
                     op: ["readproperty", "observeproperty"],
+                    contentType: "application/opcua+uabinary",
                 },
             ],
         },
