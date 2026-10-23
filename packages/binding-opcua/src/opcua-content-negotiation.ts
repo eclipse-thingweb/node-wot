@@ -33,7 +33,6 @@ import {
     JsonEncoderMode,
     opcuaJsonDecodeDataValue,
     opcuaJsonDecodeVariant,
-    opcuaJsonEncodeDataValue,
     opcuaJsonEncodeVariant,
 } from "node-opcua-json/104";
 import {
@@ -74,14 +73,11 @@ export type OPCUAFlavour =
 export type OPCUAView = "value" | "variant" | "dataValue";
 
 /**
- * Which edition of the OPC UA JSON encoding a rendering uses. 1.04 is the deprecated
- * Reversible/NonReversible pair (Part 6 Annex H), 1.05 the Compact/Verbose pair that replaced it.
- * Decoding accepts either edition: see detectEdition below.
+ * The edition of an OPC UA JSON payload: 1.04 is the deprecated Reversible/NonReversible pair
+ * (Part 6 Annex H), 1.05 the Compact/Verbose pair that replaced it. Each view writes one edition
+ * (see encodeDataValue); a written payload may use either (see detectEdition).
  */
 export type JsonEdition = "1.04" | "1.05";
-
-/** 1.05 only: Compact omits defaults, Verbose keeps everything and names enumerations. */
-export type JsonMode = "compact" | "verbose";
 
 export interface ContentFormat {
     /** media type with parameters stripped */
@@ -89,27 +85,15 @@ export interface ContentFormat {
     flavour: OPCUAFlavour;
     /** for application/opcua+uabinary: what value() returns */
     view: OPCUAView;
-    edition: JsonEdition;
-    mode: JsonMode;
     /** parameters parsed off the contentType string */
     parameters: Record<string, string>;
 }
 
-/**
- * The JSON rendering of each view. The value is the 1.04 NonReversible encoding, so that a
- * matrix is nested arrays (Annex H.8); the Variant and the DataValue are 1.05 Compact.
- */
+/** The JSON rendering of each view of application/opcua+uabinary. */
 const VIEW_FORMATS: Record<OPCUAView, ContentFormat> = {
-    value: { mediaType: "", flavour: "value", view: "value", edition: "1.04", mode: "compact", parameters: {} },
-    variant: { mediaType: "", flavour: "variant", view: "variant", edition: "1.05", mode: "compact", parameters: {} },
-    dataValue: {
-        mediaType: "",
-        flavour: "dataValue",
-        view: "dataValue",
-        edition: "1.05",
-        mode: "compact",
-        parameters: {},
-    },
+    value: { mediaType: "", flavour: "value", view: "value", parameters: {} },
+    variant: { mediaType: "", flavour: "variant", view: "variant", parameters: {} },
+    dataValue: { mediaType: "", flavour: "dataValue", view: "dataValue", parameters: {} },
 };
 
 /** The JSON rendering that value() gives for a view of application/opcua+uabinary. */
@@ -171,7 +155,7 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
                     `Expected one of: Value, Variant, DataValue.`
             );
         }
-        return { mediaType, flavour: "uaBinary", view, edition: "1.04", mode: "compact", parameters };
+        return { mediaType, flavour: "uaBinary", view, parameters };
     }
 
     const replacement = replacementOf(mediaType, parameters);
@@ -205,13 +189,9 @@ export function refuseStructure(dataType: DataType, hint: string): void {
 /**
  * Encode a DataValue according to the negotiated format.
  *
- * Returns { type, body } rather than a Content so that the caller decides how to
- * wrap it; this keeps the module free of stream plumbing.
+ * Returns { body } rather than a Content so that the caller decides how to wrap it; this keeps
+ * the module free of stream plumbing.
  */
-function mode105(format: ContentFormat): JsonEncoderMode105 {
-    return format.mode === "verbose" ? JsonEncoderMode105.Verbose : JsonEncoderMode105.Compact;
-}
-
 export function encodeDataValue(
     format: ContentFormat,
     dataValue: DataValue,
@@ -220,31 +200,18 @@ export function encodeDataValue(
 ): { body: Buffer } {
     switch (format.flavour) {
         case "value": {
-            // the bare value, no OPC UA decoration. 1.05 has no such encoding: both Compact
-            // and Verbose carry the type, so the envelope is encoded and its payload taken.
-            // That follows OPC 10000-14 section 7.2.5.4: drop the type where the node's
-            // DataType already pins it. See doc/opcua-json-encoding.md.
-            if (format.edition === "1.05") {
-                const envelope = opcuaJsonEncodeVariant105(dataValue.value, mode105(format), namespaceArray) as {
-                    Value?: unknown;
-                } | null;
-                return { body: Buffer.from(JSON.stringify(envelope?.Value ?? null), "utf-8") };
-            }
+            // the bare value, no OPC UA decoration: the 1.04 NonReversible encoding. 1.05 has no
+            // bare value (Compact and Verbose carry the type), and the Value of its envelope is a
+            // flat array for a matrix, where NonReversible nests the arrays (Annex H.8)
             const value = opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.NonReversible, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "variant": {
-            const value =
-                format.edition === "1.05"
-                    ? opcuaJsonEncodeVariant105(dataValue.value, mode105(format), namespaceArray)
-                    : opcuaJsonEncodeVariant(dataValue.value, JsonEncoderMode.Reversible, namespaceArray);
+            const value = opcuaJsonEncodeVariant105(dataValue.value, JsonEncoderMode105.Compact, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "dataValue": {
-            const value =
-                format.edition === "1.05"
-                    ? opcuaJsonEncodeDataValue105(dataValue, mode105(format), namespaceArray)
-                    : opcuaJsonEncodeDataValue(dataValue, JsonEncoderMode.Reversible, namespaceArray);
+            const value = opcuaJsonEncodeDataValue105(dataValue, JsonEncoderMode105.Compact, namespaceArray);
             return { body: Buffer.from(JSON.stringify(value ?? null), "utf-8") };
         }
         case "uaBinary": {

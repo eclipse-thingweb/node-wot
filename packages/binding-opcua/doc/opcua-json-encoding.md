@@ -1,7 +1,7 @@
 # OPC UA JSON, and which encoding this binding emits
 
 OPC UA defines its own JSON encodings and its own media types. This page is the short version of
-what they say, what the binding currently emits, and what changes when it moves to the 1.05 forms.
+what they say, and which edition each view of the binding uses.
 
 ## OPC UA assigns media types itself
 
@@ -43,7 +43,7 @@ Measured with node-opcua 2.184.4, except the matrix row, which is node-opcua 2.1
 contains node-opcua#1835). With 2.187.10 and the session's namespace table, which the binding now
 passes, 1.05 also names a namespace of index 1 or more by its URI: `"nsu=<uri>;s=Some"`.
 
-| value         | 1.04 NonReversible                       | 1.04 Reversible (what `opcua+json` emits today)         | 1.05 Compact / Verbose                                 |
+| value         | 1.04 NonReversible                       | 1.04 Reversible (no longer emitted)                     | 1.05 Compact / Verbose                                 |
 | ------------- | ---------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------ |
 | Double 42.5   | `42.5`                                   | `{"Type":11,"Body":42.5}`                               | `{"UaType":11,"Value":42.5}`                           |
 | Int64         | `"9007199254740993"`                     | `{"Type":8,"Body":"9007199254740993"}`                  | `{"UaType":8,"Value":"9007199254740993"}`              |
@@ -61,7 +61,7 @@ turns NodeId and QualifiedName into strings.
 
 Several limitations that look like OPC UA's are artefacts of the deprecated encoding:
 
-| shortcoming today                                                     | in 1.05                                                                                                        |
+| shortcoming in 1.04                                                   | in 1.05                                                                                                        |
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | a LocalizedText arrives as `"Hello"`, locale lost                     | `{Locale, Text}` in both Compact and Verbose (§5.4.2.15)                                                       |
 | an enumeration arrives as a bare number, the symbolic name nowhere    | Verbose encodes `"Suspended_3"` (§5.4.4); Compact keeps the number                                             |
@@ -75,8 +75,8 @@ a JSON object the deprecated one", and the reverse for matrices).
 ## The bare value has no 1.05 equivalent
 
 The Value view (`application/opcua+uabinary`, the default) produces a bare value (`42.5`,
-`"hello"`) using the NonReversible encoding, so that a matrix is nested arrays (Annex H.8). In 1.05 both Compact and Verbose carry the type, so there is no encoder that returns a
-bare `42.5`.
+`"hello"`) using the NonReversible encoding, so that a matrix is nested arrays (Annex H.8). In 1.05
+both Compact and Verbose carry the type, so there is no encoder that returns a bare `42.5`.
 
 OPC 10000-14 §7.2.5.4 answers the same question for PubSub: keep the envelope where the DataType
 is abstract, omit it where the metadata already pins the type. A binding can follow that rule

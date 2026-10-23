@@ -12,15 +12,20 @@ Binding 1.1. `application/json`, `application/opcua+json`, `application/opcua+oc
 
 The payload is the OPC UA Binary DataValue, as in D7. Its `type` parameter picks what `value()`
 returns, as OPC UA JSON: `Value` (the default, the decoded value), `Variant` (the value and its
-OPC UA type, 1.05 Compact) or `DataValue` (the Variant with Status and timestamps). The views keep
-what the value alone loses: the timestamps of an observed value, a Bad or Uncertain status, the
-type of a value and the choice of a Union. Action arguments take the view too, without status or
-timestamps. The media type belongs to OPC UA alone, so the codec is registered without a URI
-scheme, and the JSON edition is no longer a parameter.
+OPC UA type) or `DataValue` (the Variant with Status and timestamps). The views keep what the value
+alone loses: the timestamps of an observed value, a Bad or Uncertain status, the type of a value
+and the choice of a Union. Action arguments take the view too, without status or timestamps. The
+media type belongs to OPC UA alone, so the codec is registered without a URI scheme.
+
+Each view fixes its JSON edition, so the `version` and `mode` parameters of D6 are gone. `Value`
+is 1.04 NonReversible: 1.05 has no bare value, and its envelope flattens a matrix that
+NonReversible nests (Annex H.8). `Variant` and `DataValue` are 1.05 Compact. A Variant or
+DataValue that is written may use either edition, as D6 allowed: the shapes are distinguishable.
 
 Cost: TDs that use the removed contentTypes, or omit `contentType` (which TD 1.1 §5.3.4.2 makes
 `application/json`), get an error until they say `application/opcua+uabinary`. `OpcuaJSONCodec`,
-`OpcuaBinaryCodec` and the JSON schemas are no longer exported.
+`OpcuaBinaryCodec` and the JSON schemas are no longer exported. 1.05 Verbose and 1.04 Reversible
+are no longer produced.
 
 ## D7 — `application/octet-stream` carries OPC UA Binary (replaces D4)
 
