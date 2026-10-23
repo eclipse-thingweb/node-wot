@@ -44,7 +44,7 @@ export const thingDescription: WoT.ThingDescription = {
             description: "the temperature",
             observable: true,
             readOnly: true,
-            unit: "m/s",
+            unit: "°C",
             type: "number",
             forms: [
                 {
