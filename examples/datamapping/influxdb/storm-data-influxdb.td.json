@@ -1,0 +1,141 @@
+{
+    "@context": [
+        "https://www.w3.org/2019/wot/td/v1",
+        {
+            "csvv": "https://example.org/wot/payload-binding/csv/v1#",
+            "map": "https://example.org/wot/data-mapping/v1#",
+            "jsonv": "https://example.org/wot/payload-binding/json/v1#"
+        }
+    ],
+    "id": "urn:example:thing:storm-data-influxdb",
+    "title": "Severe Storm Event Archive (InfluxDB)",
+    "description": "Storm events stored in InfluxDB 1.8 and queried as CSV over the InfluxDB HTTP API.",
+    "base": "http://localhost:8086/",
+    "security": ["nosec_sc"],
+    "securityDefinitions": {
+        "nosec_sc": { "scheme": "nosec" }
+    },
+    "properties": {
+        "eventCount": {
+            "type": "integer",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "query?db=storms&epoch=s&q=SELECT%20COUNT(deaths_direct)%20FROM%20storm_event",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/count" },
+                            { "map:proc": "coerce", "map:type": "integer" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "maxMagnitude": {
+            "type": "number",
+            "readOnly": true,
+            "forms": [
+                {
+                    "href": "query?db=storms&epoch=s&q=SELECT%20MAX(magnitude)%20FROM%20storm_event",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            { "map:proc": "pick", "jsonv:path": "/0/max" },
+                            { "map:proc": "coerce", "map:type": "number" }
+                        ]
+                    }
+                }
+            ]
+        },
+        "tornadoes": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timestamp": { "type": "integer" },
+                    "eventId": { "type": "string" },
+                    "county": { "type": "string" },
+                    "state": { "type": "string" },
+                    "injuries": { "type": "integer" }
+                }
+            },
+            "forms": [
+                {
+                    "href": "query?db=storms&epoch=s&q=SELECT%20event_id%2C%20county%2C%20state%2C%20injuries_direct%20FROM%20storm_event%20WHERE%20event_type%20%3D%20'Tornado'",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            {
+                                "map:proc": "record",
+                                "map:fields": {
+                                    "timestamp": [
+                                        { "map:proc": "pick", "jsonv:path": "/time" },
+                                        { "map:proc": "coerce", "map:type": "integer" }
+                                    ],
+                                    "eventId": [
+                                        { "map:proc": "pick", "jsonv:path": "/event_id" },
+                                        { "map:proc": "coerce", "map:type": "string" }
+                                    ],
+                                    "county": [{ "map:proc": "pick", "jsonv:path": "/county" }],
+                                    "state": [{ "map:proc": "pick", "jsonv:path": "/state" }],
+                                    "injuries": [
+                                        { "map:proc": "pick", "jsonv:path": "/injuries_direct" },
+                                        { "map:proc": "coerce", "map:type": "integer" }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "magnitudeSeries": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "timestamp": { "type": "integer" },
+                    "value": { "type": "number" }
+                }
+            },
+            "forms": [
+                {
+                    "href": "query?db=storms&epoch=s&q=SELECT%20magnitude%20FROM%20storm_event",
+                    "op": ["readproperty"],
+                    "contentType": "text/csv",
+                    "csvv:rowRepresentation": "object",
+                    "csvv:headerRow": 0,
+                    "map:valueMapping": {
+                        "map:fromWire": [
+                            {
+                                "map:proc": "record",
+                                "map:fields": {
+                                    "timestamp": [
+                                        { "map:proc": "pick", "jsonv:path": "/time" },
+                                        { "map:proc": "coerce", "map:type": "integer" }
+                                    ],
+                                    "value": [
+                                        { "map:proc": "pick", "jsonv:path": "/magnitude" },
+                                        { "map:proc": "coerce", "map:type": "number" }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

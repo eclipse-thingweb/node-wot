@@ -241,6 +241,7 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 -   Base64 (PNG, JPEG, GIF) :heavy_check_mark:
 -   Octet stream :heavy_check_mark:
 -   CBOR :heavy_check_mark:
+-   CSV :test_tube: (experimental)
 -   EXI :timer_clock:
 
 Can't find your preferred MediaType? More codecs can be easily added by implementing `ContentCodec` interface. Read more in the [Documentation](#documentation) section.
