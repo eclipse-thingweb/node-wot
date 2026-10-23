@@ -29,7 +29,7 @@ import { thingDescription } from "./demo-opcua-thing-description";
         .observeProperty("temperature", async (data) => {
             const temperature = await data.value();
             console.log("------------------------------");
-            console.log("temperature : ", temperature, "m/s");
+            console.log("temperature : ", temperature, "°C");
             console.log("------------------------------");
         })
         .catch((err) => {
