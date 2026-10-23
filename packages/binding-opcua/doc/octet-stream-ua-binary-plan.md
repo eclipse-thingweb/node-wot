@@ -1,6 +1,10 @@
 # `application/octet-stream` as OPC UA Binary: plan
 
-Status: proposal, being implemented on this PR. Follows the request in
+Status: superseded by decision D8 ([decisions.md](decisions.md)): an `opc.tcp` form takes
+`application/opcua+uabinary`, whose payload is the DataValue described here; `application/octet-stream`
+is refused. Kept for the record of the questions per WoT operation.
+
+Previous status: proposal, implemented on this PR. Follows the request in
 [#1574 (comment)](https://github.com/eclipse-thingweb/node-wot/pull/1574#issuecomment-6191632180).
 The binding uses node-opcua 2.187.10, which contains node-opcua#1835 (appendix A).
 

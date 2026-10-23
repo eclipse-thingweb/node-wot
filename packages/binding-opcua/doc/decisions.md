@@ -2,7 +2,29 @@
 
 Each entry: what was decided, why, and what it costs. Newest first.
 
+## D8 — An `opc.tcp` form takes `application/opcua+uabinary` only (replaces D2, D3, D5, D6, D7)
+
+Asked for on PR #1574 by the maintainers: a WoT implementation decodes a payload from its
+contentType alone, which `application/octet-stream` is too generic to allow, so an `opc.tcp` form
+takes `application/opcua+uabinary` (OPC 10000-6 Table 80), the media type planned for WoT OPC UA
+Binding 1.1. `application/json`, `application/opcua+json`, `application/opcua+octet-stream` and
+`application/octet-stream` are refused with an error naming their replacement.
+
+The payload is the OPC UA Binary DataValue, as in D7. Its `type` parameter picks what `value()`
+returns, as OPC UA JSON: `Value` (the default, the decoded value), `Variant` (the value and its
+OPC UA type, 1.05 Compact) or `DataValue` (the Variant with Status and timestamps). The views keep
+what the value alone loses: the timestamps of an observed value, a Bad or Uncertain status, the
+type of a value and the choice of a Union. Action arguments take the view too, without status or
+timestamps. The media type belongs to OPC UA alone, so the codec is registered without a URI
+scheme, and the JSON edition is no longer a parameter.
+
+Cost: TDs that use the removed contentTypes, or omit `contentType` (which TD 1.1 §5.3.4.2 makes
+`application/json`), get an error until they say `application/opcua+uabinary`. `OpcuaJSONCodec`,
+`OpcuaBinaryCodec` and the JSON schemas are no longer exported.
+
 ## D7 — `application/octet-stream` carries OPC UA Binary (replaces D4)
+
+Replaced by D8: the payload stays the DataValue, under `application/opcua+uabinary`.
 
 Asked for on PR #1574: on `opc.tcp` forms, `application/octet-stream` is OPC UA Binary, as OPC
 10101 §6.5.3 and OPC 10000-6 Table 80 say, and `value()` returns what `application/json` returns.
@@ -20,6 +42,8 @@ is refused until question A3 is settled.
 
 ## D6 — The JSON edition is selected by a `version` parameter
 
+Replaced by D8: the views of `application/opcua+uabinary` fix the edition.
+
 `application/opcua+json;type=Variant;version=1.05`, with `version` defaulting to `1.04`, and
 `mode=compact|verbose` for 1.05 (default `compact`). **Decoding accepts either edition regardless
 of the parameter**: the shapes are distinguishable (`Type`/`Body` against `UaType`/`Value`, NodeId
@@ -35,6 +59,8 @@ Cost: one more parameter to document, a second set of JSON schemas, and tests fo
 The default stays 1.04 until maintainers agree to flip it, so no existing TD changes meaning.
 
 ## D5 — `application/octet-stream` is handled by a codec scoped to `opc.tcp`
+
+Replaced by D8: `application/opcua+uabinary` belongs to OPC UA alone, so its codec needs no scope.
 
 Core keeps one codec per media type for the whole servient, and `application/octet-stream` belongs
 to the generic `OctetstreamCodec`, which packs Modbus registers: a ByteString came back as a
@@ -66,6 +92,8 @@ to use instead. Raised on #1400.
 
 ## D3 — OPC UA Binary uses `application/opcua+octet-stream`
 
+Replaced by D8, which uses the name of Table 80, `application/opcua+uabinary`.
+
 The name OPC 10000-6 Table 80 gives is `application/opcua+uabinary`; this binding uses
 `application/opcua+octet-stream`, which predates that finding.
 
@@ -76,6 +104,9 @@ Table 80 keeps `application/opcua+uabinary` "only for backward compatibility" an
 `application/octet-stream`, so it is not added.
 
 ## D2 — The default contentType stays `application/json`
+
+Replaced by D8: `application/json` is refused, and so is a form without `contentType`, rather than
+read as something else.
 
 W3C WoT TD 1.1 §5.3.4.2 fixes the default for a form at `application/json`, and a binding may not
 redefine it. OPC 10101 §6.5.3 is conditional ("_if_ the default serialization of the OPC UA server

@@ -16,13 +16,10 @@ OPC 10000-6 §7.4.2, Table 80 (HTTP Content-Type header):
 `application/opcua+uabinary` is noted there as not registered with IANA and kept for backward
 compatibility.
 
-Two consequences for this binding:
-
--   Writing `application/json` on an OPC UA form is citing Part 6, not inventing a convention.
--   `application/octet-stream` carries OPC UA Binary, as in Table 80. The binding also keeps
-    `application/opcua+octet-stream` from before, for backward compatibility; Part 6's own
-    alternative name, `application/opcua+uabinary`, is kept by Table 80 only for backward
-    compatibility and is not added. See [decisions.md](decisions.md), D3 and D7.
+For this binding: an `opc.tcp` form takes `application/opcua+uabinary`, the Table 80 name planned
+for WoT OPC UA Binding 1.1, so that the contentType alone says how to decode the payload. OPC UA JSON
+is what `value()` returns, in the view the `type` parameter picks. See [decisions.md](decisions.md),
+D8.
 
 ## Compact and Verbose replaced Reversible and NonReversible
 
@@ -77,8 +74,8 @@ a JSON object the deprecated one", and the reverse for matrices).
 
 ## The bare value has no 1.05 equivalent
 
-`application/json` currently produces a bare value (`42.5`, `"hello"`) using the NonReversible
-encoding. In 1.05 both Compact and Verbose carry the type, so there is no encoder that returns a
+The Value view (`application/opcua+uabinary`, the default) produces a bare value (`42.5`,
+`"hello"`) using the NonReversible encoding, so that a matrix is nested arrays (Annex H.8). In 1.05 both Compact and Verbose carry the type, so there is no encoder that returns a
 bare `42.5`.
 
 OPC 10000-14 §7.2.5.4 answers the same question for PubSub: keep the envelope where the DataType
@@ -86,29 +83,26 @@ is abstract, omit it where the metadata already pins the type. A binding can fol
 rather than invent one: when the node's DataType is concrete, the bare value carries no less
 information than the envelope.
 
-That is what `;type=Value;version=1.05` does: the binding encodes the 1.05 envelope and returns
-its payload, so a NodeId still arrives as a string and a LocalizedText keeps its locale.
+The Variant and DataValue views are 1.05 Compact: a NodeId arrives as a string, a LocalizedText
+keeps its locale, and a structure keeps its `UaTypeId` and the choice of its Unions.
 
-## How a form selects the edition
+## Which edition each view uses
 
-| parameter | values                           | default   |
-| --------- | -------------------------------- | --------- |
-| `version` | `1.04`, `1.05`                   | `1.04`    |
-| `mode`    | `compact`, `verbose` (1.05 only) | `compact` |
+| contentType                                 | `value()`                       | edition            |
+| ------------------------------------------- | ------------------------------- | ------------------ |
+| `application/opcua+uabinary`                | the bare value                  | 1.04 NonReversible |
+| `application/opcua+uabinary;type=Variant`   | value and OPC UA type           | 1.05 Compact       |
+| `application/opcua+uabinary;type=DataValue` | value, type, Status, timestamps | 1.05 Compact       |
 
 ```jsonc
 "forms": [
   {
     "href": "/?id=ns=1;s=Temperature",
-    "contentType": "application/opcua+json;type=Variant;version=1.05"
+    "contentType": "application/opcua+uabinary;type=Variant"
   }
 ]
 ```
 
-The default stays 1.04, so a Thing Description written against the current output keeps working.
-**Decoding accepts either edition whatever the form declares**: the field names identify it, which
-is the detection rule Part 6 Annex H defines for exactly this purpose. Strict on what is produced,
-liberal in what is accepted.
-
-Still on 1.04 by default because the field names are visible to every consumer; flipping the
-default is a separate decision for the maintainers, not a side effect of a dependency upgrade.
+The edition is no longer a parameter of the form (D8). **Decoding a written view accepts either
+edition**: the field names identify it, which is the detection rule Part 6 Annex H defines for
+exactly this purpose. Strict on what is produced, liberal in what is accepted.
