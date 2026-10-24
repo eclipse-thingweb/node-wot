@@ -64,7 +64,11 @@ export function registerConnectionContext(key: object, context: ConnectionContex
         id = `${nextContextId++}`;
         contextIds.set(key, id);
     }
-    contexts.set(id, context);
+    // a payload is decoded after later calls on the same session have registered their own
+    // context: keep the structure definitions once loaded, or a structure read earlier decodes
+    // as an opaque one
+    const previous = contexts.get(id);
+    contexts.set(id, { ...context, dataTypeManager: context.dataTypeManager ?? previous?.dataTypeManager });
     return id;
 }
 

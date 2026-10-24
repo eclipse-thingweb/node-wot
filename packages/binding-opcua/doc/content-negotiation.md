@@ -159,7 +159,7 @@ UA Binary, so its rows for built-in types other than the six above are not re-me
 | ByteString[]                                                | array of base64                    | ✘ the base64 text is stored, not the bytes | ✔                                  |
 | LocalizedText                                               | the text only                      | ✘ the locale is lost                       | ✔                                  |
 | NodeId, QualifiedName                                       | an object                          | ✘ not converted back                       | ✔                                  |
-| matrices (`Double[2][3]`)                                   | nested arrays, `[[1,2,3],[4,5,6]]` | ✘                                          | ✔                                  |
+| matrices (`Double[2][3]`)                                   | nested arrays, `[[1,2,3],[4,5,6]]` | ✘ refused: no dimensions                   | ✔                                  |
 | ExtensionObject, arrays and matrices of them                | the structure's fields             | ✘ refused (issue #1583)                    | ✘ refused (issue #1583)             |
 
 These tests also print the whole matrix as a table, the quickest way to see what a change does to
@@ -175,6 +175,23 @@ Two conclusions worth keeping in mind:
     survive a round trip exactly, or when its OPC UA type, status or timestamps matter.
 -   **The Value view is lossy by construction for some types**: it has no room for the type of a
     value, the choice of a Union, a status or a timestamp.
+
+## What a write refuses
+
+A write is converted to the DataType of the target, or refused with an error that names what was
+given and the target; it is never written approximately:
+
+-   a number out of range or with a fraction for an integer type (`300` for a Byte, `42.5` for an
+    Int32), a text that is not a number or a date where one is expected;
+-   nested arrays in the Value view, which have no room for the dimensions: `type=Variant` has;
+-   a Variant or DataValue view that OPC UA JSON does not recognise (`{"Value":2.5}` without
+    `UaType`), rather than writing a Null value. `null` writes a Null value.
+
+A node or argument of an abstract DataType (BaseDataType, Number, Integer) is written with the
+type of the value given: a Double for a number in the Value view, the `UaType` in the Variant view.
+
+A form with a contentType the binding refuses is refused before any OPC UA service runs: no Read,
+no monitored item, and no method Call.
 
 ## Things that are not this binding's to fix
 

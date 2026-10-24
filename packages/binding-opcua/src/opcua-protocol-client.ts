@@ -70,6 +70,7 @@ import {
     encodeDataValue,
     decodeToDataValue,
     convertVariant,
+    parseJsonPayload,
     refuseStructure,
     viewFormat,
     OPCUA_UABINARY,
@@ -80,7 +81,6 @@ import {
     decodeUABinaryDataValue,
     encodeUABinaryDataValue,
     holdsStructure,
-    isUABinaryDataValue,
     registerConnectionContext,
     unregisterConnectionContext,
     ConnectionContext,
@@ -344,6 +344,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     public async readResource(form: OPCUAForm): Promise<Content> {
         debug(`readResource: reading ${form}`);
+        // refuses any contentType other than application/opcua+uabinary, before the Read
+        resolveContentFormat(form.contentType);
 
         const content = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
@@ -358,6 +360,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     public async writeResource(form: OPCUAForm, content: Content): Promise<void> {
+        resolveContentFormat(content.type ?? form.contentType);
         const statusCode = await this._withSession(form, async (session) => {
             const nodeId = await this._resolveNodeId(form);
             const dataValue = await this._contentToDataValue(form, content);
@@ -375,6 +378,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     public async invokeResource(form: OPCUAForm, content: Content): Promise<Content> {
+        // before the Call: the method must not run when its output cannot be returned
+        resolveContentFormat(form.contentType);
+        if (content?.type !== undefined) {
+            resolveContentFormat(content.type);
+        }
         return await this._withSession(form, async (session) => {
             const objectId = await this._resolveNodeId(form);
             const methodId = await this._resolveMethodNodeId(form);
@@ -409,6 +417,12 @@ export class OPCUAProtocolClient implements ProtocolClient {
         complete?: () => void
     ): Promise<Subscription> {
         debug(`subscribeResource: form ${OPCUAProtocolClient.getNodeId(form)}`);
+        try {
+            // before the monitored item is created: every notification would fail
+            resolveContentFormat(form.contentType);
+        } catch (err) {
+            return Promise.reject(err);
+        }
 
         return this._withSubscription<Subscription>(form, async (session, subscription) => {
             const nodeId = await this._resolveNodeId(form);
@@ -456,7 +470,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 } catch (err) {
                     debug(`${nodeId}: ${dataValue}`);
                     if (error) {
-                        error(new Error(JSON.stringify(err)));
+                        error(err instanceof Error ? err : new Error(String(err)));
                     }
                 }
                 if (complete) {
@@ -686,7 +700,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
         const argumentFormat = viewFormat(view === "value" ? "value" : "variant");
         const namespaceArray = await this._getNamespaceArray(form);
         let given: (name: string, dataType: DataType, hint: string) => Variant | undefined;
-        if (isUABinaryDataValue(body)) {
+        if (parseJsonPayload(body) === undefined) {
             const args = variantToArguments(decodeUABinaryDataValue(body).value);
             if (args === undefined) {
                 throw new Error(
@@ -706,7 +720,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
                 }
                 const json = Buffer.from(JSON.stringify(bodyInput[name]));
                 const variant = decodeToDataValue(argumentFormat, json, dataType, hint, namespaceArray).value;
-                return argumentFormat.flavour === "value" ? variant : convertVariant(variant, dataType, hint);
+                return convertVariant(variant, dataType, hint);
             };
         }
 
@@ -729,7 +743,8 @@ export class OPCUAProtocolClient implements ProtocolClient {
                       ? VariantArrayType.Array
                       : VariantArrayType.Matrix;
             variants.push({
-                dataType: basicDataType,
+                // an abstract DataType (BaseDataType, Number…) takes the type of the value given
+                dataType: basicDataType === DataType.Variant ? variant.dataType : basicDataType,
                 arrayType,
                 dimensions: arrayType === VariantArrayType.Matrix ? arrayDimensions : undefined,
                 value: variant.value,

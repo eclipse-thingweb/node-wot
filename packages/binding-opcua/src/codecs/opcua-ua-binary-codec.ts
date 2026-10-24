@@ -16,9 +16,9 @@
 import { ContentCodec, DataSchema } from "@node-wot/core";
 import { DataSchemaValue } from "wot-typescript-definitions";
 import { DataValue } from "node-opcua-data-value";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataType } from "node-opcua-variant";
 
-import { OPCUA_UABINARY, OPCUAView, encodeDataValue, viewFormat } from "../opcua-content-negotiation";
+import { OPCUA_UABINARY, OPCUAView, builtInVariantOf, encodeDataValue, viewFormat } from "../opcua-content-negotiation";
 import {
     decodeUABinaryDataValue,
     encodeUABinaryDataValue,
@@ -38,35 +38,6 @@ function render(dataValue: DataValue, view: OPCUAView, namespaceArray: string[] 
     const shown = view === "dataValue" ? dataValue : new DataValue({ value: dataValue.value });
     const { body } = encodeDataValue(viewFormat(view), shown, `an ${OPCUA_UABINARY} payload`, namespaceArray);
     return JSON.parse(body.toString("utf-8"));
-}
-
-function isBytes(value: unknown): value is Uint8Array {
-    return value instanceof Uint8Array;
-}
-
-/** The Variant of a value made only of built-in types, or undefined when there is none. */
-function toBuiltInVariant(value: unknown): Variant | undefined {
-    const scalar = (dataType: DataType, v: unknown) =>
-        new Variant({ dataType, arrayType: VariantArrayType.Scalar, value: v });
-    const array = (dataType: DataType, v: unknown[]) =>
-        new Variant({ dataType, arrayType: VariantArrayType.Array, value: v });
-
-    if (isBytes(value)) return scalar(DataType.ByteString, Buffer.from(value));
-    if (typeof value === "boolean") return scalar(DataType.Boolean, value);
-    // the codec does not know the node's DataType: the binding converts before the Write
-    if (typeof value === "number") return scalar(DataType.Double, value);
-    if (typeof value === "string") return scalar(DataType.String, value);
-    if (Array.isArray(value) && value.length > 0) {
-        if (value.every(isBytes))
-            return array(
-                DataType.ByteString,
-                value.map((v) => Buffer.from(v))
-            );
-        if (value.every((v) => typeof v === "boolean")) return array(DataType.Boolean, value);
-        if (value.every((v) => typeof v === "number")) return array(DataType.Double, value);
-        if (value.every((v) => typeof v === "string")) return array(DataType.String, value);
-    }
-    return undefined;
 }
 
 /**
@@ -119,7 +90,7 @@ export class OpcuaUABinaryCodec implements ContentCodec {
      * NodeIds only the session's namespace table can map.
      */
     valueToBytes(value: unknown, _schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
-        const variant = viewOf(parameters) === "value" ? toBuiltInVariant(value) : undefined;
+        const variant = viewOf(parameters) === "value" ? builtInVariantOf(value) : undefined;
         if (variant !== undefined) {
             return encodeUABinaryDataValue(new DataValue({ value: variant }));
         }

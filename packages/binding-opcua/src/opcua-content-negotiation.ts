@@ -45,7 +45,7 @@ import {
 import { NodeId } from "node-opcua-nodeid";
 import { coerceInt64, coerceUInt64 } from "node-opcua-basic-types";
 
-import { decodeUABinaryDataValue, encodeUABinaryDataValue, isUABinaryDataValue } from "./ua-binary";
+import { decodeUABinaryDataValue, encodeUABinaryDataValue } from "./ua-binary";
 
 /** The media type of an `opc.tcp` form: OPC 10000-6 Table 80, planned for WoT OPC UA Binding 1.1. */
 export const OPCUA_UABINARY = "application/opcua+uabinary";
@@ -227,8 +227,8 @@ export function encodeDataValue(
  * Coerce a JSON-decoded value into something a Variant of `dataType` accepts.
  *
  * The cases that matter: OPC UA JSON carries 64-bit integers as strings (a JSON
- * number is an IEEE-754 double and cannot round-trip past 2^53), and a ByteString
- * as base64.
+ * number is an IEEE-754 double and cannot round-trip past 2^53), a ByteString
+ * as base64, and a DateTime as an ISO 8601 string.
  */
 function coerceForDataType(value: unknown, dataType: DataType): unknown {
     switch (dataType) {
@@ -238,18 +238,49 @@ function coerceForDataType(value: unknown, dataType: DataType): unknown {
             return typeof value === "string" || typeof value === "number" ? coerceUInt64(value) : value;
         case DataType.ByteString:
             return typeof value === "string" ? Buffer.from(value, "base64") : value;
+        case DataType.DateTime:
+            return typeof value === "string" ? new Date(value) : value;
         default:
             return value;
     }
 }
 
+const INTEGER_RANGES: Partial<Record<DataType, [number, number]>> = {
+    [DataType.SByte]: [-128, 127],
+    [DataType.Byte]: [0, 255],
+    [DataType.Int16]: [-32768, 32767],
+    [DataType.UInt16]: [0, 65535],
+    [DataType.Int32]: [-2147483648, 2147483647],
+    [DataType.UInt32]: [0, 4294967295],
+};
+
+/**
+ * Whether one element converts to `dataType` without loss. It is checked before the Variant is
+ * built, because node-opcua coerces silently: 300 becomes 44 in a Byte array, "abc" NaN in a
+ * Double array, and 42.5 becomes 42 for an Int32.
+ */
 function fitsDataType(value: unknown, dataType: DataType): boolean {
+    const range = INTEGER_RANGES[dataType];
+    if (range !== undefined) {
+        return typeof value === "number" && Number.isInteger(value) && value >= range[0] && value <= range[1];
+    }
     switch (dataType) {
+        case DataType.Int64:
+            return (typeof value === "string" && /^-?\d+$/.test(value)) || Number.isSafeInteger(value);
+        case DataType.UInt64:
+            return (
+                (typeof value === "string" && /^\d+$/.test(value)) ||
+                (Number.isSafeInteger(value) && (value as number) >= 0)
+            );
         case DataType.Float:
         case DataType.Double:
             return typeof value === "number";
+        case DataType.Boolean:
+            return typeof value === "boolean";
         case DataType.DateTime:
-            return value === null || value instanceof Date;
+            return value instanceof Date
+                ? !isNaN(value.getTime())
+                : typeof value === "string" && !isNaN(Date.parse(value));
         default:
             return true;
     }
@@ -260,41 +291,142 @@ function toPlainValue(value: unknown): unknown {
     return ArrayBuffer.isView(value) && !Buffer.isBuffer(value) ? Array.from(value as unknown as number[]) : value;
 }
 
+/** A Variant of `dataType` holding `value`, or an error naming what was given: never a lossy one. */
+function typedVariant(
+    value: unknown,
+    dataType: DataType,
+    arrayType: VariantArrayType,
+    dimensions: number[] | null | undefined,
+    given: string,
+    hint: string
+): Variant {
+    const refusal = new Error(
+        `binding-opcua: cannot convert the ${given} given for ${hint} ` +
+            `to ${DataType[dataType]}, the DataType of the target.`
+    );
+    const elements = arrayType === VariantArrayType.Scalar ? [value] : value;
+    if (!Array.isArray(elements) || !elements.every((v) => fitsDataType(v, dataType))) {
+        throw refusal;
+    }
+    const coerced =
+        arrayType === VariantArrayType.Scalar
+            ? coerceForDataType(value, dataType)
+            : elements.map((v) => coerceForDataType(v, dataType));
+    let result: Variant;
+    try {
+        result = new Variant({ dataType, arrayType, dimensions: dimensions ?? undefined, value: coerced });
+    } catch {
+        throw refusal;
+    }
+    if (!isValidVariant(result.arrayType, dataType, result.value, result.dimensions)) {
+        throw refusal;
+    }
+    return result;
+}
+
+/** The Variant of a value made only of built-in types, or undefined when there is none. */
+export function builtInVariantOf(value: unknown): Variant | undefined {
+    const scalar = (dataType: DataType, v: unknown) =>
+        new Variant({ dataType, arrayType: VariantArrayType.Scalar, value: v });
+    const array = (dataType: DataType, v: unknown[]) =>
+        new Variant({ dataType, arrayType: VariantArrayType.Array, value: v });
+    const isBytes = (v: unknown): v is Uint8Array => v instanceof Uint8Array;
+
+    if (isBytes(value)) return scalar(DataType.ByteString, Buffer.from(value));
+    if (typeof value === "boolean") return scalar(DataType.Boolean, value);
+    // the codec does not know the node's DataType: the binding converts before the Write
+    if (typeof value === "number") return scalar(DataType.Double, value);
+    if (typeof value === "string") return scalar(DataType.String, value);
+    if (Array.isArray(value) && value.length > 0) {
+        if (value.every(isBytes))
+            return array(
+                DataType.ByteString,
+                value.map((v) => Buffer.from(v))
+            );
+        if (value.every((v) => typeof v === "boolean")) return array(DataType.Boolean, value);
+        if (value.every((v) => typeof v === "number")) return array(DataType.Double, value);
+        if (value.every((v) => typeof v === "string")) return array(DataType.String, value);
+    }
+    return undefined;
+}
+
 /**
  * Convert a decoded Variant to the DataType of the node or argument it is written to. The
  * codec only sees the JavaScript value, so 42 arrives as a Double for an Int32 node, and an
  * Int64 or a ByteString arrives as the string the Value view uses for it.
+ *
+ * An abstract DataType (BaseDataType, Number, Integer…) resolves to `DataType.Variant`: any
+ * concrete Variant is a value of it, and is written as given.
  */
 export function convertVariant(variant: Variant, dataType: DataType, hint: string): Variant {
-    if (variant.dataType === dataType || variant.dataType === DataType.Null) {
+    if (variant.dataType === dataType || variant.dataType === DataType.Null || dataType === DataType.Variant) {
         return variant;
     }
     refuseStructure(variant.dataType, hint);
-    const plain = toPlainValue(variant.value);
-    const value =
-        variant.arrayType === VariantArrayType.Scalar
-            ? coerceForDataType(plain, dataType)
-            : (plain as unknown[]).map((v) => coerceForDataType(v, dataType));
-    const refusal = new Error(
-        `binding-opcua: cannot convert the ${DataType[variant.dataType]} given for ${hint} ` +
-            `to ${DataType[dataType]}, the DataType of the target.`
+    return typedVariant(
+        toPlainValue(variant.value),
+        dataType,
+        variant.arrayType,
+        variant.dimensions,
+        DataType[variant.dataType],
+        hint
     );
-    let result: Variant;
+}
+
+/** The Variant that a bare JSON value (the Value view) gives for a target of `dataType`. */
+function bareValueToVariant(parsed: unknown, dataType: DataType, hint: string): Variant {
+    if (Array.isArray(parsed) && parsed.some(Array.isArray)) {
+        throw new Error(
+            `binding-opcua: nested arrays were given for ${hint}, but a bare value has no room for ` +
+                `the dimensions of a matrix. Write it with '${OPCUA_UABINARY};type=Variant'.`
+        );
+    }
+    if (dataType === DataType.Variant) {
+        // an abstract DataType: only the JSON type says what to write
+        const variant = builtInVariantOf(parsed);
+        if (variant === undefined) {
+            throw new Error(
+                `binding-opcua: the DataType of ${hint} is abstract, and the value given does not say ` +
+                    `which OPC UA type to write. Write it with '${OPCUA_UABINARY};type=Variant'.`
+            );
+        }
+        return variant;
+    }
+    const arrayType = Array.isArray(parsed) ? VariantArrayType.Array : VariantArrayType.Scalar;
+    const given = `value ${JSON.stringify(parsed)?.slice(0, 40)}`;
+    return typedVariant(parsed, dataType, arrayType, undefined, given, hint);
+}
+
+/**
+ * The JSON a payload holds, or undefined when it holds none, i.e. when it is a UA Binary
+ * DataValue. JSON is tried first: the first byte alone cannot tell them apart, since a JSON
+ * number or string starts with a byte that is also a valid DataValue encoding mask.
+ */
+export function parseJsonPayload(body: Buffer): { json: unknown } | undefined {
     try {
-        result = new Variant({ dataType, arrayType: variant.arrayType, dimensions: variant.dimensions, value });
+        return { json: JSON.parse(body.toString("utf-8")) };
     } catch {
-        throw refusal;
+        return undefined;
     }
-    // node-opcua accepts a Variant of the wrong type and writes garbage, "AQID" as a Double:
-    // isValidVariant does not check floats or dates, so they are checked here
-    const elements = result.arrayType === VariantArrayType.Scalar ? [result.value] : Array.from(result.value ?? []);
-    if (
-        !isValidVariant(result.arrayType, dataType, result.value, result.dimensions) ||
-        !elements.every((v) => fitsDataType(v, dataType))
-    ) {
-        throw refusal;
+}
+
+/**
+ * Refuse a Variant or DataValue view that decodes to no value although the payload is not
+ * `null`: the OPC UA JSON decoders return a Null Variant for any shape they do not recognise
+ * (`{ "Value": 2.5 }` without `UaType`, `42`, `{}`), which must not be written to the node.
+ */
+function refuseUnrecognised(dataValue: DataValue, parsed: unknown, view: string, hint: string): void {
+    if (dataValue.value.dataType !== DataType.Null || parsed === null) {
+        return;
     }
-    return result;
+    const record = typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
+    if (record.UaType === 0 || record.Type === 0 || "Status" in record || "StatusCode" in record) {
+        return;
+    }
+    throw new Error(
+        `binding-opcua: the ${view} given for ${hint} holds no value that OPC UA JSON recognises: ` +
+            `${JSON.stringify(parsed)?.slice(0, 60)}. Expected for instance {"UaType":11,"Value":42.5}.`
+    );
 }
 
 /**
@@ -328,14 +460,7 @@ export function decodeToDataValue(
     switch (format.flavour) {
         case "value": {
             const parsed = JSON.parse(body.toString("utf-8"));
-            const value = coerceForDataType(parsed, dataType);
-            // coerceInt64/coerceUInt64 yield a [high, low] pair, and node-opcua cannot
-            // tell that from a two-element array: the arrayType must be stated.
-            const needsScalarHint =
-                (dataType === DataType.Int64 || dataType === DataType.UInt64) && !Array.isArray(parsed);
-            return new DataValue({
-                value: needsScalarHint ? { dataType, arrayType: VariantArrayType.Scalar, value } : { dataType, value },
-            });
+            return new DataValue({ value: bareValueToVariant(parsed, dataType, hint) });
         }
         case "variant": {
             // liberal on input: the payload's own shape decides, not the contentType
@@ -344,17 +469,22 @@ export function decodeToDataValue(
                 detectEdition(parsed) === "1.05"
                     ? opcuaJsonDecodeVariant105(parsed, builder, namespaceArray)
                     : opcuaJsonDecodeVariant(parsed, builder, namespaceArray);
-            return new DataValue({ value: variant });
+            const dataValue = new DataValue({ value: variant });
+            refuseUnrecognised(dataValue, parsed, "Variant", hint);
+            return dataValue;
         }
         case "dataValue": {
             const parsed = JSON.parse(body.toString("utf-8"));
-            return detectEdition(parsed) === "1.05"
-                ? opcuaJsonDecodeDataValue105(parsed, builder, namespaceArray)
-                : opcuaJsonDecodeDataValue(parsed, builder, namespaceArray);
+            const dataValue =
+                detectEdition(parsed) === "1.05"
+                    ? opcuaJsonDecodeDataValue105(parsed, builder, namespaceArray)
+                    : opcuaJsonDecodeDataValue(parsed, builder, namespaceArray);
+            refuseUnrecognised(dataValue, parsed, "DataValue", hint);
+            return dataValue;
         }
         case "uaBinary": {
             refuseStructure(dataType, hint);
-            if (!isUABinaryDataValue(body)) {
+            if (parseJsonPayload(body) !== undefined) {
                 // the codec hands over as JSON what it cannot encode without the session: a
                 // structure, an action input (plan section 6.7), or a Variant or DataValue view,
                 // whose NodeIds need the session's namespace table
