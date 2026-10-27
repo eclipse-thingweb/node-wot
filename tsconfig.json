@@ -23,6 +23,7 @@
     },
     "references": [
         { "path": "./packages/binding-coap" },
+        { "path": "./packages/binding-eip" },
         { "path": "./packages/binding-file" },
         { "path": "./packages/binding-http" },
         { "path": "./packages/binding-mbus" },

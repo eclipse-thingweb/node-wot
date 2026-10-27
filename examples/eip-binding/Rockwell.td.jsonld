@@ -1,0 +1,229 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "eipv": "https://www.w3.org/2026/wot/eip"
+    }
+  ],
+  "id": "urn:Rockwell",
+  "securityDefinitions": {
+    "nosec_sc": {
+      "scheme": "nosec"
+    }
+  },
+  "security": [
+    "nosec_sc"
+  ],
+  "@type": [
+    "Thing"
+  ],
+  "name": "Rockwell",
+  "base": "eip://192.168.100.218/1,0/",
+  "title": "Rockwell",
+  "properties": {
+    "Local:2:O": {
+      "type": "object",
+      "uav:mapToType": "nsu=http://opcfoundation.org/UA/Rockwell/;s=AB:1756_DO:O:0Type",
+      "readOnly": false,
+      "observable": true,
+      "forms": [
+        {
+          "href": "./Local:2:O",
+          "op": [
+            "readproperty",
+            "observeproperty",
+            "writeproperty"
+          ],
+          "eipv:pollingTime": 1000,
+          "eipv:structureDefinition": {
+            "eipv:typeName": "AB:1756_DO:O:0",
+            "eipv:fields": [
+              {
+                "eipv:name": "Data",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Production_Data": {
+      "type": "object",
+      "uav:mapToType": "nsu=http://opcfoundation.org/UA/Rockwell/;s=UDT_Shift_DataType",
+      "readOnly": false,
+      "observable": true,
+      "forms": [
+        {
+          "href": "Production_Data",
+          "op": [
+            "readproperty",
+            "observeproperty",
+            "writeproperty"
+          ],
+          "eipv:pollingTime": 1000,
+          "eipv:structureDefinition": {
+            "eipv:typeName": "UDT_Shift_Data",
+            "eipv:fields": [
+              {
+                "eipv:name": "Prodution_Count",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 0
+              },
+              {
+                "eipv:name": "Rejected_Product_Count",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 4
+              },
+              {
+                "eipv:name": "Cycle_Time",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 8
+              },
+              {
+                "eipv:name": "OEE",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 12
+              },
+              {
+                "eipv:name": "OEE_Availablity",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 16
+              },
+              {
+                "eipv:name": "OEE_Performance",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 20
+              },
+              {
+                "eipv:name": "OEE_Quality",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 24
+              },
+              {
+                "eipv:name": "Shift_Number",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 28
+              },
+              {
+                "eipv:name": "Time_In_Shift",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 32
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "Previous_Shift_Production_Data": {
+      "type": "object",
+      "uav:mapToType": "nsu=http://opcfoundation.org/UA/Rockwell/;s=UDT_Shift_DataType",
+      "readOnly": false,
+      "observable": true,
+      "forms": [
+        {
+          "href": "Previous_Shift_Production_Data",
+          "op": [
+            "readproperty",
+            "observeproperty",
+            "writeproperty"
+          ],
+          "eipv:pollingTime": 1000,
+          "eipv:structureDefinition": {
+            "eipv:typeName": "UDT_Shift_Data",
+            "eipv:fields": [
+              {
+                "eipv:name": "Prodution_Count",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 0
+              },
+              {
+                "eipv:name": "Rejected_Product_Count",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 4
+              },
+              {
+                "eipv:name": "Cycle_Time",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 8
+              },
+              {
+                "eipv:name": "OEE",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 12
+              },
+              {
+                "eipv:name": "OEE_Availablity",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 16
+              },
+              {
+                "eipv:name": "OEE_Performance",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 20
+              },
+              {
+                "eipv:name": "OEE_Quality",
+                "eipv:type": "eipv:REAL",
+                "eipv:byteOffset": 24
+              },
+              {
+                "eipv:name": "Shift_Number",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 28
+              },
+              {
+                "eipv:name": "Time_In_Shift",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 32
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "IO_Control": {
+      "type": "object",
+      "uav:mapToType": "nsu=http://opcfoundation.org/UA/Rockwell/;s=IO_ControlType",
+      "readOnly": false,
+      "observable": true,
+      "forms": [
+        {
+          "href": "IO_Control",
+          "op": [
+            "readproperty",
+            "observeproperty",
+            "writeproperty"
+          ],
+          "eipv:pollingTime": 1000,
+          "eipv:structureDefinition": {
+            "eipv:typeName": "IO_Control",
+            "eipv:fields": [
+              {
+                "eipv:name": "Set_LEDControl",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 0
+              },
+              {
+                "eipv:name": "Set_Speed",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 4
+              },
+              {
+                "eipv:name": "Sts_LEDMode",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 8
+              },
+              {
+                "eipv:name": "Sts_Speed",
+                "eipv:type": "eipv:DINT",
+                "eipv:byteOffset": 12
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "actions": {}
+}

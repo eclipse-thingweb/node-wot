@@ -1,0 +1,35 @@
+{
+    "name": "@node-wot/binding-eip",
+    "version": "1.0.0-SNAPSHOT.0",
+    "description": "EtherNet/IP client protocol binding for node-wot",
+    "author": "Eclipse Thingweb <thingweb-dev@eclipse.org> (https://thingweb.io/)",
+    "license": "EPL-2.0 OR W3C-20150513",
+    "repository": "https://github.com/thingweb/node-wot/tree/master/packages/binding-eip",
+    "publishConfig": {
+        "access": "public"
+    },
+    "files": [
+        "dist/"
+    ],
+    "main": "dist/eip.js",
+    "types": "dist/eip.d.ts",
+    "dependencies": {
+        "@node-wot/core": "1.0.0-SNAPSHOT.0",
+        "rxjs": "^5.5.11",
+        "wot-typescript-definitions": "1.0.0-SNAPSHOT.0"
+    },
+    "scripts": {
+        "build": "tsc -b",
+        "test": "mocha --require ts-node/register --extension ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"**/*.json\""
+    },
+    "bugs": {
+        "url": "https://github.com/eclipse-thingweb/node-wot/issues"
+    },
+    "homepage": "https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-eip#readme",
+    "directories": {
+        "test": "test"
+    }
+}

@@ -230,6 +230,7 @@ If you execute both scripts you will see `count: ${count}` printed 5 times. We h
 -   [NETCONF](https://github.com/eclipse-thingweb/node-wot/blob/master/packages/binding-netconf/README.md) :heavy_plus_sign: (Client only)
 -   [Modbus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-modbus) :heavy_plus_sign: (Client only)
 -   [M-Bus](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-mbus) :heavy_plus_sign: (Client only)
+-   [EtherNet/IP](https://github.com/eclipse-thingweb/node-wot/tree/master/packages/binding-eip) :heavy_plus_sign: (Client only)
 
 > [!NOTE]
 > More protocols can be easily added by implementing `ProtocolClient`, `ProtocolClientFactory`, and `ProtocolServer` interface.

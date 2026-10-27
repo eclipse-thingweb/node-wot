@@ -49,6 +49,7 @@ packages/*
 !packages/binding-file
 !packages/binding-http
 !packages/binding-coap
+!packages/binding-eip
 !packages/binding-websockets
 !packages/binding-mqtt
 !packages/binding-modbus
