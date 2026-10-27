@@ -198,6 +198,7 @@ Now supposing you want to interact with the device, you have to consume its Thin
 // Required steps to create a servient for a client
 const { Servient } = require("@node-wot/core");
 const { HttpClientFactory } = require("@node-wot/binding-http");
+const { setTimeout } = require("timers/promises");
 
 const servient = new Servient();
 servient.addClientFactory(new HttpClientFactory(null));
@@ -206,10 +207,12 @@ servient.start().then(async (WoT) => {
     const td = await WoT.requestThingDescription("http://localhost:8080/counter");
     // Then from here on you can consume the thing
     let thing = await WoT.consume(td);
-    thing.observeProperty("count", async (data) => { console.log("count:", await data.value()); });
+    const subscription = await thing.observeProperty("count", async (data) => { console.log("count:", await data.value()); });
     for (let i = 0; i < 5; i++) {
         await thing.invokeAction("increment");
+        await setTimeout(50);
     }
+    await subscription.stop();
 }).catch((err) => { console.error(err); });
 ```
 
