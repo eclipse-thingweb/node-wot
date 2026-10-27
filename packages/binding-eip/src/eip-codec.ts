@@ -20,8 +20,6 @@ export interface EipValueLayout {
     structure?: EipStructureDefinition;
     dimensions?: number[];
     elementCount?: number;
-    scale?: number;
-    offset?: number;
 }
 
 interface IntegerSpec {
@@ -113,8 +111,6 @@ export function layoutFromForm(form: EipForm): EipValueLayout {
         structure: form["eipv:structureDefinition"],
         dimensions: form["eipv:dimensions"],
         elementCount: form["eipv:elementCount"],
-        scale: form["eipv:scale"],
-        offset: form["eipv:offset"],
     };
 }
 
@@ -274,29 +270,16 @@ function encodeStructure(structure: EipStructureDefinition, buf: Buffer, base: n
     }
 }
 
-function hasConversion(layout: EipValueLayout): boolean {
-    return layout.scale !== undefined || layout.offset !== undefined;
-}
-
 function decodeElement(layout: EipValueLayout, buf: Buffer, offset: number): unknown {
     if (layout.structure !== undefined) return decodeStructure(layout.structure, buf, offset);
-    const type = layout.type as EipPrimitiveType;
-    const raw = readPrimitive(type, buf, offset);
-    if (typeof raw === "number" && hasConversion(layout)) return raw * (layout.scale ?? 1) + (layout.offset ?? 0);
-    return raw;
+    return readPrimitive(layout.type as EipPrimitiveType, buf, offset);
 }
 
 function encodeElement(layout: EipValueLayout, buf: Buffer, offset: number, value: unknown): void {
     if (layout.structure !== undefined) {
         encodeStructure(layout.structure, buf, offset, value);
-        return;
-    }
-    const type = layout.type as EipPrimitiveType;
-    if (typeof value === "number" && hasConversion(layout)) {
-        const raw = (value - (layout.offset ?? 0)) / (layout.scale ?? 1);
-        writePrimitive(type, buf, offset, INTEGERS[type] !== undefined ? Math.round(raw) : raw);
     } else {
-        writePrimitive(type, buf, offset, value);
+        writePrimitive(layout.type as EipPrimitiveType, buf, offset, value);
     }
 }
 

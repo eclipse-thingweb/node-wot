@@ -38,6 +38,7 @@ import { Content } from "./content";
 import ContentType from "content-type";
 
 import ContentManager, { ContentSerdes } from "./content-serdes";
+import { applyToWireMapping } from "./data-mapping";
 
 import * as UriTemplate from "uritemplate";
 import { InteractionOutput, ActionInteractionOutput } from "./interaction-output";
@@ -697,7 +698,13 @@ export default class ConsumedThing extends Thing implements IConsumedThing {
         }
         debug(`ConsumedThing '${this.title}' writing ${form.href} with '${value}'`);
 
-        const content = ContentManager.valueToContent(value, tp, form.contentType, ContentSerdes.schemeOf(form.href));
+        const wireValue = applyToWireMapping(value, form as unknown as Record<string, unknown>);
+        const content = ContentManager.valueToContent(
+            wireValue as WoT.InteractionInput,
+            tp,
+            form.contentType,
+            ContentSerdes.schemeOf(form.href)
+        );
 
         // uriVariables ?
         const formWithUriVariables = this.handleUriVariables(tp, form, options);

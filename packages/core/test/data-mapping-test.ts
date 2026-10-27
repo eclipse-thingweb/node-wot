@@ -16,7 +16,7 @@
 import { suite, test } from "@testdeck/mocha";
 import { expect } from "chai";
 import { Readable } from "stream";
-import { applyFromWireMapping, getWireDecoding } from "../src/data-mapping";
+import { applyFromWireMapping, applyToWireMapping, getWireDecoding } from "../src/data-mapping";
 import { InteractionOutput } from "../src/interaction-output";
 import { Content } from "../dist/core";
 
@@ -444,6 +444,178 @@ class BitExtractTests {
             { "map:proc": "enum", "map:name": "mode", "map:map": modeMap }
         );
         expect(result).to.deep.equal({ alarm: false, running: false, mode: "manual" });
+    }
+}
+
+function toWire(value: unknown, ...steps: Record<string, unknown>[]): unknown {
+    return applyToWireMapping(value, { "map:valueMapping": { "map:toWire": steps } });
+}
+
+@suite("testing data mapping numeric operations")
+class NumericMappingTests {
+    @test "mul and add apply in document order"() {
+        const mulThenAdd = [
+            { "map:proc": "mul", "map:value": 0.1 },
+            { "map:proc": "add", "map:value": 5 },
+        ];
+        expect(fromWire(235, ...mulThenAdd)).to.be.closeTo(28.5, 1e-9);
+        expect(fromWire(235, ...mulThenAdd.reverse())).to.be.closeTo(24, 1e-9);
+    }
+
+    @test "round supports floor, ceil, towardZero and nearest with half to even"() {
+        const round = (value: number, mode: string) => fromWire(value, { "map:proc": "round", "map:mode": mode });
+        expect(round(2.7, "floor")).to.equal(2);
+        expect(round(-2.2, "floor")).to.equal(-3);
+        expect(round(2.2, "ceil")).to.equal(3);
+        expect(round(-2.7, "ceil")).to.equal(-2);
+        expect(round(2.7, "towardZero")).to.equal(2);
+        expect(round(-2.7, "towardZero")).to.equal(-2);
+        expect(round(0.5, "nearest")).to.equal(0);
+        expect(round(1.5, "nearest")).to.equal(2);
+        expect(round(2.5, "nearest")).to.equal(2);
+        expect(round(-2.5, "nearest")).to.equal(-2);
+        expect(round(-3.5, "nearest")).to.equal(-4);
+        expect(round(2.4, "nearest")).to.equal(2);
+        expect(Object.is(round(-0.2, "nearest"), -0)).to.equal(false);
+    }
+
+    @test "clamp enforces a lower bound, an upper bound or both"() {
+        const clamp = (value: number, bounds: Record<string, number>) =>
+            fromWire(value, { "map:proc": "clamp", ...bounds });
+        expect(clamp(-5, { "map:min": 0, "map:max": 100 })).to.equal(0);
+        expect(clamp(150, { "map:min": 0, "map:max": 100 })).to.equal(100);
+        expect(clamp(50, { "map:min": 0, "map:max": 100 })).to.equal(50);
+        expect(clamp(-5, { "map:min": 0 })).to.equal(0);
+        expect(clamp(500, { "map:min": 0 })).to.equal(500);
+        expect(clamp(500, { "map:max": 100 })).to.equal(100);
+    }
+
+    @test "numeric operations reject non-numeric and non-finite input"() {
+        const step = { "map:proc": "mul", "map:value": 2 };
+        expect(() => fromWire("1", step)).to.throw("mul requires a finite numeric input");
+        expect(() => fromWire(Number.NaN, step)).to.throw("finite numeric input");
+        expect(() => fromWire(Number.POSITIVE_INFINITY, step)).to.throw("finite numeric input");
+        expect(() => fromWire({ a: 1 }, step)).to.throw("finite numeric input");
+    }
+
+    @test "numeric operations reject a non-finite result"() {
+        expect(() => fromWire(1e308, { "map:proc": "mul", "map:value": 10 })).to.throw("non-finite result");
+        expect(() => fromWire(1.7e308, { "map:proc": "add", "map:value": 1.7e308 })).to.throw("non-finite result");
+    }
+
+    @test "numeric operations validate their parameters"() {
+        expect(() => fromWire(1, { "map:proc": "mul" })).to.throw("mul requires map:value as a finite number");
+        expect(() => fromWire(1, { "map:proc": "add", "map:value": "1" })).to.throw("map:value");
+        expect(() => fromWire(1, { "map:proc": "mul", "map:value": Number.NaN })).to.throw("map:value");
+        expect(() => fromWire(1, { "map:proc": "round" })).to.throw("map:mode");
+        expect(() => fromWire(1, { "map:proc": "round", "map:mode": "up" })).to.throw("map:mode");
+        expect(() => fromWire(1, { "map:proc": "clamp" })).to.throw("map:min and/or map:max");
+        expect(() => fromWire(1, { "map:proc": "clamp", "map:min": "0" })).to.throw("map:min");
+        expect(() => fromWire(1, { "map:proc": "clamp", "map:max": Number.NaN })).to.throw("map:max");
+        expect(() => fromWire(1, { "map:proc": "clamp", "map:min": 5, "map:max": 1 })).to.throw("greater than");
+    }
+
+    @test "map:name applies a numeric operation in place to one member"() {
+        const result = fromWire(
+            { speed: 235, label: "x" },
+            { "map:proc": "mul", "map:name": "speed", "map:value": 0.1 },
+            { "map:proc": "round", "map:name": "speed", "map:mode": "nearest" }
+        );
+        expect(result).to.deep.equal({ speed: 24, label: "x" });
+        expect(() => fromWire({ a: 1 }, { "map:proc": "mul", "map:name": "b", "map:value": 2 })).to.throw(
+            "Mapping member 'b' was not found"
+        );
+    }
+
+    @test "bitExtract with map:name replaces one member by the extracted object"() {
+        const result = fromWire(
+            { status: 0b101, other: 7 },
+            {
+                "map:proc": "bitExtract",
+                "map:name": "status",
+                "octv:fields": [
+                    { "octv:fieldName": "a", "octv:mask": 1, "octv:shift": 0, "octv:fieldType": "boolean" },
+                    { "octv:fieldName": "b", "octv:mask": 2, "octv:shift": 1, "octv:fieldType": "boolean" },
+                    { "octv:fieldName": "c", "octv:mask": 4, "octv:shift": 2, "octv:fieldType": "boolean" },
+                ],
+            }
+        );
+        expect(result).to.deep.equal({ status: { a: true, b: false, c: true }, other: 7 });
+    }
+}
+
+@suite("testing data mapping toWire")
+class ToWireMappingTests {
+    @test "a form without a value mapping passes the value through"() {
+        expect(applyToWireMapping(42, {})).to.equal(42);
+    }
+
+    @test "a form with fromWire but without toWire cannot be written"() {
+        expect(() => applyToWireMapping(1, { "map:valueMapping": { "map:fromWire": [] } })).to.throw("map:toWire");
+    }
+
+    @test "toWire must be an ordered array"() {
+        expect(() => applyToWireMapping(1, { "map:valueMapping": { "map:toWire": {} } })).to.throw(
+            "map:toWire must be an ordered array"
+        );
+        expect(() => applyToWireMapping(1, { "map:valueMapping": 3 })).to.throw("map:valueMapping must be an object");
+    }
+
+    @test "numeric operations run in the written order"() {
+        const result = toWire(
+            28.5,
+            { "map:proc": "add", "map:value": -5 },
+            { "map:proc": "mul", "map:value": 10 },
+            { "map:proc": "round", "map:mode": "nearest" }
+        );
+        expect(result).to.equal(235);
+    }
+
+    @test "enum matches the application value and returns the wire value"() {
+        expect(toWire("auto", { "map:proc": "enum", "map:map": modeMap })).to.equal(1);
+        expect(() => toWire("unknown", { "map:proc": "enum", "map:map": modeMap })).to.throw(
+            "No enum entry matches 'unknown'"
+        );
+    }
+
+    @test "enum rejects duplicate application values when writing"() {
+        const map = [
+            { "map:wire": 0, "map:app": "x" },
+            { "map:wire": 1, "map:app": "x" },
+        ];
+        expect(() => toWire("x", { "map:proc": "enum", "map:map": map })).to.throw("duplicate map:app value 'x'");
+    }
+
+    @test "enum with map:name converts one member in place"() {
+        const result = toWire(
+            { mode: "manual", speed: 3 },
+            { "map:proc": "enum", "map:name": "mode", "map:map": modeMap }
+        );
+        expect(result).to.deep.equal({ mode: 2, speed: 3 });
+    }
+
+    @test "enumRange writes the canonical value of the application symbol"() {
+        const ranges = [
+            { "map:min": 0, "map:max": 20, "map:app": "low", "map:canonical": 10 },
+            { "map:min": 21, "map:max": 70, "map:app": "medium" },
+        ];
+        expect(toWire("low", { "map:proc": "enumRange", "map:ranges": ranges })).to.equal(10);
+        expect(() => toWire("medium", { "map:proc": "enumRange", "map:ranges": ranges })).to.throw("map:canonical");
+        expect(() => toWire("high", { "map:proc": "enumRange", "map:ranges": ranges })).to.throw(
+            "No enumRange entry matches 'high'"
+        );
+    }
+
+    @test "read-only operations are rejected in the toWire direction"() {
+        for (const proc of ["pick", "bitExtract", "coerce", "record"]) {
+            expect(() => toWire(1, { "map:proc": proc }), proc).to.throw(
+                `Unsupported to-wire mapping operation '${proc}'`
+            );
+        }
+    }
+
+    @test "toWire steps must be objects"() {
+        expect(() => toWire(1, 3 as unknown as Record<string, unknown>)).to.throw("map:toWire steps must be objects");
     }
 }
 

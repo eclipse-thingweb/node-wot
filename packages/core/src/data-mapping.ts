@@ -20,6 +20,11 @@ import { Endianness } from "./protocol-interfaces";
 
 type CoerceType = "number" | "integer" | "boolean" | "string";
 
+type Direction = "fromWire" | "toWire";
+
+const NUMERIC_OPERATIONS = ["mul", "add", "round", "clamp"];
+const TO_WIRE_OPERATIONS = [...NUMERIC_OPERATIONS, "enum", "enumRange"];
+
 export interface DataMappingStep {
     "map:proc": string;
     "jsonv:path"?: string;
@@ -29,6 +34,10 @@ export interface DataMappingStep {
     "map:sentinels"?: string[];
     "map:sentinelValue"?: unknown;
     "map:name"?: string;
+    "map:value"?: number;
+    "map:mode"?: "floor" | "ceil" | "nearest" | "towardZero";
+    "map:min"?: number;
+    "map:max"?: number;
     "map:map"?: Array<{ "map:wire": unknown; "map:app": unknown }>;
     "map:ranges"?: Array<{ "map:min": number; "map:max": number; "map:app": unknown; "map:canonical"?: number }>;
     "map:onNoMatch"?: "error";
@@ -146,13 +155,16 @@ function applyToTarget(current: unknown, step: DataMappingStep, convert: (value:
     return { ...current, [name]: convert((current as Record<string, unknown>)[name]) };
 }
 
-function enumValue(value: unknown, step: DataMappingStep): unknown {
+function enumValue(value: unknown, step: DataMappingStep, direction: Direction): unknown {
     const entries = step["map:map"];
     if (!Array.isArray(entries) || entries.length === 0) {
         throw new Error("enum requires map:map as a non-empty array");
     }
     requireNoMatchError(step);
 
+    // A read looks up the wire value, a write looks up the application value.
+    const lookup = direction === "fromWire" ? "map:wire" : "map:app";
+    const replacement = direction === "fromWire" ? "map:app" : "map:wire";
     const seen = new Set<unknown>();
     let matched = false;
     let result: unknown;
@@ -160,13 +172,13 @@ function enumValue(value: unknown, step: DataMappingStep): unknown {
         if (entry == null || typeof entry !== "object" || !("map:wire" in entry) || !("map:app" in entry)) {
             throw new Error("enum entries require map:wire and map:app");
         }
-        if (seen.has(entry["map:wire"])) {
-            throw new Error(`enum contains duplicate map:wire value '${String(entry["map:wire"])}'`);
+        if (seen.has(entry[lookup])) {
+            throw new Error(`enum contains duplicate ${lookup} value '${String(entry[lookup])}'`);
         }
-        seen.add(entry["map:wire"]);
-        if (!matched && entry["map:wire"] === value) {
+        seen.add(entry[lookup]);
+        if (!matched && entry[lookup] === value) {
             matched = true;
-            result = entry["map:app"];
+            result = entry[replacement];
         }
     }
     if (!matched) {
@@ -175,7 +187,7 @@ function enumValue(value: unknown, step: DataMappingStep): unknown {
     return result;
 }
 
-function enumRangeValue(value: unknown, step: DataMappingStep): unknown {
+function enumRangeValue(value: unknown, step: DataMappingStep, direction: Direction): unknown {
     const ranges = step["map:ranges"];
     if (!Array.isArray(ranges) || ranges.length === 0) {
         throw new Error("enumRange requires map:ranges as a non-empty array");
@@ -184,6 +196,7 @@ function enumRangeValue(value: unknown, step: DataMappingStep): unknown {
 
     const accepted: Array<{ min: number; max: number }> = [];
     let matched = false;
+    let missingCanonical = false;
     let result: unknown;
     for (const range of ranges) {
         if (range == null || typeof range !== "object" || !("map:app" in range)) {
@@ -205,18 +218,96 @@ function enumRangeValue(value: unknown, step: DataMappingStep): unknown {
             throw new Error(`enumRange entry [${min}, ${max}] overlaps another entry`);
         }
         accepted.push({ min, max });
-        if (!matched && typeof value === "number" && value >= min && value <= max) {
+        if (matched) {
+            continue;
+        }
+        if (direction === "fromWire" && typeof value === "number" && value >= min && value <= max) {
             matched = true;
             result = range["map:app"];
+        } else if (direction === "toWire" && range["map:app"] === value) {
+            matched = true;
+            missingCanonical = canonical === undefined;
+            result = canonical;
         }
     }
-    if (typeof value !== "number") {
+    if (direction === "fromWire" && typeof value !== "number") {
         throw new Error(`enumRange requires a numeric input, got '${String(value)}'`);
     }
     if (!matched) {
         throw new Error(`No enumRange entry matches '${String(value)}'`);
     }
+    if (missingCanonical) {
+        throw new Error(`enumRange entry '${String(value)}' has no map:canonical, so it cannot be written`);
+    }
     return result;
+}
+
+function finiteNumberParameter(step: DataMappingStep, key: string): number | undefined {
+    const value = step[key];
+    if (value === undefined) {
+        return undefined;
+    }
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new Error(`${String(step["map:proc"])} requires ${key} as a finite number`);
+    }
+    return value;
+}
+
+// Round half to even, as the US3 `nearest` mode requires; Math.round would round halves up.
+function roundNearestEven(value: number): number {
+    return Math.abs(value % 1) === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
+}
+
+function roundValue(value: number, step: DataMappingStep): number {
+    switch (step["map:mode"]) {
+        case "floor":
+            return Math.floor(value);
+        case "ceil":
+            return Math.ceil(value);
+        case "towardZero":
+            return Math.trunc(value);
+        case "nearest":
+            return roundNearestEven(value);
+        default:
+            throw new Error("round requires map:mode 'floor', 'ceil', 'nearest' or 'towardZero'");
+    }
+}
+
+function clampValue(value: number, step: DataMappingStep): number {
+    const min = finiteNumberParameter(step, "map:min");
+    const max = finiteNumberParameter(step, "map:max");
+    if (min === undefined && max === undefined) {
+        throw new Error("clamp requires map:min and/or map:max");
+    }
+    if (min !== undefined && max !== undefined && min > max) {
+        throw new Error(`clamp has map:min ${min} greater than map:max ${max}`);
+    }
+    return Math.min(max ?? Number.POSITIVE_INFINITY, Math.max(min ?? Number.NEGATIVE_INFINITY, value));
+}
+
+function numericValue(value: unknown, step: DataMappingStep): number {
+    const operation = String(step["map:proc"]);
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        throw new Error(`${operation} requires a finite numeric input, got '${String(value)}'`);
+    }
+
+    let result: number;
+    if (operation === "round") {
+        result = roundValue(value, step);
+    } else if (operation === "clamp") {
+        result = clampValue(value, step);
+    } else {
+        const operand = finiteNumberParameter(step, "map:value");
+        if (operand === undefined) {
+            throw new Error(`${operation} requires map:value as a finite number`);
+        }
+        result = operation === "mul" ? value * operand : value + operand;
+    }
+    if (!Number.isFinite(result)) {
+        throw new Error(`${operation} produced a non-finite result`);
+    }
+    // Normalise -0 so that JSON consumers do not see a signed zero.
+    return result === 0 ? 0 : result;
 }
 
 function bitExtractValue(value: unknown, step: DataMappingStep): Record<string, unknown> {
@@ -279,7 +370,7 @@ function bitExtractValue(value: unknown, step: DataMappingStep): Record<string, 
     return result;
 }
 
-function applyMappingSteps(value: unknown, steps: unknown): unknown {
+function applyMappingSteps(value: unknown, steps: unknown, direction: Direction = "fromWire"): unknown {
     if (!Array.isArray(steps)) {
         throw new Error("Mapping steps must be an ordered array");
     }
@@ -287,23 +378,30 @@ function applyMappingSteps(value: unknown, steps: unknown): unknown {
     let current: unknown = value;
     for (const step of steps) {
         if (step == null || typeof step !== "object" || Array.isArray(step)) {
-            throw new Error("map:fromWire steps must be objects");
+            throw new Error(`map:${direction} steps must be objects`);
         }
         const operation = step["map:proc"];
+        if (direction === "toWire" && !TO_WIRE_OPERATIONS.includes(operation)) {
+            throw new Error(`Unsupported to-wire mapping operation '${String(operation)}'`);
+        }
+        if (NUMERIC_OPERATIONS.includes(operation)) {
+            current = applyToTarget(current, step, (member) => numericValue(member, step));
+            continue;
+        }
         if (operation === "coerce") {
             current = coerceValue(current, step);
             continue;
         }
         if (operation === "enum") {
-            current = applyToTarget(current, step, (member) => enumValue(member, step));
+            current = applyToTarget(current, step, (member) => enumValue(member, step, direction));
             continue;
         }
         if (operation === "enumRange") {
-            current = applyToTarget(current, step, (member) => enumRangeValue(member, step));
+            current = applyToTarget(current, step, (member) => enumRangeValue(member, step, direction));
             continue;
         }
         if (operation === "bitExtract") {
-            current = bitExtractValue(current, step);
+            current = applyToTarget(current, step, (member) => bitExtractValue(member, step));
             continue;
         }
         if (operation === "record") {
@@ -351,6 +449,30 @@ export function applyFromWireMapping(value: unknown, form: Record<string, unknow
     }
 
     return applyMappingSteps(value, steps);
+}
+
+/**
+ * Applies the `map:toWire` pipeline of a form to an application value before it is written.
+ * A form with a `map:fromWire` pipeline but no `map:toWire` pipeline cannot be written, because
+ * the inverse of a read mapping is not derived implicitly.
+ */
+export function applyToWireMapping(value: unknown, form: Record<string, unknown>): unknown {
+    const valueMapping = getValueMapping(form);
+    if (valueMapping === undefined) {
+        return value;
+    }
+    const steps = valueMapping["map:toWire"];
+    if (steps === undefined) {
+        if (valueMapping["map:fromWire"] !== undefined) {
+            throw new Error("map:toWire is required to write a form that has a map:fromWire mapping");
+        }
+        return value;
+    }
+    if (!Array.isArray(steps)) {
+        throw new Error("map:toWire must be an ordered array");
+    }
+
+    return applyMappingSteps(value, steps, "toWire");
 }
 
 export interface WireDecoding {

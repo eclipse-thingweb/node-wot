@@ -26,7 +26,6 @@ chai.use(chaiAsPromised);
 
 const DINT = 0xc4;
 const REAL = 0xca;
-const INT = 0xc3;
 
 const motorStatus: EipStructureDefinition = {
     "eipv:typeName": "MotorStatus",
@@ -71,14 +70,6 @@ describe("EtherNet/IP connection", () => {
             server.addTag("MotorSpeed", REAL, 4, Buffer.from([0x00, 0x00, 0xc0, 0x3f]));
             expect(await connection.read("MotorSpeed", { type: "eipv:REAL" }, options)).to.equal(1.5);
             expect(services()).to.deep.equal([0x4c]);
-        });
-
-        it("applies scale and offset", async () => {
-            const raw = Buffer.alloc(2);
-            raw.writeInt16LE(235);
-            server.addTag("TankTemp", INT, 2, raw);
-            const value = await connection.read("TankTemp", { type: "eipv:INT", scale: 0.1 }, options);
-            expect(value).to.be.closeTo(23.5, 1e-9);
         });
 
         it("decodes a structure and keeps program-scoped paths intact", async () => {

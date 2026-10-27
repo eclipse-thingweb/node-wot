@@ -126,31 +126,6 @@ describe("EtherNet/IP codec", () => {
         });
     });
 
-    describe("scale and offset", () => {
-        const temp: EipValueLayout = { type: "eipv:INT", scale: 0.1 };
-
-        it("applies value = raw * scale + offset on read", () => {
-            expect(decodeValue(temp, bytes(235, 0))).to.be.closeTo(23.5, 1e-9);
-            expect(decodeValue({ type: "eipv:INT", scale: 2, offset: 1 }, bytes(3, 0))).to.equal(7);
-        });
-
-        it("applies the inverse and rounds to the raw type on write", () => {
-            expect(encodeValue(temp, 23.5)).to.deep.equal(bytes(235, 0));
-            expect(encodeValue({ type: "eipv:INT", scale: 2, offset: 1 }, 7)).to.deep.equal(bytes(3, 0));
-        });
-
-        it("does not round floating point targets", () => {
-            const encoded = encodeValue({ type: "eipv:REAL", scale: 2 }, 3);
-            expect(encoded.readFloatLE(0)).to.equal(1.5);
-        });
-
-        it("applies to each element of an array", () => {
-            const layout: EipValueLayout = { type: "eipv:INT", dimensions: [2], scale: 10 };
-            expect(decodeValue(layout, bytes(1, 0, 2, 0))).to.deep.equal([10, 20]);
-            expect(encodeValue(layout, [10, 20])).to.deep.equal(bytes(1, 0, 2, 0));
-        });
-    });
-
     describe("arrays", () => {
         it("decodes all elements as a flat array", () => {
             const layout: EipValueLayout = { type: "eipv:DINT", dimensions: [2, 2] };
@@ -292,17 +267,17 @@ describe("EtherNet/IP codec", () => {
                 "eipv:type": "eipv:INT",
                 "eipv:dimensions": [4],
                 "eipv:elementCount": 2,
-                "eipv:scale": 0.5,
-                "eipv:offset": 1,
             } as EipForm;
             expect(layoutFromForm(form)).to.deep.equal({
                 type: "eipv:INT",
                 structure: undefined,
                 dimensions: [4],
                 elementCount: 2,
-                scale: 0.5,
-                offset: 1,
             });
+        });
+
+        it("leaves a fractional value for an integer type to the caller", () => {
+            expect(() => encodeValue({ type: "eipv:INT" }, 23.5)).to.throw(RangeError);
         });
     });
 });

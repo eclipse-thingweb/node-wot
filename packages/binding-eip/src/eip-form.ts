@@ -65,8 +65,6 @@ export class EipForm extends Form {
     public "eipv:pollingTime"?: number;
     /** Response timeout in milliseconds. */
     public "eipv:timeout"?: number;
-    public "eipv:scale"?: number;
-    public "eipv:offset"?: number;
     public "eipv:dimensions"?: number[];
     public "eipv:elementCount"?: number;
 }

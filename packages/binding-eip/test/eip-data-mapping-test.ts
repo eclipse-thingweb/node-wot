@@ -92,7 +92,6 @@ describe("EtherNet/IP binding with map:valueMapping", () => {
                 },
                 Drive: {
                     type: "object",
-                    readOnly: true,
                     properties: {
                         Mode: { type: "string", enum: ["off", "auto", "manual"] },
                         Speed: { type: "integer" },
@@ -100,7 +99,7 @@ describe("EtherNet/IP binding with map:valueMapping", () => {
                     forms: [
                         {
                             href: "Drive",
-                            op: ["readproperty"],
+                            op: ["readproperty", "writeproperty"],
                             "eipv:structureDefinition": {
                                 "eipv:typeName": "Drive",
                                 "eipv:fields": [
@@ -120,7 +119,50 @@ describe("EtherNet/IP binding with map:valueMapping", () => {
                                         ],
                                     },
                                 ],
+                                "map:toWire": [
+                                    {
+                                        "map:proc": "enum",
+                                        "map:name": "Mode",
+                                        "map:map": [
+                                            { "map:wire": 0, "map:app": "off" },
+                                            { "map:wire": 1, "map:app": "auto" },
+                                            { "map:wire": 2, "map:app": "manual" },
+                                        ],
+                                    },
+                                ],
                             },
+                        },
+                    ],
+                },
+                TankTemp: {
+                    type: "number",
+                    forms: [
+                        {
+                            href: "TankTemp",
+                            op: ["readproperty", "writeproperty"],
+                            "eipv:type": "eipv:INT",
+                            "map:valueMapping": {
+                                "map:fromWire": [
+                                    { "map:proc": "mul", "map:value": 0.1 },
+                                    { "map:proc": "add", "map:value": 5 },
+                                ],
+                                "map:toWire": [
+                                    { "map:proc": "add", "map:value": -5 },
+                                    { "map:proc": "mul", "map:value": 10 },
+                                    { "map:proc": "round", "map:mode": "nearest" },
+                                ],
+                            },
+                        },
+                    ],
+                },
+                NoInverse: {
+                    type: "integer",
+                    forms: [
+                        {
+                            href: "NoInverse",
+                            op: ["readproperty", "writeproperty"],
+                            "eipv:type": "eipv:DINT",
+                            "map:valueMapping": { "map:fromWire": [{ "map:proc": "mul", "map:value": 2 }] },
                         },
                     ],
                 },
@@ -165,5 +207,40 @@ describe("EtherNet/IP binding with map:valueMapping", () => {
 
         const output = await thing.readProperty("Drive");
         await expect(output.value()).to.be.rejectedWith("No enum entry matches '9'");
+    });
+
+    it("converts an application enum back to its wire value on write", async () => {
+        const tag = server.addTag("Drive", STRUCTURE_TYPE_CODE, 8, drive(0, 0), 0x1111);
+
+        await thing.writeProperty("Drive", { Mode: "manual", Speed: 1500 });
+
+        expect(tag.data).to.deep.equal(drive(2, 1500));
+    });
+
+    it("scales a primitive tag with mul and add on read", async () => {
+        const raw = Buffer.alloc(2);
+        raw.writeInt16LE(235);
+        server.addTag("TankTemp", 0xc3, 2, raw);
+
+        const value = await (await thing.readProperty("TankTemp")).value();
+        expect(value).to.be.closeTo(28.5, 1e-9);
+    });
+
+    it("applies the inverse scaling and rounds to the integer wire type on write", async () => {
+        const tag = server.addTag("TankTemp", 0xc3, 2, Buffer.alloc(2));
+
+        await thing.writeProperty("TankTemp", 28.5);
+        expect(tag.data.readInt16LE(0)).to.equal(235);
+
+        await thing.writeProperty("TankTemp", 28.54);
+        expect(tag.data.readInt16LE(0)).to.equal(235);
+    });
+
+    it("refuses to write a form that has a read mapping but no toWire mapping", async () => {
+        const tag = server.addTag("NoInverse", 0xc4, 4, Buffer.alloc(4));
+
+        await expect(thing.writeProperty("NoInverse", 4)).to.be.rejectedWith("map:toWire is required");
+        expect(tag.data).to.deep.equal(Buffer.alloc(4));
+        expect(server.requests).to.have.length(0);
     });
 });

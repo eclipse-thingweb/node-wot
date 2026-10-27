@@ -166,20 +166,10 @@ export function validateEipForm(form: EipForm): void {
         throw new Error("eipv:elementCount requires eipv:dimensions");
     }
 
-    const scale = form["eipv:scale"];
-    const offset = form["eipv:offset"];
-    const numeric = type !== undefined && type !== "eipv:BOOL" && type !== "eipv:STRING";
-    if (scale !== undefined) {
-        if (typeof scale !== "number" || !Number.isFinite(scale) || scale === 0) {
-            throw new Error("eipv:scale must be a non-zero number");
+    for (const term of ["eipv:scale", "eipv:offset"]) {
+        if (form[term] !== undefined) {
+            throw new Error(`${term} is not supported, use map:valueMapping with the mul and add operations`);
         }
-        if (!numeric) throw new Error("eipv:scale is only allowed for numeric types");
-    }
-    if (offset !== undefined) {
-        if (typeof offset !== "number" || !Number.isFinite(offset)) {
-            throw new Error("eipv:offset must be a number");
-        }
-        if (!numeric) throw new Error("eipv:offset is only allowed for numeric types");
     }
 
     for (const term of ["eipv:pollingTime", "eipv:timeout"] as const) {

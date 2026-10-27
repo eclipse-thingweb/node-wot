@@ -58,9 +58,20 @@ describe("EtherNet/IP form validation", () => {
             ).to.not.throw();
         });
 
-        it("scale and offset on numeric types", () => {
+        it("rejects eipv:scale and eipv:offset and points to map:valueMapping", () => {
+            expect(() => validateEipForm(form({ "eipv:type": "eipv:INT", "eipv:scale": 0.1 }))).to.throw(
+                "eipv:scale is not supported, use map:valueMapping"
+            );
+            expect(() => validateEipForm(form({ "eipv:type": "eipv:INT", "eipv:offset": 5 }))).to.throw(
+                "eipv:offset is not supported, use map:valueMapping"
+            );
+        });
+
+        it("ignores map: and octv: terms", () => {
             expect(() =>
-                validateEipForm(form({ "eipv:type": "eipv:INT", "eipv:scale": 0.1, "eipv:offset": 5 }))
+                validateEipForm(
+                    form({ "map:valueMapping": { "map:fromWire": [{ "map:proc": "mul", "map:value": 2 }] } })
+                )
             ).to.not.throw();
         });
     });
@@ -163,32 +174,7 @@ describe("EtherNet/IP form validation", () => {
         });
     });
 
-    describe("scale, offset, timing", () => {
-        it("rejects a zero scale", () => {
-            expect(() => validateEipForm(form({ "eipv:scale": 0 }))).to.throw("eipv:scale");
-        });
-
-        it("rejects non-numeric scale or offset", () => {
-            expect(() => validateEipForm(form({ "eipv:scale": "2" }))).to.throw("eipv:scale");
-            expect(() => validateEipForm(form({ "eipv:offset": "2" }))).to.throw("eipv:offset");
-        });
-
-        it("rejects scale and offset on BOOL, STRING and structures", () => {
-            expect(() => validateEipForm(form({ "eipv:type": "eipv:BOOL", "eipv:scale": 2 }))).to.throw("eipv:scale");
-            expect(() => validateEipForm(form({ "eipv:type": "eipv:STRING", "eipv:offset": 2 }))).to.throw(
-                "eipv:offset"
-            );
-            const structure = {
-                "eipv:typeName": "T",
-                "eipv:fields": [{ "eipv:name": "A", "eipv:type": "eipv:DINT", "eipv:byteOffset": 0 }],
-            };
-            expect(() =>
-                validateEipForm(
-                    form({ "eipv:type": undefined, "eipv:structureDefinition": structure, "eipv:scale": 2 })
-                )
-            ).to.throw("eipv:scale");
-        });
-
+    describe("timing", () => {
         it("rejects negative or non-integer polling time and timeout", () => {
             expect(() => validateEipForm(form({ "eipv:pollingTime": -1 }))).to.throw("eipv:pollingTime");
             expect(() => validateEipForm(form({ "eipv:pollingTime": 1.5 }))).to.throw("eipv:pollingTime");
