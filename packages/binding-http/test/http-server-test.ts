@@ -481,6 +481,80 @@ class HttpServerTest {
         }
     }
 
+    @test async "should not accept an unknown prefixed scheme"() {
+        const httpServer = new HttpServer({ port: 0 });
+        await httpServer.start(new Servient());
+
+        try {
+            const testThing = new ExposedThing(new Servient(), {
+                title: "TestUnknownPrefixed",
+                securityDefinitions: {
+                    iot_sc: {
+                        scheme: "iot:nosecXYZ",
+                    },
+                },
+                security: ["iot_sc"],
+            });
+            await expect(httpServer.expose(testThing)).to.be.eventually.rejectedWith(
+                "HttpServer does not support security scheme 'iot:nosecXYZ'"
+            );
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should accept a valid foreign scheme when supported scheme is also present"() {
+        const httpServer = new HttpServer({ port: 0 });
+        await httpServer.start(new Servient());
+
+        try {
+            const testThing = new ExposedThing(new Servient(), {
+                title: "TestForeignAndSupported",
+                securityDefinitions: {
+                    uav_sc: {
+                        scheme: "uav:channelsec",
+                    },
+                    nosec_sc: {
+                        scheme: "nosec",
+                    },
+                },
+                security: ["uav_sc", "nosec_sc"],
+            });
+            await expect(httpServer.expose(testThing)).to.be.eventually.fulfilled;
+            expect(testThing.securityDefinitions.uav_sc).not.to.be.undefined;
+            expect(testThing.securityDefinitions.nosec_sc).not.to.be.undefined;
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
+    @test async "should preserve foreign scheme definitions when choosing default supported scheme"() {
+        const httpServer = new HttpServer({ port: 0 });
+        await httpServer.start(new Servient());
+
+        try {
+            const testThing = new ExposedThing(new Servient(), {
+                title: "TestPreserveForeign",
+                securityDefinitions: {
+                    uav_sc: {
+                        scheme: "uav:channelsec",
+                    },
+                    nosec_sc: {
+                        scheme: "nosec",
+                    },
+                },
+                security: [],
+            });
+            await expect(httpServer.expose(testThing)).to.be.eventually.fulfilled;
+            expect(testThing.security).to.deep.equal(["nosec_sc"]);
+            expect(testThing.securityDefinitions.uav_sc).not.to.be.undefined;
+            expect(testThing.securityDefinitions.uav_sc.scheme).to.equal("uav:channelsec");
+            expect(testThing.securityDefinitions.nosec_sc).not.to.be.undefined;
+        } finally {
+            await httpServer.stop();
+        }
+    }
+
     @test async "config.port is overridden by WOT_PORT or PORT"() {
         // Works when none set
         let httpServer = new HttpServer({ port });
