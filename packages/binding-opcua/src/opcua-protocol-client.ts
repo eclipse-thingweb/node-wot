@@ -547,6 +547,9 @@ export class OPCUAProtocolClient implements ProtocolClient {
                     success = true;
                     break;
                 }
+                case "nosec":
+                    success = true;
+                    break;
                 case "uav:channelsec":
                     success = this.#setChannelSecurity(securityScheme as OPCUAChannelSecurityScheme);
                     break;
@@ -576,13 +579,31 @@ export class OPCUAProtocolClient implements ProtocolClient {
                                 `Supported schemes are 'uav:channelsec' and 'uav:authentication'.`
                         );
                     }
-                    // not for us , ignored
-                    break;
+                    if (this.isForeignSecurityScheme(securityScheme.scheme)) {
+                        // not for us , ignored
+                        break;
+                    }
+                    throw new Error(
+                        `Unsupported OPC UA security scheme '${securityScheme.scheme}'. ` +
+                            `Supported schemes are 'uav:channelsec' and 'uav:authentication'.`
+                    );
                 }
             }
             if (!success) return false;
         }
         return true;
+    }
+
+    private isForeignSecurityScheme(scheme: string): boolean {
+        return (
+            scheme === "basic" ||
+            scheme === "bearer" ||
+            scheme === "apikey" ||
+            scheme === "oauth2" ||
+            scheme === "psk" ||
+            scheme === "digest" ||
+            scheme === "TuyaCustomBearer"
+        );
     }
 
     private _monitoredItems: Map<

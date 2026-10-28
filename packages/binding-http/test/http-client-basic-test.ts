@@ -17,12 +17,13 @@ import { suite, test } from "@testdeck/mocha";
 import express from "express";
 import { HttpClient } from "../src/http";
 import * as https from "https";
-import { BasicSecurityScheme } from "@node-wot/core";
+import { BasicSecurityScheme, SecurityScheme } from "@node-wot/core";
 import * as chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { fail } from "assert";
 import { readFileSync } from "fs";
 
+const { expect } = chai;
 chai.should();
 chai.use(chaiAsPromised);
 
@@ -119,5 +120,34 @@ class HttpClientBasicTest {
             return;
         }
         fail("should fail to authorize client with basic");
+    }
+
+    @test async "should throw when setting unknown prefixed security scheme"(): Promise<void> {
+        expect(() => {
+            this.client.setSecurity([{ scheme: "iot:nosecXYZ" } as SecurityScheme]);
+        }).to.throw("HttpClient cannot set security scheme 'iot:nosecXYZ'");
+    }
+
+    @test async "should ignore valid foreign binding schemes in setSecurity"(): Promise<void> {
+        expect(this.client.setSecurity([{ scheme: "uav:channelsec" } as SecurityScheme])).to.be.true;
+    }
+
+    @test async "should ignore valid foreign binding scheme and use supported basic scheme"(): Promise<void> {
+        const basicScheme: BasicSecurityScheme = {
+            scheme: "basic",
+            in: "header",
+        };
+
+        const success = this.client.setSecurity([{ scheme: "uav:channelsec" } as SecurityScheme, basicScheme], {
+            username: "admin",
+            password: "password",
+        });
+        expect(success).to.be.true;
+
+        const resource = await this.client.readResource({
+            href: "https://127.0.0.1:3001",
+        });
+        const body = await resource.toBuffer();
+        body.toString("ascii").should.eql("Access granted");
     }
 }

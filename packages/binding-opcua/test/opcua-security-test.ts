@@ -502,6 +502,13 @@ describe("Testing OPCUA Security Scheme Migration (OPC 10101 v1.00)", () => {
         );
     });
 
+    it("MIG1c - should refuse unknown prefixed schemes from outside our namespace", () => {
+        const client = new OPCUAProtocolClient();
+        expect(() => client.setSecurity([{ scheme: "iot:nosecXYZ" } as unknown as SecurityScheme])).to.throw(
+            "Unsupported OPC UA security scheme 'iot:nosecXYZ'. Supported schemes are 'uav:channelsec' and 'uav:authentication'."
+        );
+    });
+
     it("MIG2 - should still ignore security schemes that belong to another binding", () => {
         const client = new OPCUAProtocolClient();
         expect(client.setSecurity([{ scheme: "basic" } as SecurityScheme])).to.eql(true);
