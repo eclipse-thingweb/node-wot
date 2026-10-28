@@ -27,8 +27,6 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
     public contentSerdes: ContentSerdes = ContentSerdes.get();
 
     constructor() {
-        // application/opcua+uabinary is the only media type of an opc.tcp form. It belongs to
-        // OPC UA alone, so the codec is registered like any other, without a URI scheme.
         this.contentSerdes.addCodec(new OpcuaUABinaryCodec());
     }
 

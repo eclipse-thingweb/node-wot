@@ -118,8 +118,27 @@ picks what `value()` returns:
 | `application/opcua+uabinary;type=DataValue` | the Variant with `Status`, `SourceTimestamp`, `ServerTimestamp` |
 
 The Variant and DataValue views return an object, so the affordance declares `"type": "object"`.
-Any other contentType, and a form without one, is refused with an error naming the replacement.
-See [doc/content-negotiation.md](doc/content-negotiation.md).
+`arrayBuffer()` returns the OPC UA Binary DataValue, whatever the view.
+
+Any other contentType is refused. A form without `contentType` is refused too: W3C WoT TD 1.1
+§5.3.4.2 reads it as `application/json`.
+
+**Writing.** The Value view takes the bare value; the binding reads the node's DataType from the
+server and converts the value to it, so `"type": "number"` writes an Int32 to an Int32 node. The
+Variant and DataValue views take the OPC UA JSON 1.05 shape shown above. A value that does not fit
+the DataType is refused, never written approximately: `300` for a Byte, `42.5` for an Int32, nested
+arrays in the Value view (use `type=Variant`, which carries the dimensions).
+
+**Actions.** The input is one object keyed by the argument names, `{ "a": 1, "b": 2 }`; the output
+has the same shape. With `type=Variant` or `type=DataValue`, each argument is an OPC UA Variant,
+`{ "UaType": 6, "Value": 1 }`.
+
+**The Value view loses information** for some types: the locale of a LocalizedText, the OPC UA type
+of a value, the choice of a Union, the status and the timestamps. Use `type=Variant` or
+`type=DataValue` when a value must survive a round trip exactly.
+
+Writing a structure (ExtensionObject), as a property or as an action argument, is refused for now
+([#1583](https://github.com/eclipse-thingweb/node-wot/issues/1583)).
 
 ## Security
 

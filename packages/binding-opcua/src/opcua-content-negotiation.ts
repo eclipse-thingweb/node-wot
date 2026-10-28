@@ -22,8 +22,6 @@
 // `type` parameter picks what `value()` returns (the value, the Variant or the DataValue,
 // as OPC UA JSON). The JSON renderings below are internal to those views.
 //
-// See doc/content-negotiation.md and doc/decisions.md (D8).
-//
 
 import { DataValue } from "node-opcua-data-value";
 import { DataType, Variant, VariantArrayType, isValidVariant } from "node-opcua-variant";
@@ -103,21 +101,6 @@ export function viewFormat(view: OPCUAView): ContentFormat {
 
 const VIEWS: Record<string, OPCUAView> = { value: "value", variant: "variant", datavalue: "dataValue" };
 
-/** The media types this binding used to accept, and what replaces each. */
-function replacementOf(mediaType: string, parameters: Record<string, string>): string | undefined {
-    switch (mediaType) {
-        case "application/json":
-        case "application/octet-stream":
-            return OPCUA_UABINARY;
-        case "application/opcua+octet-stream":
-            return `${OPCUA_UABINARY};type=DataValue`;
-        case "application/opcua+json":
-            return `${OPCUA_UABINARY};type=${parameters.type ?? "DataValue"}`;
-        default:
-            return undefined;
-    }
-}
-
 function parseParameters(contentType: string): Record<string, string> {
     const out: Record<string, string> = {};
     for (const part of contentType.split(";").slice(1)) {
@@ -158,12 +141,6 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
         return { mediaType, flavour: "uaBinary", view, parameters };
     }
 
-    const replacement = replacementOf(mediaType, parameters);
-    if (replacement !== undefined) {
-        throw new Error(
-            `binding-opcua: contentType '${contentType}' is not supported on opc.tcp forms. Use '${replacement}'.`
-        );
-    }
     throw new Error(
         `binding-opcua: unsupported contentType '${contentType}'. ` +
             `Supported: ${OPCUA_UABINARY}, with an optional ;type=Value|Variant|DataValue.`
@@ -172,16 +149,15 @@ export function resolveContentFormat(contentType: string | undefined): ContentFo
 
 /**
  * Writing a structure needs its DataTypeDefinition and the server's namespace index, which
- * only the binding's session has. The plan gives it as OPC UA JSON 1.05, encoded by the
- * binding (question A3, issue #1583); until that lands it is refused rather than half-done.
+ * only the binding's session has. Issue #1583 tracks how a consumer passes one; until then it
+ * is refused rather than half-done.
  */
 export function refuseStructure(dataType: DataType, hint: string): void {
     if (dataType === DataType.ExtensionObject) {
         throw new Error(
             `binding-opcua: writing a structure with contentType '${OPCUA_UABINARY}' is not supported yet, ` +
                 `and ${hint} is a structure (ExtensionObject). ` +
-                `See question A3 of doc/octet-stream-ua-binary-plan.md and ` +
-                `https://github.com/eclipse-thingweb/node-wot/issues/1583.`
+                `See https://github.com/eclipse-thingweb/node-wot/issues/1583.`
         );
     }
 }
@@ -486,7 +462,7 @@ export function decodeToDataValue(
             refuseStructure(dataType, hint);
             if (parseJsonPayload(body) !== undefined) {
                 // the codec hands over as JSON what it cannot encode without the session: a
-                // structure, an action input (plan section 6.7), or a Variant or DataValue view,
+                // structure, an action input, or a Variant or DataValue view,
                 // whose NodeIds need the session's namespace table
                 const dataValue = decodeToDataValue(viewFormat(format.view), body, dataType, hint, namespaceArray);
                 if (format.view !== "value") {
@@ -494,7 +470,7 @@ export function decodeToDataValue(
                 }
                 return dataValue;
             }
-            // keep the fields the consumer sent: StatusCode, timestamps (plan W1)
+            // keep the fields the consumer sent: StatusCode, timestamps
             const dataValue = decodeUABinaryDataValue(body);
             dataValue.value = convertVariant(dataValue.value, dataType, hint);
             return dataValue;

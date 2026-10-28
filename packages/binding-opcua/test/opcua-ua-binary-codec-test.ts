@@ -15,7 +15,7 @@
 
 //
 // application/opcua+uabinary on opc.tcp forms: an OPC UA Binary DataValue, whose
-// type parameter picks what value() returns. See doc/decisions.md (D8).
+// type parameter picks what value() returns.
 //
 
 import { expect } from "chai";
@@ -39,7 +39,7 @@ describe("OPC UA Binary codec (application/opcua+uabinary)", () => {
     });
 
     describe("valueToBytes", () => {
-        it("writes a value of built-in type as a DataValue holding only the value (plan W1)", () => {
+        it("writes a value of built-in type as a DataValue holding only the value", () => {
             // mask 01, type 0b (Double), then 42 as an IEEE double, little-endian
             expect(theOpcuaUABinaryCodec.valueToBytes(42).toString("hex")).to.equal("010b0000000000004540");
         });
@@ -61,7 +61,7 @@ describe("OPC UA Binary codec (application/opcua+uabinary)", () => {
         }
 
         // the codec runs in core, without a session: what needs the server goes to the
-        // binding as JSON (plan section 6.7)
+        // binding as JSON
         for (const [label, value] of [
             ["a structure", { Low: 0, High: 10 }],
             ["an action input", { TargetTemperature: 26 }],
@@ -192,15 +192,18 @@ describe("contentType of an opc.tcp form", () => {
         expect(() => resolveContentFormat(undefined)).to.throw(/needs contentType 'application\/opcua\+uabinary'/);
     });
 
-    for (const [contentType, replacement] of [
-        ["application/json", "application/opcua+uabinary"],
-        ["application/octet-stream", "application/opcua+uabinary"],
-        ["application/opcua+octet-stream", "application/opcua+uabinary;type=DataValue"],
-        ["application/opcua+json", "application/opcua+uabinary;type=DataValue"],
-        ["application/opcua+json;type=Variant", "application/opcua+uabinary;type=Variant"],
+    for (const contentType of [
+        "application/json",
+        "application/octet-stream",
+        "application/opcua+octet-stream",
+        "application/opcua+json",
+        "application/opcua+json;type=Variant",
     ]) {
-        it(`refuses ${contentType}, naming ${replacement}`, () => {
-            expect(() => resolveContentFormat(contentType)).to.throw(`Use '${replacement}'.`);
+        it(`refuses ${contentType}`, () => {
+            expect(() => resolveContentFormat(contentType)).to.throw(
+                `binding-opcua: unsupported contentType '${contentType}'. ` +
+                    "Supported: application/opcua+uabinary, with an optional ;type=Value|Variant|DataValue."
+            );
         });
     }
 });

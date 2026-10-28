@@ -21,8 +21,7 @@
 //
 // An opc.tcp form takes application/opcua+uabinary (OPC 10000-6 Table 80, planned for
 // WoT OPC UA Binding 1.1); its `type` parameter picks what value() returns. Every other
-// contentType, and a form without one, is refused with a message naming the replacement.
-// See doc/decisions.md (D8).
+// contentType, and a form without one, is refused.
 //
 // The server exposes SpecialVariable, a Double holding 42.0.
 //
@@ -209,11 +208,9 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
                     expect(outcome.error).to.match(/needs contentType 'application\/opcua\+uabinary'/);
                     break;
                 case "B":
-                    // WoT OPC UA Binding 1.0 names application/octet-stream; its 1.1 replacement
-                    // is application/opcua+uabinary, and the message says so
                     expect(outcome.ok).to.equal(false);
-                    expect(outcome.error).to.match(/Use 'application\/opcua\+uabinary'/);
-                    expect(outcome.error, "the error should name the offending contentType").to.match(/octet-stream/);
+                    expect(outcome.error).to.match(/unsupported contentType 'application\/octet-stream'/);
+                    expect(outcome.error).to.match(/Supported: application\/opcua\+uabinary/);
                     break;
                 case "C":
                 case "E":
@@ -232,7 +229,7 @@ describe("contentType end-to-end matrix (issue #1400)", function () {
                     break;
                 case "G":
                     expect(outcome.ok).to.equal(false);
-                    expect(outcome.error).to.match(/Use 'application\/opcua\+uabinary;type=DataValue'/);
+                    expect(outcome.error).to.match(/unsupported contentType 'application\/opcua\+json'/);
                     break;
             }
             info(`scenario ${s.key}: ${outcome.ok ? "OK " + JSON.stringify(outcome.value) : "THROW " + outcome.error}`);

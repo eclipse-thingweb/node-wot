@@ -88,7 +88,7 @@ describe("binding-opcua refuses a contentType before calling the server", () => 
             expect(calls).to.eql([]);
         });
 
-        it(`observeproperty with ${label}: no monitored item, and the refusal names the replacement`, async () => {
+        it(`observeproperty with ${label}: no monitored item`, async () => {
             const { client, calls } = fakeClient();
             const err = await refusal(client.subscribeResource({ href, contentType }, () => undefined));
             expect(err.message).to.match(/opcua\+uabinary/);

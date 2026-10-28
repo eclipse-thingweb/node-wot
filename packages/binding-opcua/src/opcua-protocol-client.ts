@@ -614,7 +614,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     ///
     private async _dataValueToContent(form: OPCUAForm, dataValue: DataValue, session: ClientSession): Promise<Content> {
-        // refuses any contentType other than application/opcua+uabinary, naming the replacement
+        // refuses any contentType other than application/opcua+uabinary
         const format = resolveContentFormat(form.contentType);
         const namespaceArray = await this._getNamespaceArray(form);
         const { body } = encodeDataValue(format, dataValue, `form '${form.href}'`, namespaceArray);
@@ -627,7 +627,7 @@ export class OPCUAProtocolClient implements ProtocolClient {
 
     /**
      * The Content type of a payload. The codec decodes OPC UA in core, where there is no session,
-     * so the Content type names the session's context (`;uaconn=`, plan section 8): its namespace
+     * so the Content type names the session's context (`;uaconn=`): its namespace
      * table, and its structure definitions when the payload holds a structure. These parameters
      * never reach the form.
      */
@@ -677,16 +677,17 @@ export class OPCUAProtocolClient implements ProtocolClient {
         }
         const body = await content.toBuffer();
         const inputArguments = (argumentDefinition.inputArguments ?? []) as unknown as Argument[];
-        // refuses any contentType other than application/opcua+uabinary, naming the replacement
+        // refuses any contentType other than application/opcua+uabinary
         const { view } = resolveContentFormat(content.type ?? form.contentType);
         return this._resolveUABinaryInputArguments(session, form, body, inputArguments, view);
     }
 
     /**
      * `application/opcua+uabinary` action input. Given by value, the codec hands the input
-     * object over as JSON, read as the Value view is. Given as bytes, it is a DataValue
-     * holding `KeyValuePair[]` (plan A1). Either way each argument is converted to its
-     * DataType, in the method's order; a structure argument is refused for now (plan A3).
+     * object over as JSON, one entry per argument: a bare value in the Value view, an OPC UA
+     * Variant with type=Variant or type=DataValue. Given as bytes, it is a DataValue
+     * holding `KeyValuePair[]`. Either way each argument is converted to its
+     * DataType, in the method's order; a structure argument is refused for now (issue #1583).
      */
     private async _resolveUABinaryInputArguments(
         session: IBasicSession,
@@ -760,11 +761,11 @@ export class OPCUAProtocolClient implements ProtocolClient {
         session: ClientSession
     ): Promise<Content> {
         const outputArguments = (argumentDefinition.outputArguments ?? []) as unknown as Argument[];
-        // refuses any contentType other than application/opcua+uabinary, naming the replacement
+        // refuses any contentType other than application/opcua+uabinary
         resolveContentFormat(form.contentType);
 
         // a DataValue holding KeyValuePair[], so that every payload is a DataValue and the
-        // argument names are kept (plan A1)
+        // argument names are kept
         const value = argumentsToVariant(
             outputArguments.map((argument, index) => [argument.name ?? "null", outputVariants[index]])
         );

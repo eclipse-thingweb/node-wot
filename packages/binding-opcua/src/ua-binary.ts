@@ -16,7 +16,6 @@
 //
 // `application/opcua+uabinary` on opc.tcp forms: the payload is an OPC UA Binary DataValue
 // (OPC 10000-6 §5.2). Shared by the codec, which runs in core, and by the binding.
-// See doc/decisions.md (D8).
 //
 
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -132,7 +131,7 @@ export function holdsStructure(variant: Variant | undefined): boolean {
 
 /**
  * Action arguments as a Variant holding `KeyValuePair[]`: the argument names are kept, as a
- * WoT action input is one object keyed by them (plan A1). The Call service itself carries
+ * WoT action input is one object keyed by them. The Call service itself carries
  * a `Variant[]` matched by position; the binding converts between the two.
  */
 export function argumentsToVariant(args: [name: string, value: Variant][]): Variant {

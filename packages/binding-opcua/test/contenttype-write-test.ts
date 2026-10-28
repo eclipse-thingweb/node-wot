@@ -162,7 +162,7 @@ function makeNodeIdTD(contentType: string, type: string): WoT.ThingDescription {
     } as unknown as WoT.ThingDescription;
 }
 
-/** a structure of namespace 0, to check that structures are refused for now (plan A3) */
+/** a structure of namespace 0, to check that structures are refused for now (issue #1583) */
 function makeRangeTD(contentType: string): WoT.ThingDescription {
     return {
         "@context": "https://www.w3.org/2019/wot/td/v1",
@@ -257,16 +257,16 @@ describe("contentType write round-trip", function () {
             );
         });
 
-        it("refuses application/json, naming its replacement", async function () {
+        it("refuses application/json", async function () {
             const thing = await wot.consume(makeTD(CASES[0], "application/json"));
             await expect(thing.writeProperty("v", 1.5 as WoT.DataSchemaValue)).to.be.rejectedWith(
-                /Use 'application\/opcua\+uabinary'/
+                /unsupported contentType 'application\/json'/
             );
         });
     });
 
     describe("application/opcua+uabinary (the Value view, the default)", function () {
-        // The payload is a UA Binary DataValue; value() is the decoded value. See doc/decisions.md (D8).
+        // The payload is a UA Binary DataValue; value() is the decoded value.
         for (const c of CASES) {
             it(`${c.key} survives a write/read round-trip, written as a value-only DataValue`, async function () {
                 const thing = await wot.consume(makeTD(c, UABINARY));
@@ -365,11 +365,11 @@ describe("contentType write round-trip", function () {
             );
         });
 
-        it("refuses a structure, by value and as bytes, pointing at plan question A3", async function () {
+        it("refuses a structure, by value and as bytes, pointing at issue #1583", async function () {
             const thing = await wot.consume(makeRangeTD(UABINARY));
             await expect(
                 thing.writeProperty("v", { Low: 0, High: 10 } as unknown as WoT.DataSchemaValue)
-            ).to.be.rejectedWith(/writing a structure .* is not supported yet[\s\S]*A3/);
+            ).to.be.rejectedWith(/writing a structure .* is not supported yet[\s\S]*issues\/1583/);
 
             const bytes = encodeUABinaryDataValue(
                 new DataValue({ value: { dataType: DataType.ExtensionObject, value: new Range({ low: 0, high: 10 }) } })
@@ -379,7 +379,7 @@ describe("contentType write round-trip", function () {
     });
 
     describe("type=Variant and type=DataValue: the same payload, a richer value()", function () {
-        // OPC UA JSON 1.05 Compact (OPC 10000-6 5.4). See doc/opcua-json-encoding.md.
+        // OPC UA JSON 1.05 Compact (OPC 10000-6 5.4).
         function doubleCase(): WriteCase {
             const c = CASES.find((x) => x.key === "Double");
             if (c === undefined) {

@@ -52,8 +52,6 @@ function render(dataValue: DataValue, view: OPCUAView, namespaceArray: string[] 
  * - `uaconn=<id>`: the session whose namespace table and structure definitions decode the
  *   payload, as the binding would;
  * - `uapart=arguments`: the payload holds action arguments as `KeyValuePair[]`.
- *
- * See doc/decisions.md (D8).
  */
 export class OpcuaUABinaryCodec implements ContentCodec {
     getMediaType(): string {
@@ -84,9 +82,9 @@ export class OpcuaUABinaryCodec implements ContentCodec {
     }
 
     /**
-     * A value of built-in types becomes a DataValue holding only the value (plan W1). Anything
+     * A value of built-in types becomes a DataValue holding only the value. Anything
      * else needs the server to be encoded, so it is handed over to the binding as JSON: a
-     * structure or an action input (plan section 6.7), and a Variant or DataValue view, whose
+     * structure or an action input, and a Variant or DataValue view, whose
      * NodeIds only the session's namespace table can map.
      */
     valueToBytes(value: unknown, _schema?: DataSchema, parameters?: { [key: string]: string }): Buffer {
