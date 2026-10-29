@@ -36,6 +36,23 @@ export interface FakeRequest {
     route: Buffer;
 }
 
+export interface FakeSymbol {
+    instance: number;
+    name: string;
+    type: number;
+    elementLength?: number;
+    dimensions?: [number, number, number];
+    /** 0 read/write, 2 read only, 3 none. */
+    externalAccess?: number;
+}
+
+export interface FakeTemplate {
+    /** Complete reply data of Get Attribute List. */
+    attributes: Buffer;
+    /** Complete template body. */
+    body: Buffer;
+}
+
 const SESSION_HANDLE = 0x1234;
 
 function u16(value: number): Buffer {
@@ -83,6 +100,14 @@ function decodePath(path: Buffer): string {
 /** A minimal in-process EtherNet/IP endpoint that serves tags through the Logix tag services. */
 export class FakeEipServer {
     readonly tags = new Map<string, FakeTag>();
+    readonly templates = new Map<number, FakeTemplate>();
+    symbols: FakeSymbol[] = [];
+    /** Reply data of Get Attributes All on the identity object. */
+    identity: Buffer = Buffer.alloc(0);
+    /** Entries per symbol list reply; larger lists are answered with a partial transfer. */
+    symbolPageSize = 1000;
+    /** When false the symbol list rejects the external access attribute like older firmware does. */
+    externalAccess = true;
     requests: FakeRequest[] = [];
     connections = 0;
     /** Data bytes per Read Tag reply; larger values are answered with a partial transfer. */
@@ -110,6 +135,11 @@ export class FakeEipServer {
 
     reset(): void {
         this.tags.clear();
+        this.templates.clear();
+        this.symbols = [];
+        this.identity = Buffer.alloc(0);
+        this.symbolPageSize = 1000;
+        this.externalAccess = true;
         this.requests = [];
         this.connections = 0;
         this.maxFragment = 400;
@@ -171,9 +201,67 @@ export class FakeEipServer {
         return Buffer.concat([Buffer.from([service | 0x80, 0, status, extended.length]), ...extended.map(u16), data]);
     }
 
+    private handleObject(service: number, path: Buffer, body: Buffer, route: Buffer): Buffer {
+        const classId = path[1];
+        const instanceAt = 2;
+        const instance = path[instanceAt] === 0x25 ? path.readUInt16LE(instanceAt + 2) : path[instanceAt + 1];
+        this.requests.push({
+            service,
+            tag: `class 0x${classId.toString(16)} instance ${instance}`,
+            route: Buffer.from(route),
+        });
+
+        if (classId === 0x01 && service === 0x01) return this.reply(service, 0, this.identity);
+        if (classId === 0x6b && service === 0x55) return this.symbolList(service, instance, body);
+        if (classId === 0x6c) {
+            const template = this.templates.get(instance);
+            if (template === undefined) return this.reply(service, 0x05);
+            if (service === 0x03) return this.reply(service, 0, template.attributes);
+            if (service === 0x4c) {
+                const offset = body.readUInt32LE(0);
+                const length = Math.min(body.readUInt16LE(4), template.body.length - offset);
+                const chunk = template.body.subarray(offset, offset + Math.min(length, this.maxFragment));
+                return this.reply(service, offset + chunk.length < offset + length ? 0x06 : 0, chunk);
+            }
+        }
+        return this.reply(service, 0x08);
+    }
+
+    private symbolList(service: number, start: number, body: Buffer): Buffer {
+        const attributes: number[] = [];
+        for (let i = 0; i < body.readUInt16LE(0); i++) attributes.push(body.readUInt16LE(2 + i * 2));
+        if (!this.externalAccess && attributes.includes(10)) return this.reply(service, 0x14);
+
+        const remaining = this.symbols.filter((symbol) => symbol.instance >= start);
+        const page = remaining.slice(0, this.symbolPageSize);
+        const parts: Buffer[] = [];
+        for (const symbol of page) {
+            const [d1, d2, d3] = symbol.dimensions ?? [0, 0, 0];
+            const dimensions = Buffer.alloc(12);
+            dimensions.writeUInt32LE(d1, 0);
+            dimensions.writeUInt32LE(d2, 4);
+            dimensions.writeUInt32LE(d3, 8);
+            const name = Buffer.from(symbol.name, "latin1");
+            const instance = Buffer.alloc(4);
+            instance.writeUInt32LE(symbol.instance);
+            parts.push(instance);
+            for (const attribute of attributes) {
+                if (attribute === 1) parts.push(u16(name.length), name);
+                else if (attribute === 2) parts.push(u16(symbol.type));
+                else if (attribute === 7) parts.push(u16(symbol.elementLength ?? 0));
+                else if (attribute === 8) parts.push(dimensions);
+                else if (attribute === 10) parts.push(Buffer.from([symbol.externalAccess ?? 0]));
+            }
+        }
+        return this.reply(service, remaining.length > page.length ? 0x06 : 0, Buffer.concat(parts));
+    }
+
     private handle(request: Buffer, route: Buffer): Buffer {
         const service = request[0];
         const pathEnd = 2 + request[1] * 2;
+        if (request[2] === 0x20) {
+            return this.handleObject(service, request.subarray(2, pathEnd), request.subarray(pathEnd), route);
+        }
         const name = decodePath(request.subarray(2, pathEnd));
         const body = request.subarray(pathEnd);
         this.requests.push({ service, tag: name, route: Buffer.from(route) });

@@ -23,7 +23,8 @@ import {
 } from "@node-wot/core";
 import { Subscription } from "rxjs/Subscription";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
-import { EipAddress, parseEipHref } from "./eip-address";
+import { EipAddress, EipEndpoint, parseEipEndpoint, parseEipHref } from "./eip-address";
+import { EipBrowser } from "./eip-browse";
 import { EipValueLayout, layoutFromForm } from "./eip-codec";
 import { EipConnection, EipOperationOptions } from "./eip-connection";
 import { EipForm } from "./eip-form";
@@ -130,8 +131,20 @@ export default class EipClient implements ProtocolClient {
         });
     }
 
+    /** Browses the controller at `uri` (`eip://host[:port][/route-path/]`) and returns its Thing Description. */
     async requestThingDescription(uri: string): Promise<Content> {
-        throw new Error("Method not implemented");
+        const endpoint = parseEipEndpoint(uri);
+        const { session } = this.endpointFor(endpoint);
+        const { thingDescription, skipped } = await new EipBrowser(session).browse(endpoint);
+        if (skipped.length > 0) {
+            const names = skipped.map((tag) => tag.name);
+            warn(
+                `Browsing ${uri} skipped ${names.length} tags: ${names.slice(0, 10).join(", ")}${
+                    names.length > 10 ? ", ..." : ""
+                }`
+            );
+        }
+        return ContentSerdes.get().valueToContent(thingDescription, undefined, ContentSerdes.TD);
     }
 
     async start(): Promise<void> {
@@ -166,7 +179,7 @@ export default class EipClient implements ProtocolClient {
         return { endpoint: this.endpointFor(address), address, layout, options };
     }
 
-    private endpointFor(address: EipAddress): Endpoint {
+    private endpointFor(address: EipEndpoint): Endpoint {
         const key = `${address.host}:${address.port}/${address.routePath.join(",")}`;
         let endpoint = this.endpoints.get(key);
         if (endpoint === undefined) {

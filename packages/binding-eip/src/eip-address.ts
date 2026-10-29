@@ -17,11 +17,14 @@ export const DEFAULT_PORT = 44818;
 const DEFAULT_ROUTE_PATH = ["1", "0"];
 const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
 
-export interface EipAddress {
+export interface EipEndpoint {
     host: string;
     port: number;
     /** CIP route path as port/address pairs, flattened, e.g. ["1", "0"] for backplane slot 0. */
     routePath: string[];
+}
+
+export interface EipAddress extends EipEndpoint {
     /** Percent-decoded symbolic tag path. */
     tagPath: string;
     byteOffset: number;
@@ -46,11 +49,7 @@ function parseRoutePath(raw: string): string[] {
     return parts;
 }
 
-/**
- * Splits an absolute eip:// href into endpoint, CIP route path, tag path and byte offset.
- * Logix tag names never start with a digit, so a leading numeric segment is the route path.
- */
-export function parseEipHref(href: string): EipAddress {
+function parseEipUrl(href: string): { url: URL; host: string; port: number } {
     let url: URL;
     try {
         url = new URL(href);
@@ -66,6 +65,34 @@ export function parseEipHref(href: string): EipAddress {
         throw new Error(`Missing host in href '${href}'`);
     }
     const port = url.port === "" ? DEFAULT_PORT : parseInt(url.port, 10);
+    return { url, host, port };
+}
+
+/** Parses `eip://host[:port][/route-path][/]`, an endpoint without a tag path, as used to browse a controller. */
+export function parseEipEndpoint(uri: string): EipEndpoint {
+    const { url, host, port } = parseEipUrl(uri);
+    const segments = url.pathname.replace(/^\//, "").replace(/\/$/, "").split("/");
+    if (url.search !== "" || url.hash !== "" || segments.length > 1) {
+        throw new Error(`Unexpected tag path, query or fragment in endpoint '${uri}'`);
+    }
+    if (segments[0] === "") return { host, port, routePath: DEFAULT_ROUTE_PATH };
+    if (!/^\d/.test(segments[0])) throw new Error(`Unexpected tag path '${segments[0]}' in endpoint '${uri}'`);
+    return { host, port, routePath: parseRoutePath(segments[0]) };
+}
+
+/** The `eip://host[:port]/route-path/` URI of an endpoint, usable as the `base` of a Thing Description. */
+export function eipEndpointUri(endpoint: EipEndpoint): string {
+    const host = endpoint.host.includes(":") ? `[${endpoint.host}]` : endpoint.host;
+    const port = endpoint.port === DEFAULT_PORT ? "" : `:${endpoint.port}`;
+    return `eip://${host}${port}/${endpoint.routePath.join(",")}/`;
+}
+
+/**
+ * Splits an absolute eip:// href into endpoint, CIP route path, tag path and byte offset.
+ * Logix tag names never start with a digit, so a leading numeric segment is the route path.
+ */
+export function parseEipHref(href: string): EipAddress {
+    const { url, host, port } = parseEipUrl(href);
 
     const segments = url.pathname.replace(/^\//, "").split("/");
     let routePath = DEFAULT_ROUTE_PATH;

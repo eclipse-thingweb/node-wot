@@ -154,10 +154,6 @@ describe("EtherNet/IP client", () => {
             await expect(client.invokeResource(form("A"), jsonContent(1))).to.be.rejectedWith("action");
         });
 
-        it("does not fetch Thing Descriptions", async () => {
-            await expect(client.requestThingDescription("eip://127.0.0.1/1,0/")).to.be.rejectedWith("not implemented");
-        });
-
         it("does not apply security metadata", () => {
             expect(client.setSecurity([])).to.equal(false);
         });

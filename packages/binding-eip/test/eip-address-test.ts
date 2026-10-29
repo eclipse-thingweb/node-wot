@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR W3C-20150513
  ********************************************************************************/
 import { expect } from "chai";
-import { parseEipHref } from "../src/eip-address";
+import { parseEipEndpoint, parseEipHref } from "../src/eip-address";
 
 describe("EtherNet/IP href parsing", () => {
     it("parses host, default port, route path and tag of the sample TD", () => {
@@ -90,5 +90,34 @@ describe("EtherNet/IP href parsing", () => {
         expect(() => parseEipHref("eip://h/1,0/Tag?3")).to.throw("query");
         expect(() => parseEipHref("eip://h/1,0/Tag?offset=-1")).to.throw("offset");
         expect(() => parseEipHref("eip://h/1,0/Tag?offset=abc")).to.throw("offset");
+    });
+});
+
+describe("EtherNet/IP endpoint parsing", () => {
+    it("parses host, port and route path with and without the trailing slash", () => {
+        const expected = { host: "192.168.100.218", port: 44818, routePath: ["1", "0"] };
+        expect(parseEipEndpoint("eip://192.168.100.218/1,0/")).to.deep.equal(expected);
+        expect(parseEipEndpoint("eip://192.168.100.218/1,0")).to.deep.equal(expected);
+    });
+
+    it("assumes route path 1,0 and the default port", () => {
+        expect(parseEipEndpoint("eip://h")).to.deep.equal({ host: "h", port: 44818, routePath: ["1", "0"] });
+        expect(parseEipEndpoint("eip://h/")).to.deep.equal({ host: "h", port: 44818, routePath: ["1", "0"] });
+    });
+
+    it("keeps an explicit port, an IPv6 literal and a multi-hop route", () => {
+        expect(parseEipEndpoint("eip://10.0.0.1:44819/1,4,2,192.168.1.20,1,0/")).to.deep.equal({
+            host: "10.0.0.1",
+            port: 44819,
+            routePath: ["1", "4", "2", "192.168.1.20", "1", "0"],
+        });
+        expect(parseEipEndpoint("eip://[::1]/1,0/").host).to.equal("::1");
+    });
+
+    it("rejects a tag path, a query and other schemes", () => {
+        expect(() => parseEipEndpoint("eip://h/1,0/Tag")).to.throw("tag path");
+        expect(() => parseEipEndpoint("eip://h/Tag")).to.throw("tag path");
+        expect(() => parseEipEndpoint("eip://h/1,0/?offset=1")).to.throw("query");
+        expect(() => parseEipEndpoint("http://h/1,0/")).to.throw("scheme");
     });
 });

@@ -15,9 +15,12 @@
 export { default as EipClient } from "./eip-client";
 export { default as EipClientFactory } from "./eip-client-factory";
 export * from "./eip-address";
+export * from "./eip-browse";
 export * from "./eip-codec";
 export * from "./eip-connection";
+export * from "./eip-discovery";
 export * from "./eip-form";
 export * from "./eip-form-validation";
 export * from "./eip-protocol";
 export * from "./eip-session";
+export * from "./eip-symbols";
