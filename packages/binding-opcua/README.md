@@ -111,11 +111,11 @@ An `opc.tcp` form takes `application/opcua+uabinary` (OPC 10000-6 Table 80, plan
 Binding 1.1). The payload is the OPC UA Binary DataValue the server sent; the `type` parameter
 picks what `value()` returns:
 
-| contentType                                 | `value()`                                                       |
-| ------------------------------------------- | --------------------------------------------------------------- |
-| `application/opcua+uabinary`                | the value: `25.5`                                               |
-| `application/opcua+uabinary;type=Variant`   | the value and its OPC UA type: `{"UaType":11,"Value":25.5}`     |
-| `application/opcua+uabinary;type=DataValue` | the Variant with `Status`, `SourceTimestamp`, `ServerTimestamp` |
+| contentType                                                             | `value()`                                                       |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `application/opcua+uabinary` or `application/opcua+uabinary;type=Value` | the value: `25.5`                                               |
+| `application/opcua+uabinary;type=Variant`                               | the value and its OPC UA type: `{"UaType":11,"Value":25.5}`     |
+| `application/opcua+uabinary;type=DataValue`                             | the Variant with `Status`, `SourceTimestamp`, `ServerTimestamp` |
 
 The Variant and DataValue views return an object, so the affordance declares `"type": "object"`.
 `arrayBuffer()` returns the OPC UA Binary DataValue, whatever the view.
