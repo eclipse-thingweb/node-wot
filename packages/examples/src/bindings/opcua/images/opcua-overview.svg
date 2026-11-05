@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 860 310" width="860" height="310" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>How a node-wot script talks to an OPC UA server</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#57606a"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="858" height="308" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="24" y="38" font-size="17" font-weight="600" fill="#1f2328">How a node-wot script talks to an OPC UA server</text>
+
+  <!-- 1. Script -->
+  <rect x="24" y="62" width="230" height="160" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="40" y="90" font-size="14" font-weight="600" fill="#1f2328">1. Your script</text>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12.5" fill="#0550ae">
+    <text x="40" y="122">wot.consume(td)</text>
+    <text x="40" y="146">readProperty(...)</text>
+    <text x="40" y="170">observeProperty(...)</text>
+    <text x="40" y="194">invokeAction(...)</text>
+  </g>
+
+  <!-- 2. Servient -->
+  <rect x="315" y="62" width="230" height="160" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="331" y="90" font-size="14" font-weight="600" fill="#1f2328">2. node-wot Servient</text>
+  <rect x="331" y="108" width="198" height="44" rx="8" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="430" y="135" font-size="13" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" text-anchor="middle" fill="#0550ae">OPCUAClientFactory</text>
+  <text x="331" y="180" font-size="12.5" fill="#57606a">Reads the forms of the TD.</text>
+  <text x="331" y="200" font-size="12.5" fill="#57606a">Opens one OPC UA session.</text>
+
+  <!-- 3. Server -->
+  <rect x="606" y="62" width="230" height="160" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="622" y="90" font-size="14" font-weight="600" fill="#1f2328">3. OPC UA server</text>
+  <g font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="12.5" fill="#1f2328">
+    <text x="622" y="122">Objects</text>
+    <text x="626" y="142">└ 2:DeviceSet</text>
+    <text x="642" y="162">└ 1:CoffeeMachineA</text>
+    <text x="658" y="182">├ 7:Parameters</text>
+    <text x="658" y="202">└ 2:MethodSet</text>
+  </g>
+
+  <!-- arrows -->
+  <line x1="258" y1="142" x2="311" y2="142" stroke="#57606a" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="284" y="132" font-size="11.5" text-anchor="middle" fill="#57606a">WoT API</text>
+  <line x1="549" y1="142" x2="602" y2="142" stroke="#57606a" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="575" y="132" font-size="11.5" text-anchor="middle" fill="#57606a">opc.tcp</text>
+
+  <!-- TD form -->
+  <rect x="24" y="240" width="812" height="52" rx="10" fill="#fff8c5" stroke="#d4a72c"/>
+  <text x="40" y="262" font-size="12.5" font-weight="600" fill="#1f2328">A form in the Thing Description (TD) tells the binding which OPC UA node to use:</text>
+  <text x="40" y="282" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">"opcua:nodeId": { "root": "i=84", "path": "/Objects/2:DeviceSet/1:CoffeeMachineA/7:Parameters/..." }</text>
+</svg>

@@ -50,10 +50,11 @@ interface UAVariable2 extends UAVariable {
     ): DataValue;
 }
 
-export async function startServer(): Promise<OPCUAServer> {
+/** @param extraNodesets loaded after the standard and DI nodesets, for example nodesets.autoId */
+export async function startServer(extraNodesets: string[] = []): Promise<OPCUAServer> {
     const server = new OPCUAServer({
         port: 7890,
-        nodeset_filename: [nodesets.standard, nodesets.di],
+        nodeset_filename: [nodesets.standard, nodesets.di, ...extraNodesets],
 
         userManager: {
             isValidUser(userName: string, password: string): boolean {

@@ -14,7 +14,7 @@
  ********************************************************************************/
 
 import { ProtocolClientFactory, ProtocolClient, ContentSerdes, createLoggers } from "@node-wot/core";
-import { OpcuaJSONCodec, OpcuaBinaryCodec } from "./codec";
+import { OpcuaUABinaryCodec } from "./codec";
 import { OPCUAProtocolClient } from "./opcua-protocol-client";
 
 const { debug, error } = createLoggers("binding-opcua", "factory");
@@ -27,8 +27,7 @@ export class OPCUAClientFactory implements ProtocolClientFactory {
     public contentSerdes: ContentSerdes = ContentSerdes.get();
 
     constructor() {
-        this.contentSerdes.addCodec(new OpcuaJSONCodec());
-        this.contentSerdes.addCodec(new OpcuaBinaryCodec());
+        this.contentSerdes.addCodec(new OpcuaUABinaryCodec());
     }
 
     getClient(): ProtocolClient {

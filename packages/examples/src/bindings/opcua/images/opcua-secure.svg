@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 860 300" width="860" height="300" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>The two security layers of demo-opcua-secure</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#57606a"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="858" height="298" rx="12" fill="#ffffff" stroke="#d0d7de"/>
+  <text x="24" y="38" font-size="17" font-weight="600" fill="#1f2328">Two independent security layers, combined with "allOf"</text>
+
+  <!-- combo bracket -->
+  <rect x="24" y="62" width="500" height="216" rx="10" fill="#f6f8fa" stroke="#d0d7de" stroke-dasharray="6 4"/>
+  <text x="40" y="86" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#57606a">opcua_sc: { scheme: "combo", allOf: [ ... ] }</text>
+
+  <!-- layer 1 -->
+  <rect x="40" y="100" width="468" height="76" rx="8" fill="#dafbe1" stroke="#4ac26b"/>
+  <text x="56" y="124" font-size="14" font-weight="600" fill="#1f2328">Layer 1 — the connection</text>
+  <text x="56" y="146" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">scheme: "uav:channelsec"</text>
+  <text x="56" y="164" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">SignAndEncrypt · Basic256Sha256</text>
+
+  <!-- layer 2 -->
+  <rect x="40" y="188" width="468" height="76" rx="8" fill="#ddf4ff" stroke="#54aeff"/>
+  <text x="56" y="212" font-size="14" font-weight="600" fill="#1f2328">Layer 2 — the user</text>
+  <text x="56" y="234" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">scheme: "uav:authentication"</text>
+  <text x="56" y="252" font-size="12.5" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">userIdentityToken: "UserName"</text>
+
+  <!-- credentials -->
+  <rect x="590" y="176" width="246" height="100" rx="10" fill="#fff8c5" stroke="#d4a72c"/>
+  <text x="606" y="200" font-size="14" font-weight="600" fill="#1f2328">Credentials</text>
+  <text x="606" y="222" font-size="12" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">servient.addCredentials({</text>
+  <text x="620" y="240" font-size="12" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">[thingId]: { userName, password }</text>
+  <text x="606" y="258" font-size="12" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" fill="#1f2328">})</text>
+  <line x1="586" y1="226" x2="512" y2="226" stroke="#57606a" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- note -->
+  <text x="590" y="96" font-size="13" font-weight="600" fill="#cf222e">The TD has no password.</text>
+  <text x="590" y="118" font-size="12.5" fill="#57606a">The servient keeps the credentials.</text>
+  <text x="590" y="138" font-size="12.5" fill="#57606a">It finds them with the "id" of the TD.</text>
+</svg>
