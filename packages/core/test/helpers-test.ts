@@ -68,6 +68,34 @@ class HelperTest {
         expect(validated.errors).to.be.undefined;
     }
 
+    @test "should reject unprefixed unknown security scheme on validation"() {
+        const thing: ExposedThingInit = {
+            title: "thingTest",
+            securityDefinitions: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                foo_sc: { scheme: "foo" as any },
+            },
+            security: "foo_sc",
+        };
+
+        const validated = Helpers.validateExposedThingInit(thing);
+        expect(validated.valid).to.be.false;
+    }
+
+    @test "should accept prefixed unknown security scheme on schema validation as extension scheme"() {
+        const thing: ExposedThingInit = {
+            title: "thingTest",
+            securityDefinitions: {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                iot_sc: { scheme: "iot:nosecXYZ" as any },
+            },
+            security: "iot_sc",
+        };
+
+        const validated = Helpers.validateExposedThingInit(thing);
+        expect(validated.valid).to.be.true;
+    }
+
     @test "should reject ThingModel with extends on validation"() {
         const thing: ExposedThingInit = {
             title: "thingTest",

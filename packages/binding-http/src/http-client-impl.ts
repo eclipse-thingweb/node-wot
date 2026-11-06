@@ -53,7 +53,7 @@ import {
 import { LongPollingSubscription, SSESubscription, InternalSubscription } from "./subscription-protocols";
 import { Readable } from "stream";
 
-const { debug, warn, error } = createLoggers("binding-http", "http-client-impl");
+const { debug, warn } = createLoggers("binding-http", "http-client-impl");
 
 export default class HttpClient implements ProtocolClient {
     private readonly agent: http.Agent;
@@ -263,92 +263,134 @@ export default class HttpClient implements ProtocolClient {
             return false;
         }
 
-        // TODO support for multiple security schemes
-        const security: SecurityScheme = metadata[0];
-        switch (security.scheme) {
-            case "basic": {
-                const securityBasic: BasicSecurityScheme = <BasicSecurityScheme>security;
+        let hasSetCredential = false;
+        for (const security of metadata) {
+            switch (security.scheme) {
+                case "basic": {
+                    const securityBasic: BasicSecurityScheme = <BasicSecurityScheme>security;
 
-                this.credential = new BasicCredential(credentials as BasicCredentialConfiguration, securityBasic);
-                break;
+                    if (!hasSetCredential) {
+                        this.credential = new BasicCredential(
+                            credentials as BasicCredentialConfiguration,
+                            securityBasic
+                        );
+                        hasSetCredential = true;
+                    }
+                    break;
+                }
+                case "bearer": {
+                    const securityBearer: BearerSecurityScheme = <BearerSecurityScheme>security;
+
+                    if (!hasSetCredential) {
+                        this.credential = new BearerCredential(
+                            credentials as BearerCredentialConfiguration,
+                            securityBearer
+                        );
+                        hasSetCredential = true;
+                    }
+                    break;
+                }
+                case "apikey": {
+                    const securityAPIKey: APIKeySecurityScheme = <APIKeySecurityScheme>security;
+
+                    if (!hasSetCredential) {
+                        this.credential = new BasicKeyCredential(
+                            credentials as BasicKeyCredentialConfiguration,
+                            securityAPIKey
+                        );
+                        hasSetCredential = true;
+                    }
+                    break;
+                }
+                case "oauth2": {
+                    const securityOAuth: OAuth2SecurityScheme = <OAuth2SecurityScheme>security;
+
+                    if (!hasSetCredential) {
+                        if (securityOAuth.flow === "client") {
+                            securityOAuth.flow = "client_credentials";
+                            this.credential = this.oauth.handleClient(
+                                securityOAuth,
+                                credentials as OAuthClientConfiguration
+                            );
+                        } else if (securityOAuth.flow === "password") {
+                            this.credential = this.oauth.handleResourceOwnerCredential(
+                                securityOAuth,
+                                credentials as OAuthResourceOwnerConfiguration
+                            );
+                        }
+                        hasSetCredential = true;
+                    }
+                    break;
+                }
+                case "TuyaCustomBearer": {
+                    if (!hasSetCredential) {
+                        this.credential = new TuyaCustomBearer(
+                            credentials as TuyaCustomBearerCredentialConfiguration,
+                            security as TuyaCustomBearerSecurityScheme
+                        );
+                        hasSetCredential = true;
+                    }
+                    break;
+                }
+                case "nosec":
+                    break;
+                default: {
+                    // Schemes belonging to other bindings must remain ignored where appropriate.
+                    // An unknown or unsupported scheme that is not owned by another binding must fail explicitly.
+                    if (this.isForeignSecurityScheme(security.scheme)) {
+                        break;
+                    }
+                    throw new Error(`HttpClient cannot set security scheme '${security.scheme}'`);
+                }
             }
-            case "bearer": {
-                const securityBearer: BearerSecurityScheme = <BearerSecurityScheme>security;
 
-                this.credential = new BearerCredential(credentials as BearerCredentialConfiguration, securityBearer);
-                break;
-            }
-            case "apikey": {
-                const securityAPIKey: APIKeySecurityScheme = <APIKeySecurityScheme>security;
+            if (security.proxy != null) {
+                if (this.proxyRequest !== null) {
+                    debug(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
+                }
 
-                this.credential = new BasicKeyCredential(
-                    credentials as BasicKeyCredentialConfiguration,
-                    securityAPIKey
-                );
-                break;
-            }
-            case "oauth2": {
-                const securityOAuth: OAuth2SecurityScheme = <OAuth2SecurityScheme>security;
+                this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy));
 
-                if (securityOAuth.flow === "client") {
-                    securityOAuth.flow = "client_credentials";
-                    this.credential = this.oauth.handleClient(securityOAuth, credentials as OAuthClientConfiguration);
-                } else if (securityOAuth.flow === "password") {
-                    this.credential = this.oauth.handleResourceOwnerCredential(
-                        securityOAuth,
-                        credentials as OAuthResourceOwnerConfiguration
+                // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
+                if (security.scheme === "basic") {
+                    const basicCredential: BasicCredentialConfiguration = credentials as BasicCredentialConfiguration;
+                    if (
+                        basicCredential === undefined ||
+                        basicCredential.username === undefined ||
+                        basicCredential.password === undefined
+                    ) {
+                        throw new Error(`No Basic credentials for Thing`);
+                    }
+
+                    this.proxyRequest.headers.set(
+                        "proxy-authorization",
+                        "Basic " +
+                            Buffer.from(basicCredential.username + ":" + basicCredential.password).toString("base64")
                     );
+                } else if (security.scheme === "bearer") {
+                    const tokenCredentials: BearerCredentialConfiguration =
+                        credentials as BearerCredentialConfiguration;
+                    if (credentials === undefined || tokenCredentials.token === undefined) {
+                        throw new Error(`No Bearer credentials for Thing`);
+                    }
+                    this.proxyRequest.headers.set("proxy-authorization", "Bearer " + tokenCredentials.token);
                 }
+            }
 
-                break;
-            }
-            case "TuyaCustomBearer": {
-                this.credential = new TuyaCustomBearer(
-                    credentials as TuyaCustomBearerCredentialConfiguration,
-                    security as TuyaCustomBearerSecurityScheme
-                );
-                break;
-            }
-            case "nosec":
-                break;
-            default:
-                error(`HttpClient cannot set security scheme '${security.scheme}'. ${metadata}`);
-                return false;
+            debug(`HttpClient using security scheme '${security.scheme}'`);
         }
 
-        if (security.proxy != null) {
-            if (this.proxyRequest !== null) {
-                debug(`HttpClient overriding client-side proxy with security proxy '${security.proxy}`);
-            }
-
-            this.proxyRequest = new Request(HttpClient.fixLocalhostName(security.proxy));
-
-            // TODO support for different credentials at proxy and server (e.g., credentials.username vs credentials.proxy.username)
-            if (security.scheme === "basic") {
-                const basicCredential: BasicCredentialConfiguration = credentials as BasicCredentialConfiguration;
-                if (
-                    basicCredential === undefined ||
-                    basicCredential.username === undefined ||
-                    basicCredential.password === undefined
-                ) {
-                    throw new Error(`No Basic credentials for Thing`);
-                }
-
-                this.proxyRequest.headers.set(
-                    "proxy-authorization",
-                    "Basic " + Buffer.from(basicCredential.username + ":" + basicCredential.password).toString("base64")
-                );
-            } else if (security.scheme === "bearer") {
-                const tokenCredentials: BearerCredentialConfiguration = credentials as BearerCredentialConfiguration;
-                if (credentials === undefined || tokenCredentials.token === undefined) {
-                    throw new Error(`No Bearer credentials for Thing`);
-                }
-                this.proxyRequest.headers.set("proxy-authorization", "Bearer " + tokenCredentials.token);
-            }
-        }
-
-        debug(`HttpClient using security scheme '${security.scheme}'`);
         return true;
+    }
+
+    private isForeignSecurityScheme(scheme: string): boolean {
+        return (
+            scheme?.startsWith("uav:") ||
+            scheme === "psk" ||
+            scheme === "digest" ||
+            scheme === "auto" ||
+            scheme === "combo"
+        );
     }
 
     protected async generateFetchRequest(

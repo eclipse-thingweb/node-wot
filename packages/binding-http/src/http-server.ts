@@ -550,34 +550,52 @@ export default class HttpServer implements ProtocolServer {
         }
     }
 
+    private isSupportedOrForeignSecurityScheme(scheme: string): boolean {
+        const lower = scheme.toLocaleLowerCase();
+        return (
+            this.supportedSecuritySchemes.includes(lower) ||
+            (lower === "oauth2" && this.supportedSecuritySchemes.includes("oauth")) ||
+            lower.startsWith("uav:") ||
+            lower === "psk" ||
+            lower === "apikey" ||
+            lower === "auto" ||
+            lower === "combo" ||
+            lower === "tuyacustombearer"
+        );
+    }
+
     private fillSecurityScheme(thing: ExposedThing) {
-        // User selected one security scheme
+        // User selected one or more security schemes
         if (thing.security.length > 0) {
-            // multiple security schemes are deprecated we are not supporting them
-            const securityScheme = Helpers.toStringArray(thing.security)[0];
-            const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-                return key === securityScheme;
+            const securityList = Helpers.toStringArray(thing.security);
+            for (const secKey of securityList) {
+                if (thing.securityDefinitions[secKey] == null) {
+                    throw new Error(
+                        "Security scheme not found in thing security definitions. Thing security definitions: " +
+                            Object.keys(thing.securityDefinitions).join(", ")
+                    );
+                }
+                const schemeName = thing.securityDefinitions[secKey].scheme;
+                if (!this.isSupportedOrForeignSecurityScheme(schemeName)) {
+                    throw new Error(`HttpServer does not support security scheme '${schemeName}'`);
+                }
+            }
+
+            const secCandidate = securityList.find((secKey) => {
+                const thingScheme = thing.securityDefinitions[secKey].scheme.toLocaleLowerCase();
+                return (
+                    this.supportedSecuritySchemes.includes(thingScheme) ||
+                    (thingScheme === "oauth2" && this.supportedSecuritySchemes.includes("oauth"))
+                );
             });
 
             if (secCandidate == null) {
-                throw new Error(
-                    "Security scheme not found in thing security definitions. Thing security definitions: " +
-                        Object.keys(thing.securityDefinitions).join(", ")
-                );
-            }
-
-            const isSupported = this.supportedSecuritySchemes.find((supportedScheme) => {
-                const thingScheme = thing.securityDefinitions[secCandidate].scheme;
-                return thingScheme === supportedScheme.toLocaleLowerCase();
-            });
-
-            if (isSupported == null) {
                 throw new Error(
                     "Servient does not support thing security schemes. Current scheme supported: " +
                         this.supportedSecuritySchemes.join(", ")
                 );
             }
-            // We don't need to do anything else, the user has selected one supported security scheme.
+            // We don't need to do anything else, the user has selected a supported security scheme.
             return;
         }
 
@@ -595,12 +613,11 @@ export default class HttpServer implements ProtocolServer {
         // User provided a bunch of security schemes but no thing.security
         // we select one for him. We select the first supported scheme.
         const secCandidate = Object.keys(thing.securityDefinitions).find((key) => {
-            let scheme = thing.securityDefinitions[key].scheme;
-            // HTTP Authentication Scheme for OAuth does not contain the version number
-            // see https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-            // remove version number for oauth2 schemes
-            scheme = scheme === "oauth2" ? scheme.split("2")[0] : scheme;
-            return this.supportedSecuritySchemes.includes(scheme.toLocaleLowerCase());
+            const scheme = thing.securityDefinitions[key].scheme.toLocaleLowerCase();
+            return (
+                this.supportedSecuritySchemes.includes(scheme) ||
+                (scheme === "oauth2" && this.supportedSecuritySchemes.includes("oauth"))
+            );
         });
 
         if (secCandidate == null) {
@@ -613,10 +630,6 @@ export default class HttpServer implements ProtocolServer {
                         .join(", ")
             );
         }
-
-        const selectedSecurityScheme = thing.securityDefinitions[secCandidate];
-        thing.securityDefinitions = {};
-        thing.securityDefinitions[secCandidate] = selectedSecurityScheme;
 
         thing.security = [secCandidate];
     }
