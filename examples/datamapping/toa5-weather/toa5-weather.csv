@@ -1,0 +1,6 @@
+"TOA5","CR1000","CR1000","12345","CR1000.Std.32.07","CPU:weather.CR1X","1234","Weather"
+"TIMESTAMP","RECORD","AirTemp_C","RH","WindSpeed_ms"
+"TS","RN","Deg C","%","m/s"
+"","","Avg","Avg","Avg"
+"2026-06-25 10:00:00",1,23.4,56.2,4.8
+"2026-06-25 10:01:00",2,23.5,56.0,4.6

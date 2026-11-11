@@ -1,0 +1,17 @@
+services:
+    influxdb:
+        image: influxdb:1.8
+        ports:
+            - "8086:8086"
+
+    storm-data-loader:
+        image: node:22-alpine
+        depends_on:
+            - influxdb
+        environment:
+            INFLUXDB_URL: http://influxdb:8086
+            CSV_FILE: /data/storm_data.csv
+        volumes:
+            - ../storm-data-file/storm_data.csv:/data/storm_data.csv:ro
+            - ./load-storm-data.js:/app/load-storm-data.js:ro
+        command: ["node", "/app/load-storm-data.js"]

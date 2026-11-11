@@ -19,6 +19,7 @@ import JsonCodec from "./codecs/json-codec";
 import TextCodec from "./codecs/text-codec";
 import Base64Codec from "./codecs/base64-codec";
 import OctetstreamCodec from "./codecs/octetstream-codec";
+import CsvCodec from "./codecs/csv-codec";
 import { DataSchema, DataSchemaValue } from "wot-typescript-definitions";
 import { Readable } from "stream";
 import { ProtocolHelpers } from "./core";
@@ -27,15 +28,25 @@ import { createLoggers } from "./logger";
 
 const { debug, warn } = createLoggers("core", "content-serdes");
 
+export interface ContentCodingContext {
+    options?: Record<string, unknown>;
+}
+
 /** is a plugin for ContentSerdes for a specific format (such as JSON or EXI) */
 export interface ContentCodec {
     getMediaType(): string;
     bytesToValue(
         bytes: Buffer,
         schema?: DataSchema,
-        parameters?: { [key: string]: string | undefined }
+        parameters?: { [key: string]: string | undefined },
+        context?: ContentCodingContext
     ): DataSchemaValue;
-    valueToBytes(value: unknown, schema?: DataSchema, parameters?: { [key: string]: string | undefined }): Buffer;
+    valueToBytes(
+        value: unknown,
+        schema?: DataSchema,
+        parameters?: { [key: string]: string | undefined },
+        context?: ContentCodingContext
+    ): Buffer;
 }
 
 interface ReadContent {
@@ -80,6 +91,8 @@ export class ContentSerdes {
             this.instance.addCodec(new Base64Codec("image/jpeg"));
             // OctetStream
             this.instance.addCodec(new OctetstreamCodec());
+            // CSV
+            this.instance.addCodec(new CsvCodec());
         }
         return this.instance;
     }
@@ -162,7 +175,12 @@ export class ContentSerdes {
         return this.findCodec(mt, scheme) !== undefined;
     }
 
-    public contentToValue(content: ReadContent, schema: DataSchema, scheme?: string): DataSchemaValue | undefined {
+    public contentToValue(
+        content: ReadContent,
+        schema: DataSchema,
+        scheme?: string,
+        context?: ContentCodingContext
+    ): DataSchemaValue | undefined {
         if (content.type === undefined) {
             if (content.body.byteLength > 0) {
                 // default to application/json
@@ -181,7 +199,7 @@ export class ContentSerdes {
         const codec = this.findCodec(mt, scheme);
         if (codec !== undefined) {
             debug(`ContentSerdes deserializing from ${content.type}${scheme !== undefined ? ` (${scheme})` : ""}`);
-            return codec.bytesToValue(content.body, schema, par);
+            return codec.bytesToValue(content.body, schema, par, context);
         } else {
             warn(`ContentSerdes passthrough due to unsupported media type '${mt}'`);
             return content.body.toString();
@@ -192,7 +210,8 @@ export class ContentSerdes {
         value: DataSchemaValue | ReadableStream,
         schema: DataSchema | undefined,
         contentType = ContentSerdes.DEFAULT,
-        scheme?: string
+        scheme?: string,
+        context?: ContentCodingContext
     ): Content {
         if (value === undefined) warn("ContentSerdes valueToContent got no value");
 
@@ -210,7 +229,7 @@ export class ContentSerdes {
         const codec = this.findCodec(mt, scheme);
         if (codec) {
             debug(`ContentSerdes serializing to ${contentType}`);
-            bytes = codec.valueToBytes(value, schema, par);
+            bytes = codec.valueToBytes(value, schema, par, context);
         } else {
             warn(`ContentSerdes passthrough due to unsupported serialization format '${contentType}'`);
             // TODO: doing a toString is not actually the right way
