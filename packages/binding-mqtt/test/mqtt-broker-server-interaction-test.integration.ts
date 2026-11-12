@@ -103,7 +103,10 @@ describe("MQTT broker server interaction implementation", () => {
         servient = new Servient();
         brokerServer = new MqttBrokerServer({ uri: brokerUri, selfHost: true });
         servient.addServer(brokerServer);
-        servient.addClientFactory(new MqttClientFactory());
+        servient.addClientFactory(new MqttClientFactory("mqtt"));
+        servient.addClientFactory(new MqttClientFactory("mqtts"));
+        servient.addClientFactory(new MqttClientFactory("ws+mqtt"));
+        servient.addClientFactory(new MqttClientFactory("wss+mqtt"));
         servient.start().then((WoT) => {
             WoT.produce(mqttThingModel)
                 .then((thing) => {
