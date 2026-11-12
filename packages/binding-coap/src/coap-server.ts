@@ -698,10 +698,10 @@ export default class CoapServer implements ProtocolServer {
 
         res.on("finish", (err: Error) => {
             error(`CoapServer on port ${this.port} failed on observe with: ${err.message}`);
-            thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions);
+            void thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions);
         });
 
-        setTimeout(() => thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions), 60 * 60 * 1000);
+        setTimeout(() => void thing.handleUnobserveProperty(affordanceKey, listener, interactionOptions), 60 * 60 * 1000);
     }
 
     private createContentListener(
@@ -886,7 +886,7 @@ export default class CoapServer implements ProtocolServer {
                         req.rsinfo.address
                     )}:${req.rsinfo.port}`
                 );
-                thing.handleUnsubscribeEvent(affordanceKey, listener, interactionOptions);
+                void thing.handleUnsubscribeEvent(affordanceKey, listener, interactionOptions);
             });
         } else if (observe > 0) {
             debug(
