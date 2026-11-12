@@ -83,7 +83,7 @@ export default class CoapServer implements ProtocolServer {
 
     constructor(config?: CoapServerConfig) {
         this.port = config?.port ?? 5683;
-        this.address = config?.address;
+        this.address = config?.address ?? "::";
 
         // WoT-specific content formats
         registerFormat(ContentSerdes.JSON_LD, 2100);
