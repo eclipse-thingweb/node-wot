@@ -43,18 +43,6 @@ function sleep(ms: number) {
 @suite("CoAP client implementation")
 class CoapClientTest {
     @test async "should apply form information"() {
-        // const testThing = Helpers.extend(
-        //     {
-        //         name: "Test",
-        //         properties: {
-        //             test: {},
-        //         },
-        //     },
-        //     new ExposedThing(null)
-        // );
-        // testThing.extendInteractions();
-        // await testThing.writeProperty("test", "UNSET");
-
         const coapServer = new CoapServer({ port: port1 });
 
         await coapServer.start(new Servient());

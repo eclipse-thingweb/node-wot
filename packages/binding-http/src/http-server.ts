@@ -57,9 +57,6 @@ export default class HttpServer implements ProtocolServer {
 
     private readonly OBSERVABLE_DIR = "observable";
 
-    // private readonly OPTIONS_URI_VARIABLES ='uriVariables';
-    // private readonly OPTIONS_BODY_VARIABLES ='body';
-
     private readonly port: number;
     private readonly address?: string;
     private readonly baseUri?: string;

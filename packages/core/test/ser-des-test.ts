@@ -605,7 +605,6 @@ class TDParserTest {
         jsonExpected = JSON.parse(tdSample3);
         jsonActual = JSON.parse(newJson3);
         // TODO how to compare best differences in observable/writable false compared to not present ?
-        // expect(jsonActual).to.deep.equal(jsonExpected);
         // sampleLemonbeatBurlingame
         // Note: avoid href normalization in this test-case
         const tdLemonbeatBurlingame: Thing = parseTD(tdSampleLemonbeatBurlingame, false);
@@ -645,7 +644,6 @@ class TDParserTest {
         expect(thingProperties.myTemp).to.have.property("reference").that.equals("threshold");
 
         // serialize
-        // const newJson = TDParser.serializeTD(thing);
         // TODO JSON.parse() and expect
     }
 
