@@ -86,25 +86,6 @@ describe("Netconf client implementation", function () {
 
         const payload = { type: { xmlns: "urn:ietf:params:xml:ns:yang:iana-if-type", value: "modem" } };
 
-        /* let schema = {
-            "properties": {
-                "type": {
-                    "nc:container": true,
-                    "type": "object",
-                    "properties": {
-                        "xmlns": {
-                            "type": "string",
-                            "nc:attribute": true,
-                            "format": "urn"
-                        },
-                        "value": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        } */
-
         try {
             await client.writeResource(
                 inputVector.form,

@@ -133,7 +133,6 @@ export default class NetconfCodec {
                     throw new Error(`Payload is missing '${key}' field specified in TD`);
                 }
                 if (el["xml:attribute"] === true) {
-                    // if (el.format && el.format === 'urn')
                     const ns = payload[key];
                     aliasNs = ns.split(":")[ns.split(":").length - 1];
                     namespaces[aliasNs] = payload[key];

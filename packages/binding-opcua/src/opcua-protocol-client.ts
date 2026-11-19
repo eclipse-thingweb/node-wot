@@ -333,7 +333,6 @@ export class OPCUAProtocolClient implements ProtocolClient {
     }
 
     private async _resolveMethodNodeId(form: OPCUAForm): Promise<NodeId> {
-        //  const objectNode = this._resolveNodeId(form);
         const fNodeId = form["opcua:method"];
         if (fNodeId == null) {
             debug(`resolveNodeId: form = ${form}`);

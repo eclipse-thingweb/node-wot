@@ -119,7 +119,6 @@ class HttpServerTest {
             },
             testThing
         );
-        // testThing.extendInteractions();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         testThing.properties.test.forms = [];

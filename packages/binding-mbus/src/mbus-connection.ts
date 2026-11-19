@@ -84,7 +84,6 @@ export class MBusConnection {
         this.host = host;
         this.port = port;
         this.client = new MbusMaster({
-            // new MBusClient();
             host: this.host,
             port: this.port,
             timeout: config.connectionTimeout,

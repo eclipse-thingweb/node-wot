@@ -140,7 +140,6 @@ describe("OPCUA Client", function () {
         const sub = await client.subscribeResource(form, async () => {
             counter++;
             if (counter > 3) {
-                // await client.unlinkResource(form);
                 sub.unsubscribe();
             }
         });
