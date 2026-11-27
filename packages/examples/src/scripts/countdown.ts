@@ -57,7 +57,6 @@ WoT.produce({
             description: "Start countdown in secs (default 100 secs)",
             input: {
                 // optional init value
-                /* type: "integer" */
                 oneOf: [{ type: "integer" }, {}],
             },
         },

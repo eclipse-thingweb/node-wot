@@ -197,7 +197,6 @@ export type ComboSecurityScheme = AllOfSecurityScheme | OneOfSecurityScheme;
 
 /** Implements the Thing Property description */
 export abstract class ThingProperty extends BaseSchema {
-    // writable: boolean;
     observable?: boolean;
     type?: string;
 

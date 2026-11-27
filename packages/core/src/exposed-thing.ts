@@ -128,21 +128,6 @@ export default class ExposedThing extends TD.Thing implements WoT.ExposedThing {
         const deepClonedModel = Helpers.structuredClone(thingModel);
         Object.assign(this, deepClonedModel);
 
-        // unset "@type":"tm:ThingModel" ?
-        // see https://github.com/eclipse-thingweb/node-wot/issues/426
-        /* if (this["@type"]) {
-            if (typeof this["@type"] === 'string' && this["@type"] === "tm:ThingModel") {
-                delete this["@type"];
-            } else if (Array.isArray(this["@type"])) {
-                let arr: Array<any> = this["@type"];
-                for (var i = 0; i < arr.length; i++) {
-                    if (arr[i] === "tm:ThingModel") {
-                        arr.splice(i, 1);
-                        i--;
-                    }
-                }
-            }
-        } */
         // set @language to "en" if no @language available
         setContextLanguage(this as WoT.ThingDescription, TD.DEFAULT_CONTEXT_LANGUAGE, false);
     }
